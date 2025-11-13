@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RWS BlackFog – Player v4.11</title>
+<title>RWS BlackFog – Player v4.12</title>
 <meta name="theme-color" content="#d72638" />
 <style>
 :root {
@@ -83,7 +83,7 @@ pre {
 }
 .options button[disabled] { opacity: 0.5; cursor: not-allowed; }
 
-/* vCISO */
+/* vCISO mentor panel on the right-hand side */
 .vciso {
   background: #020617;
   border-radius: 14px;
@@ -110,7 +110,7 @@ pre {
 }
 .vciso-typing { font-size: 12px; color: var(--muted); font-family: ui-monospace,monospace; }
 
-/* ticker */
+/* Bottom news ticker – gives ambient "live" feel to the range */
 .ticker-wrap {
   position: fixed;
   left: 0; right: 0; bottom: 0;
@@ -170,7 +170,7 @@ pre {
 <body>
 <header>
   <div style="display:flex; align-items:center; gap:8px;">
-    <h1>RWS BlackFog – Player v4.11</h1>
+    <h1>RWS BlackFog – Player v4.12</h1>
     <span class="pill" id="conn">Connecting…</span>
   </div>
   <button class="btn" id="btnRestart">Reset view</button>
@@ -179,6 +179,7 @@ pre {
 <div class="container">
   <div class="grid">
     <div>
+      <!-- Scenario card – initially in "standby" until first inject is received -->
       <section class="card">
         <h2 id="scTitle">Standby – awaiting scenario</h2>
         <p id="scDesc" class="standby">
@@ -186,11 +187,13 @@ pre {
         </p>
       </section>
 
+      <!-- Latest inject display; hidden until facilitator sends first inject -->
       <section class="card" id="injCard" style="margin-top:10px; display:none;">
         <h3>Latest inject</h3>
         <pre id="injText">Waiting for first inject…</pre>
       </section>
 
+      <!-- Decision panel shown only when an inject includes a decision block -->
       <section class="card" id="decCard" style="margin-top:10px; display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h3>Decision</h3>
@@ -208,6 +211,7 @@ pre {
       </section>
     </div>
 
+    <!-- vCISO mentor panel – comments based on inject type and phase -->
     <aside class="vciso">
       <h3 class="vciso-title"><span class="icon"></span> Live Mentor (vCISO)</h3>
       <div id="vcisoFeed">
@@ -230,142 +234,199 @@ pre {
 <div class="footer-space"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, onValue, onDisconnect, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+/*
+  RWS BlackFog – Player Console Script
+  ------------------------------------
+  Key responsibilities:
+  - Join a specific session (e.g. ?s=run-1).
+  - Listen for scenario + injects from facilitator.
+  - Reveal scenario only from the first inject onwards (no pre-reading).
+  - Display decision options and local countdown.
+  - Capture votes and push to Firebase.
+  - Drive vCISO "mentor" commentary based on inject type & phase.
+*/
 
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
+import { getDatabase, ref, onValue, onDisconnect, set, update } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+
+/* --- Firebase initialisation for RWS BlackFog project --- */
 const firebaseConfig = {
-  apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
-  authDomain: "rws-blackfog-game.firebaseapp.com",
-  databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rws-blackfog-game",
-  storageBucket: "rws-blackfog-game.firebasestorage.app",
-  messagingSenderId: "473543964029",
-  appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+  apiKey: 'AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0',
+  authDomain: 'rws-blackfog-game.firebaseapp.com',
+  databaseURL: 'https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'rws-blackfog-game',
+  storageBucket: 'rws-blackfog-game.firebasestorage.app',
+  messagingSenderId: '473543964029',
+  appId: '1:473543964029:web:4bc0db33634ed2f8894814'
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const $ = (id) => document.getElementById(id);
 
+/*
+  Session routing:
+  - Players join the same session as the facilitator via ?s= in the URL.
+  - Example: /player.html?s=run-1
+*/
 const urlS = new URLSearchParams(location.search).get('s');
 const session = urlS && urlS.trim() ? urlS.trim() : 'default';
 
-// Player identity
-function uid() { return "P-" + Math.random().toString(36).slice(2,8).toUpperCase(); }
-const storedId = localStorage.getItem("rws_player_id") || uid();
-localStorage.setItem("rws_player_id", storedId);
-let storedName = localStorage.getItem("rws_player_name");
+/*
+  Lightweight player identity:
+  - We persist a pseudo-ID and display name in localStorage.
+  - This lets the same browser reconnect gracefully without creating
+    multiple player entries in Firebase.
+*/
+function uid() { return 'P-' + Math.random().toString(36).slice(2,8).toUpperCase(); }
+const storedId = localStorage.getItem('rws_player_id') || uid();
+localStorage.setItem('rws_player_id', storedId);
+
+let storedName = localStorage.getItem('rws_player_name');
 if (!storedName) {
-  storedName = prompt("Enter your display name for this exercise:", storedId) || storedId;
-  localStorage.setItem("rws_player_name", storedName);
+  storedName = prompt('Enter your display name for this exercise:', storedId) || storedId;
+  localStorage.setItem('rws_player_name', storedName);
 }
 
+/*
+  Register player presence in Firebase under sessions/{session}/players.
+  onDisconnect(...) ensures the record is removed when the browser closes
+  or the network drops.
+*/
 const meRef = ref(db, `sessions/${session}/players/${storedId}`);
 set(meRef, { id: storedId, name: storedName, connected: true, lastSeen: Date.now(), createdAt: Date.now() });
 onDisconnect(meRef).remove();
-onValue(ref(db, ".info/connected"), snap => {
+
+/*
+  Track connectivity state and update the "Connecting/Connected" pill.
+*/
+onValue(ref(db, '.info/connected'), snap => {
   if (snap.val() === true) {
-    $("conn").textContent = "Connected";
+    $('conn').textContent = 'Connected';
     update(meRef, { connected: true, lastSeen: Date.now() });
   } else {
-    $("conn").textContent = "Reconnecting…";
+    $('conn').textContent = 'Reconnecting…';
   }
 });
 
-// vCISO helper
-const vcisoMsg = $("vcisoMsg");
-const vcisoTyping = $("vcisoTyping");
+/* === vCISO Mentor Engine === */
+const vcisoMsg = $('vcisoMsg');
+const vcisoTyping = $('vcisoTyping);
 
+/*
+  commentBank:
+  - vCISO commentary by phase/type.
+  - Intel / Detection / Containment / Comms / Recovery.
+*/
 const commentBank = {
   Intel: [
-    "This isn’t just background noise. Ask yourself: what here feels out-of-pattern for a normal day at RWS?",
-    "Start by grounding yourself: what do we know for sure, what do we suspect, and what is just gut feel right now?",
-    "Good intel work is boring and methodical. Map out the moving parts before you jump to conclusions."
+    'This isn’t just background noise. Ask yourself: what here feels out-of-pattern for a normal day at RWS?',
+    'Start by grounding yourself: what do we know for sure, what do we suspect, and what is just gut feel right now?',
+    'Good intel work is boring and methodical. Map out the moving parts before you jump to conclusions.'
   ],
   Detection: [
-    "Detections are the story trying to tell itself. Don’t look at each alert in isolation, look for the narrative.",
-    "If this signal is real, where else should it show up in the environment? That’s where you want to look next.",
-    "You rarely get a perfect alert. Treat this as a clue, not a conclusion."
+    'Detections are the story trying to tell itself. Don’t look at each alert in isolation, look for the narrative.',
+    'If this signal is real, where else should it show up in the environment? That’s where you want to look next.',
+    'You rarely get a perfect alert. Treat this as a clue, not a conclusion.'
   ],
   Containment: [
-    "This is the moment where someone’s KPI will hurt. Containment always trades convenience for safety.",
-    "Ask: what’s the smallest decisive move that meaningfully reduces risk without breaking the business entirely?",
-    "If this were a real APT, they’d be betting on you hesitating right now."
+    'This is the moment where someone’s KPI will hurt. Containment always trades convenience for safety.',
+    'Ask: what’s the smallest decisive move that meaningfully reduces risk without breaking the business entirely?',
+    'If this were a real APT, they’d be betting on you hesitating right now.'
   ],
   Comms: [
-    "Once guests and staff feel it, this stops being a pure cyber problem and becomes a trust problem.",
-    "You don’t need a perfect message, you need a clear and honest one that people can repeat.",
-    "Front-line teams will repeat whatever you tell them. Give them one simple sentence they can use with guests."
+    'Once guests and staff feel it, this stops being a pure cyber problem and becomes a trust problem.',
+    'You don’t need a perfect message, you need a clear and honest one that people can repeat.',
+    'Front-line teams will repeat whatever you tell them. Give them one simple sentence they can use with guests.'
   ],
   Recovery: [
-    "Recovery is where we’re tempted to rush. Be careful you’re not rebuilding on compromised ground.",
-    "There’s a difference between restoring service and restoring confidence. Executives care about both.",
-    "Treat recovery as your chance to quietly fix the security debt you’ve been carrying."
+    'Recovery is where we’re tempted to rush. Be careful you’re not rebuilding on compromised ground.',
+    'There’s a difference between restoring service and restoring confidence. Executives care about both.',
+    'Treat recovery as your chance to quietly fix the security debt you’ve been carrying.'
   ],
   Default: [
-    "Come back to basics: protect people, protect data, protect the brand. Everything else is detail.",
-    "Ask yourself: if this decision lands in a Board pack next month, are you comfortable standing by it?"
+    'Come back to basics: protect people, protect data, protect the brand. Everything else is detail.',
+    'Ask yourself: if this decision lands in a Board pack next month, are you comfortable standing by it?'
   ]
 };
 
+/*
+  Idle lines:
+  - Used when no inject has landed yet (exercise is still "quiet").
+  - Tone is human and conversational rather than robotic.
+*/
 const idleLines = [
-  "Looks quiet for now. We’re just waiting for the first inject to land.",
-  "Use this calm moment to get your bearings. Once the first inject drops, things usually move fast.",
-  "No signals yet from the facilitator. Stay ready — the story starts with the first inject.",
-  "This is the easy part of any incident: the waiting. Take a breath and be ready to move when something appears.",
-  "Nothing on the radar yet. When the first inject arrives, focus on what it’s really telling you, not just the words."
+  'Looks quiet for now. We’re just waiting for the first inject to land.',
+  'Use this calm moment to get your bearings. Once the first inject drops, things usually move fast.',
+  'No signals yet from the facilitator. Stay ready — the story starts with the first inject.',
+  'This is the easy part of any incident: the waiting. Take a breath and be ready to move when something appears.',
+  'Nothing on the radar yet. When the first inject arrives, focus on what it’s really telling you, not just the words.'
 ];
 
 const extraBank = {
   calm: [
-    " Take a breath and write down what you know in two bullet points.",
-    " Give yourself a moment to think before you speak in the room.",
-    " It’s okay to say ‘we don’t know yet’ as long as you follow it with ‘here’s what we’re doing next’."
+    ' Take a breath and write down what you know in two bullet points.',
+    ' Give yourself a moment to think before you speak in the room.',
+    ' It’s okay to say “we don’t know yet” as long as you follow it with “here’s what we’re doing next”.'
   ],
   direct: [
-    " You already know what a sensible first move looks like here.",
-    " If you had to choose in the next 60 seconds, what would you actually do?",
-    " Someone has to own this call. If it’s you, decide and move."
+    ' You already know what a sensible first move looks like here.',
+    ' If you had to choose in the next 60 seconds, what would you actually do?',
+    ' Someone has to own this call. If it’s you, decide and move.'
   ],
   human: [
-    " Imagine explaining this to a smart non-technical colleague — how would you put it?",
-    " People will remember how you carried yourself here more than which tool you used.",
-    " Feeling pressure is normal. Just don’t let it make the decision for you."
+    ' Imagine explaining this to a smart non-technical colleague — how would you put it?',
+    ' People will remember how you carried yourself here more than which tool you used.',
+    ' Feeling pressure is normal. Just don’t let it make the decision for you.'
   ]
 };
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+/*
+  Tone selector:
+  - Intel phase: calm, grounding.
+  - Decision phase: more directive for Containment/Comms, more human otherwise.
+  - After phase: reflective / human.
+  - Idle phase: calm, ambient.
+*/
 function chooseTone(type, phase) {
-  if (phase === "intel") return "calm";
-  if (phase === "decision") return (type === "Containment" || type === "Comms") ? "direct" : "human";
-  if (phase === "after") return "human";
-  if (phase === "idle") return "calm";
-  return "calm";
+  if (phase === 'intel') return 'calm';
+  if (phase === 'decision') return (type === 'Containment' || type === 'Comms') ? 'direct' : 'human';
+  if (phase === 'after') return 'human';
+  if (phase === 'idle') return 'calm';
+  return 'calm';
 }
 
 let lastVCISOTime = Date.now();
 let vcisoBusy = false;
 
+/*
+  Core vCISO speak function:
+  - Chooses a base line from the appropriate type (Intel, Detection, etc.).
+  - Adds a short hint based on phase (intel/decision/after/idle).
+  - Adds an extra "tone" line to keep it sounding human.
+  - Types it out gradually to simulate a person typing.
+*/
 function speakLikeVCISO(type, context = {}) {
-  const phase = context.phase || "intel";
+  const phase = context.phase || 'intel';
   const pool = commentBank[type] || commentBank.Default;
   const tone = chooseTone(type, phase);
   const phaseHints = {
-    intel: " Right now your job is to separate real signal from background noise.",
-    decision: " You’re choosing between imperfect options — that’s normal in incident work.",
-    after: " Capture this in language future you will actually understand when you read the report.",
-    idle: ""
+    intel: ' Right now your job is to separate real signal from background noise.',
+    decision: ' You’re choosing between imperfect options — that’s normal in incident work.',
+    after: ' Capture this in language future you will actually understand when you read the report.',
+    idle: ''
   };
 
-  const base = pick(pool) + (phaseHints[phase] || "");
-  const extras = phase === "idle" ? idleLines : (extraBank[tone] || extraBank.calm);
-  const extra = Math.random() < 0.75 ? pick(extras) : "";
+  const base = pick(pool) + (phaseHints[phase] || '');
+  const extras = phase === 'idle' ? idleLines : (extraBank[tone] || extraBank.calm);
+  const extra = Math.random() < 0.75 ? pick(extras) : '';
   const msg = base + extra;
 
   vcisoBusy = true;
-  vcisoTyping.style.display = "block";
-  vcisoMsg.textContent = "";
+  vcisoTyping.style.display = 'block';
+  vcisoMsg.textContent = '';
   let i = 0;
   const step = 3 + Math.floor(Math.random() * 4);
   const interval = setInterval(() => {
@@ -373,7 +434,7 @@ function speakLikeVCISO(type, context = {}) {
     i += step;
     if (i >= msg.length) {
       vcisoMsg.textContent = msg;
-      vcisoTyping.style.display = "none";
+      vcisoTyping.style.display = 'none';
       clearInterval(interval);
       vcisoBusy = false;
       lastVCISOTime = Date.now();
@@ -381,12 +442,18 @@ function speakLikeVCISO(type, context = {}) {
   }, 40);
 }
 
+/* Idle vCISO wrapper used by the timer */
 function speakIdleVCISO() {
   if (vcisoBusy) return;
-  speakLikeVCISO("Default", { phase: "idle" });
+  speakLikeVCISO('Default', { phase: 'idle' });
 }
 
-// Idle timer (moderate frequency)
+/*
+  Idle schedule:
+  - Moderate frequency (every 25–40 seconds).
+  - Only speaks if no inject has been seen yet.
+  - Checks lastVCISOTime to avoid spamming when player just received a comment.
+*/
 function scheduleIdle() {
   const delay = 25000 + Math.random() * 15000; // 25–40s
   setTimeout(() => {
@@ -401,136 +468,158 @@ function scheduleIdle() {
 }
 scheduleIdle();
 
-// Ticker
+/* === Ticker / Ambient news bar === */
 let tickerItems = [
-  { cat: "World", text: "Global markets steady as tech sector rebounds." },
-  { cat: "Corporate", text: "RWS continues phased rollout of resilience improvements across IT and OT." },
-  { cat: "Cyber", text: "CERT-SG highlights rise in supply-chain attacks targeting hospitality and travel." },
-  { cat: "Travel", text: "Regional travel flows remain strong ahead of holiday period." },
-  { cat: "Weather", text: "Scattered showers islandwide; operations remain normal." }
+  { cat: 'World', text: 'Global markets steady as tech sector rebounds.' },
+  { cat: 'Corporate', text: 'RWS continues phased rollout of resilience improvements across IT and OT.' },
+  { cat: 'Cyber', text: 'CERT-SG highlights rise in supply-chain attacks targeting hospitality and travel.' },
+  { cat: 'Travel', text: 'Regional travel flows remain strong ahead of holiday period.' },
+  { cat: 'Weather', text: 'Scattered showers islandwide; operations remain normal.' }
 ];
 
 function renderTicker() {
-  const host = $("ticker");
+  const host = $('ticker');
   host.innerHTML = tickerItems.map(item => {
-    const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safe = (item.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
-  }).join("");
+  }).join('');
 }
 renderTicker();
 
-// Scenario deferral
+/* === Scenario handling ===
+   Player stores the latest scenario, but only *shows* it when the first inject arrives.
+*/
 let latestScenario = null;
 let scenarioShown = false;
 
-// Reset UI
+/*
+  Soft reset of player view.
+  Does NOT touch Firebase; only resets local UI state for this browser.
+*/
 function resetView() {
-  $("scTitle").textContent = "Standby – awaiting scenario";
-  $("scDesc").textContent = "Facilitator has not started the exercise yet. Once the first inject goes live, you’ll see the scenario here.";
+  $('scTitle').textContent = 'Standby – awaiting scenario';
+  $('scDesc').textContent = 'Facilitator has not started the exercise yet. Once the first inject goes live, you’ll see the scenario here.';
   scenarioShown = false;
   latestScenario = null;
   if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
-  $("injCard").style.display = "none";
-  $("decCard").style.display = "none";
-  $("decStatus").style.display = "none";
-  ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
-  $("timer").textContent = "--";
+  $('injCard').style.display = 'none';
+  $('decCard').style.display = 'none';
+  $('decStatus').style.display = 'none';
+  ['optA','optB','optC'].forEach(id => { const b = $(id); b.textContent = ''; b.disabled = false; });
+  $('timer').textContent = '--';
   currentInjectSeq = null;
 }
 
-$("btnRestart").onclick = () => resetView();
+$('btnRestart').onclick = () => resetView();
 
-// Scenario (do NOT immediately show)
+/*
+  Scenario listener:
+  - We store scenario but intentionally do NOT display it until first inject is seen.
+*/
 onValue(ref(db, `sessions/${session}/scenario`), snap => {
   const v = snap.val();
   latestScenario = v || null;
-  // Intentionally do not update UI here.
 });
 
-// latest inject
+/* === Inject + Decision handling === */
 let currentInjectSeq = null;
 
+/*
+  Listener for latestInject:
+  - Updates inject card.
+  - On first inject, reveals scenario (from latestScenario).
+  - Handles decision panel and local countdown timer.
+  - Triggers appropriate vCISO commentary.
+*/
 onValue(ref(db, `sessions/${session}/latestInject`), snap => {
   const inj = snap.val();
   if (!inj) return;
   currentInjectSeq = inj.seq || null;
 
-  // On first inject, show scenario if available
+  // On first inject, show scenario
   if (!scenarioShown) {
     if (latestScenario) {
-      $("scTitle").textContent = latestScenario.title || "RWS Cyber Scenario";
-      $("scDesc").textContent = latestScenario.desc || "";
+      $('scTitle').textContent = latestScenario.title || 'RWS Cyber Scenario';
+      $('scDesc').textContent = latestScenario.desc || '';
     } else {
-      $("scTitle").textContent = "RWS Cyber Scenario";
-      $("scDesc").textContent = "The facilitator has started the exercise. Follow along with each inject as it appears.";
+      $('scTitle').textContent = 'RWS Cyber Scenario';
+      $('scDesc').textContent = 'The facilitator has started the exercise. Follow along with each inject as it appears.';
     }
     scenarioShown = true;
   }
 
-  const injCard = $("injCard");
-  injCard.style.display = "block";
-  injCard.classList.remove("card-pop");
+  const injCard = $('injCard');
+  injCard.style.display = 'block';
+  injCard.classList.remove('card-pop');
   void injCard.offsetWidth;
-  injCard.classList.add("card-pop");
+  injCard.classList.add('card-pop');
 
-  $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
+  $('injText').textContent = `[${inj.time || 'T+?m'}] ${inj.text || ''}`;
 
-  // add to ticker
-  tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC." });
+  // Add to ticker as a "Breaking" item
+  tickerItems.unshift({ cat: 'Breaking', text: inj.text || 'New update from SOC.' });
   if (tickerItems.length > 20) tickerItems.pop();
   renderTicker();
 
   const dec = inj.decision || null;
-  const decCard = $("decCard");
-  const statusEl = $("decStatus");
-  const timerEl = $("timer");
+  const decCard = $('decCard');
+  const statusEl = $('decStatus');
+  const timerEl = $('timer');
 
+  // Inject without decision: just show info and have vCISO comment in intel mode
   if (!dec || !dec.question) {
-    decCard.style.display = "none";
-    statusEl.style.display = "none";
-    timerEl.textContent = inj.time || "Live";
-    speakLikeVCISO(inj.type || "Default", { phase: "intel", seq: inj.seq });
+    decCard.style.display = 'none';
+    statusEl.style.display = 'none';
+    timerEl.textContent = inj.time || 'Live';
+    speakLikeVCISO(inj.type || 'Default', { phase: 'intel', seq: inj.seq });
     return;
   }
 
-  decCard.style.display = "block";
-  decCard.classList.remove("card-pop");
+  // Inject with decision: show question + options + 45s countdown
+  decCard.style.display = 'block';
+  decCard.classList.remove('card-pop');
   void decCard.offsetWidth;
-  decCard.classList.add("card-pop");
+  decCard.classList.add('card-pop');
 
-  $("decQuestion").textContent = dec.question;
-  statusEl.style.display = "none";
-  ["optA","optB","optC"].forEach(id => { const b = $(id); b.disabled = false; });
-  $("optA").textContent = dec.options && dec.options.A ? "A) " + dec.options.A : "";
-  $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
-  $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
+  $('decQuestion').textContent = dec.question;
+  statusEl.style.display = 'none';
+  ['optA','optB','optC'].forEach(id => { const b = $(id); b.disabled = false; });
+  $('optA').textContent = dec.options && dec.options.A ? 'A) ' + dec.options.A : '';
+  $('optB').textContent = dec.options && dec.options.B ? 'B) ' + dec.options.B : '';
+  $('optC').textContent = dec.options && dec.options.C ? 'C) ' + dec.options.C : '';
 
-  // countdown
+  // Simple per-player local countdown – does not affect facilitators or other players
   let remaining = 45;
-  timerEl.classList.remove("timer-urgent");
+  timerEl.classList.remove('timer-urgent');
   timerEl.textContent = `${remaining}s`;
   if (window.__rwsTimer) clearInterval(window.__rwsTimer);
   window.__rwsTimer = setInterval(() => {
     remaining -= 1;
     if (remaining <= 0) {
       clearInterval(window.__rwsTimer);
-      timerEl.textContent = "Time up";
-      timerEl.classList.add("timer-urgent");
-      ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-      statusEl.style.display = "block";
-      statusEl.textContent = "⏱ Time is up for this decision. Discuss what you would have chosen.";
+      timerEl.textContent = 'Time up';
+      timerEl.classList.add('timer-urgent');
+      ['optA','optB','optC'].forEach(id => { $(id).disabled = true; });
+      statusEl.style.display = 'block';
+      statusEl.textContent = '⏱ Time is up for this decision. Discuss what you would have chosen.';
       return;
     }
     if (remaining <= 10) {
-      timerEl.classList.add("timer-urgent");
+      timerEl.classList.add('timer-urgent');
     }
     timerEl.textContent = `${remaining}s`;
   }, 1000);
 
-  speakLikeVCISO(inj.type || "Default", { phase: "decision", seq: inj.seq });
+  // vCISO "decision phase" guidance
+  speakLikeVCISO(inj.type || 'Default', { phase: 'decision', seq: inj.seq });
 });
 
-// voting
+/* === Voting === */
+/*
+  Send player's vote to Firebase:
+  - Stored under sessions/{session}/votes/{injectSeq}/{playerId}
+  - This is later aggregated by the facilitator to build AAR.
+*/
 function sendVote(choice) {
   if (!currentInjectSeq) return;
   if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
@@ -542,17 +631,19 @@ function sendVote(choice) {
     at: Date.now()
   };
   set(ref(db, path), payload);
-  ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-  const statusEl = $("decStatus");
-  statusEl.style.display = "block";
+  ['optA','optB','optC'].forEach(id => { $(id).disabled = true; });
+  const statusEl = $('decStatus');
+  statusEl.style.display = 'block';
   statusEl.textContent = `✅ You chose option ${choice}. Be ready to explain why.`;
-  speakLikeVCISO("Default", { phase: "after", choice });
+  // vCISO reflection after decision
+  speakLikeVCISO('Default', { phase: 'after', choice });
 }
 
-$("optA").onclick = () => sendVote("A");
-$("optB").onclick = () => sendVote("B");
-$("optC").onclick = () => sendVote("C");
+$('optA').onclick = () => sendVote('A');
+$('optB').onclick = () => sendVote('B');
+$('optC').onclick = () => sendVote('C');
 
+// Initialise local view
 resetView();
 </script>
 </body>
