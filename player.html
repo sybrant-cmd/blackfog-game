@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RWS BlackFog – Player v4.9</title>
+<meta name="theme-color" content="#d72638" />
+<style>
+:root {
+  --live: #d72638;
+  --black: #020617;
+  --panel: #0b1120;
+  --stroke: rgba(148,163,184,0.35);
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #111827 0, #020617 60%);
+  color: var(--text);
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(15,23,42,0.85));
+  backdrop-filter: blur(10px);
+}
+h1 { margin: 0; font-size: 18px; }
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.9);
+  margin-left: 8px;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 14px; }
+.grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.card {
+  background: var(--panel);
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  box-shadow: 0 16px 42px rgba(0,0,0,0.6);
+  padding: 14px 14px 12px;
+}
+.card h2 { margin: 0 0 4px 0; font-size: 16px; }
+.card h3 { margin: 0 0 6px 0; font-size: 14px; }
+.standby { font-size: 13px; color: var(--muted); }
+pre {
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+.btn {
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.9);
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn:hover { border-color: rgba(248,250,252,0.65); }
+.options { display: grid; gap: 6px; margin-top: 8px; }
+.options button {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.95);
+  color: var(--text);
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+}
+.options button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.vciso {
+  background: #020617;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  padding: 12px;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+.vciso-title { display:flex; align-items:center; gap:8px; margin:0 0 6px 0; }
+.vciso-title span.icon {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 14px rgba(215,38,56,0.9);
+}
+.vciso-msg {
+  background: rgba(15,23,42,0.95);
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.45);
+  padding: 8px 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.vciso-typing { font-size: 12px; color: var(--muted); font-family: ui-monospace,monospace; }
+
+.ticker-wrap {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 40px;
+  background: #020617;
+  border-top: 2px solid var(--live);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 20;
+}
+.ticker-live {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ticker-live-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 10px rgba(215,38,56,0.9);
+  animation: blink 1.2s infinite;
+}
+@keyframes blink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: .4; }
+}
+.ticker {
+  white-space: nowrap;
+  display: inline-block;
+  animation: ticker 90s linear infinite;
+  font-size: 12px;
+}
+.ticker:hover { animation-play-state: paused; }
+.ticker-item {
+  display:inline-block;
+  margin-right: 30px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.4);
+}
+.ticker-item strong { color: #facc15; }
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.card-pop { animation: cardPop 0.28s ease-out; }
+@keyframes cardPop {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.timer-urgent { color:#f97316; border-color:#f97316; }
+.footer-space { height: 50px; }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <h1>RWS BlackFog – Player v4.9</h1>
+    <span class="pill" id="conn">Connecting…</span>
+  </div>
+  <button class="btn" id="btnRestart">Reset view</button>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <div>
+      <section class="card">
+        <h2 id="scTitle">Standby – awaiting scenario</h2>
+        <p id="scDesc" class="standby">
+          Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.
+        </p>
+      </section>
+
+      <section class="card" id="injCard" style="margin-top:10px; display:none;">
+        <h3>Latest inject</h3>
+        <pre id="injText">Waiting for first inject…</pre>
+        <img id="injImage" style="margin-top:6px; max-width:100%; border-radius:10px; display:none; border:1px solid var(--stroke);" alt="Inject visual context" />
+      </section>
+
+      <section class="card" id="decCard" style="margin-top:10px; display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3>Decision</h3>
+          <span class="pill" id="timer">--</span>
+        </div>
+        <p id="decQuestion" class="standby"></p>
+        <div class="options">
+          <button id="optA"></button>
+          <button id="optB"></button>
+          <button id="optC"></button>
+        </div>
+        <p id="decStatus" class="standby" style="margin-top:6px; display:none;">
+          ✅ Response recorded. You can discuss your rationale with the facilitator.
+        </p>
+      </section>
+    </div>
+
+    <aside class="vciso">
+      <h3 class="vciso-title"><span class="icon"></span> Live Mentor (vCISO)</h3>
+      <div id="vcisoFeed">
+        <div id="vcisoMsg" class="vciso-msg">
+          I’m here to guide you through the exercise. I’ll comment on what each inject means and how a seasoned CISO might approach it.
+        </div>
+        <div id="vcisoTyping" class="vciso-typing" style="display:none;">typing…</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="ticker-wrap">
+  <div class="ticker-live">
+    <div class="ticker-live-dot"></div>
+    <span>LIVESTREAM • RWS CYBER RANGE</span>
+  </div>
+  <div class="ticker" id="ticker"></div>
+</div>
+<div class="footer-space"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, onDisconnect, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
+  authDomain: "rws-blackfog-game.firebaseapp.com",
+  databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rws-blackfog-game",
+  storageBucket: "rws-blackfog-game.firebasestorage.app",
+  messagingSenderId: "473543964029",
+  appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+
+const urlS = new URLSearchParams(location.search).get('s');
+const session = urlS && urlS.trim() ? urlS.trim() : 'default';
+
+// Player identity
+function uid() { return "P-" + Math.random().toString(36).slice(2,8).toUpperCase(); }
+const storedId = localStorage.getItem("rws_player_id") || uid();
+localStorage.setItem("rws_player_id", storedId);
+let storedName = localStorage.getItem("rws_player_name");
+if (!storedName) {
+  storedName = prompt("Enter your display name for this exercise:", storedId) || storedId;
+  localStorage.setItem("rws_player_name", storedName);
+}
+
+const meRef = ref(db, `sessions/${session}/players/${storedId}`);
+set(meRef, { id: storedId, name: storedName, connected: true, lastSeen: Date.now(), createdAt: Date.now() });
+onDisconnect(meRef).remove();
+onValue(ref(db, ".info/connected"), snap => {
+  if (snap.val() === true) {
+    $("conn").textContent = "Connected";
+    update(meRef, { connected: true, lastSeen: Date.now() });
+  } else {
+    $("conn").textContent = "Reconnecting…";
+  }
+});
+
+// vCISO helper
+const vcisoMsg = $("vcisoMsg");
+const vcisoTyping = $("vcisoTyping");
+
+
+const commentBank = {
+  Intel: [
+    "Okay, this isn’t the usual noisy background. If this popped at 9am on a normal day, I’d pause and look twice.",
+    "My first question here is simple: is this just a weird blip, or does it look like someone is deliberately testing us?",
+    "Good instinct is to slow down and map out what we actually know, instead of filling in the gaps with imagination."
+  ],
+  Detection: [
+    "This is the part where the story starts to show. Don’t stare at a single alert — zoom out and look for a pattern.",
+    "Ask yourself: if this is real, where else should we be seeing similar signals right now?",
+    "If this were just a false positive, would it look this coordinated across different systems? Usually not."
+  ],
+  Containment: [
+    "This is where things get uncomfortable. Someone’s revenue, someone’s KPI, is going to feel this decision.",
+    "You rarely get perfect information in time. The real skill is choosing a move you can explain and live with later.",
+    "Think in terms of trade-offs: a smaller, earlier disruption versus a bigger, later incident."
+  ],
+  Comms: [
+    "The technical problem is one thing; how people feel about it is another. Both need attention.",
+    "If you don’t give people a simple, honest line to use, they’ll make up their own version.",
+    "You don’t have to overshare, but whatever you say needs to stay true as the incident evolves."
+  ],
+  Recovery: [
+    "Recovery is when everyone wants to rush back to normal. This is also when we quietly decide what we’ve learned.",
+    "It’s tempting to declare victory too early. Make sure we’re not rebuilding on top of the same weak foundations.",
+    "Ask: after this, what will we do differently next time? If the answer is “nothing”, that’s a red flag."
+  ],
+  Default: [
+    "Keep it simple: protect people, protect data, protect the brand. Use that as your north star.",
+    "Future you has to write the report. Make decisions that will still make sense when the adrenaline is gone."
+  ]
+};
+
+const extraBank = {
+  calm: [
+    " Take ten seconds and write down what you actually know, not what you fear.",
+    " It’s okay not to have a perfect answer yet — clarity often comes from the next couple of steps.",
+    " Slow down just enough so you don’t miss something obvious in the rush."
+  ],
+  direct: [
+    " At some point, someone needs to say, ‘We’re doing this.’ Don’t drag it out forever.",
+    " If you had to choose in the next minute, what’s your honest pick? That’s usually the real answer.",
+    " Try not to hide behind tools or process here — this is a judgment call."
+  ],
+  human: [
+    " You’re allowed to feel pressure here. The trick is to let it sharpen you, not paralyse you.",
+    " You don’t have to sound clever in the room. You just have to be clear and honest.",
+    " Imagine explaining this later to a smart colleague who wasn’t here — what would you say?"
+  ]
+};
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function chooseTone(type, phase) {
+  if (phase === "intel") return "calm";
+  if (phase === "decision") return (type === "Containment" || type === "Comms") ? "direct" : "human";
+  if (phase === "after") return "human";
+  return "calm";
+}
+
+function speakLikeVCISO(type, context = {}) {
+  const pool = commentBank[type] || commentBank.Default;
+  const phase = context.phase || "intel";
+  const tone = chooseTone(type, phase);
+
+  const phaseHints = {
+    intel: " Right now the goal is to separate signal from noise, not to jump to the scariest conclusion.",
+    decision: " You’re choosing between imperfect options — that’s normal in incident work.",
+    after: " This is a good moment to capture why you chose this path, in plain language."
+  };
+
+  const base = pick(pool) + (phaseHints[phase] || "");
+  const extras = extraBank[tone] || extraBank.calm;
+  const extra = Math.random() < 0.8 ? pick(extras) : "";
+  const msg = base + extra;
+
+  vcisoTyping.style.display = "block";
+  vcisoMsg.textContent = "";
+  let i = 0;
+  const step = 3 + Math.floor(Math.random() * 4);
+
+  const interval = setInterval(() => {
+    vcisoMsg.textContent = msg.slice(0, i);
+    i += step;
+
+    if (i >= msg.length) {
+      vcisoMsg.textContent = msg;
+      vcisoTyping.style.display = "none";
+      clearInterval(interval);
+    }
+  }, 40);
+}
+
+// Ticker// Ticker// Ticker
+let tickerItems = [
+  { cat: "World", text: "Global markets steady as tech sector rebounds." },
+  { cat: "Corporate", text: "RWS continues phased rollout of resilience improvements across IT and OT." },
+  { cat: "Cyber", text: "CERT-SG highlights rise in supply-chain attacks targeting hospitality and travel." },
+  { cat: "Travel", text: "Regional travel flows remain strong ahead of holiday period." },
+  { cat: "Weather", text: "Scattered showers islandwide; operations remain normal." }
+];
+
+function renderTicker() {
+  const host = $("ticker");
+  host.innerHTML = tickerItems.map(item => {
+    const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
+  }).join("");
+}
+renderTicker();
+
+// Reset UI
+function resetView() {
+  $("scTitle").textContent = "Standby – awaiting scenario";
+  $("scDesc").textContent = "Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.";
+  if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
+  $("injCard").style.display = "none";
+  $("decCard").style.display = "none";
+  $("decStatus").style.display = "none";
+  ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
+  $("timer").textContent = "--";
+}
+
+$("btnRestart").onclick = () => resetView();
+
+// Scenario
+onValue(ref(db, `sessions/${session}/scenario`), snap => {
+  const v = snap.val();
+  if (!v) return;
+  $("scTitle").textContent = v.title || "RWS Cyber Scenario";
+  $("scDesc").textContent = v.desc || "";
+});
+
+// latest inject
+let currentInjectSeq = null;
+onValue(ref(db, `sessions/${session}/latestInject`), snap => {
+  const inj = snap.val();
+  if (!inj) return;
+  currentInjectSeq = inj.seq || null;
+
+  const injCard = $("injCard");
+  injCard.style.display = "block";
+  injCard.classList.remove("card-pop");
+  void injCard.offsetWidth;
+  injCard.classList.add("card-pop");
+
+  $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
+  const imgEl = $("injImage");
+  if (inj.image) {
+    imgEl.src = inj.image;
+    imgEl.style.display = "block";
+  } else {
+    imgEl.style.display = "none";
+  }
+
+  // add to ticker
+  tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC." });
+  if (tickerItems.length > 20) tickerItems.pop();
+  renderTicker();
+
+  const dec = inj.decision || null;
+  const decCard = $("decCard");
+  const statusEl = $("decStatus");
+  const timerEl = $("timer");
+
+  if (!dec || !dec.question) {
+    decCard.style.display = "none";
+    statusEl.style.display = "none";
+    timerEl.textContent = inj.time || "Live";
+    speakLikeVCISO(inj.type || "Default", { phase: "intel", seq: inj.seq });
+    return;
+  }
+
+  decCard.style.display = "block";
+  decCard.classList.remove("card-pop");
+  void decCard.offsetWidth;
+  decCard.classList.add("card-pop");
+
+  $("decQuestion").textContent = dec.question;
+  statusEl.style.display = "none";
+  ["optA","optB","optC"].forEach(id => { const b = $(id); b.disabled = false; });
+  $("optA").textContent = dec.options && dec.options.A ? "A) " + dec.options.A : "";
+  $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
+  $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
+
+  // simple local countdown timer (per player)
+  let remaining = 45;
+  timerEl.classList.remove("timer-urgent");
+  timerEl.textContent = `${remaining}s`;
+  if (window.__rwsTimer) clearInterval(window.__rwsTimer);
+  window.__rwsTimer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(window.__rwsTimer);
+      timerEl.textContent = "Time up";
+      timerEl.classList.add("timer-urgent");
+      ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
+      statusEl.style.display = "block";
+      statusEl.textContent = "⏱ Time is up for this decision. Discuss what you would have chosen.";
+      return;
+    }
+    if (remaining <= 10) {
+      timerEl.classList.add("timer-urgent");
+    }
+    timerEl.textContent = `${remaining}s`;
+  }, 1000);
+
+  speakLikeVCISO(inj.type || "Default", { phase: "decision", seq: inj.seq });
+});
+
+// voting
+function sendVote(choice) {
+  if (!currentInjectSeq) return;
+  if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
+  const path = `sessions/${session}/votes/${currentInjectSeq}/${storedId}`;
+  const payload = {
+    playerId: storedId,
+    name: storedName,
+    choice,
+    at: Date.now()
+  };
+  set(ref(db, path), payload);
+  ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
+  const statusEl = $("decStatus");
+  statusEl.style.display = "block";
+  statusEl.textContent = `✅ You chose option ${choice}. Be ready to explain why.`;
+  speakLikeVCISO("Default", { phase: "after", choice });
+}
+
+$("optA").onclick = () => sendVote("A");
+$("optB").onclick = () => sendVote("B");
+$("optC").onclick = () => sendVote("C");
+
+resetView();
+</script>
+</body>
+</html>
