@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RWS BlackFog – Player v4.9</title>
+<title>RWS BlackFog – Player v4.11</title>
 <meta name="theme-color" content="#d72638" />
 <style>
 :root {
@@ -83,6 +83,7 @@ pre {
 }
 .options button[disabled] { opacity: 0.5; cursor: not-allowed; }
 
+/* vCISO */
 .vciso {
   background: #020617;
   border-radius: 14px;
@@ -109,6 +110,7 @@ pre {
 }
 .vciso-typing { font-size: 12px; color: var(--muted); font-family: ui-monospace,monospace; }
 
+/* ticker */
 .ticker-wrap {
   position: fixed;
   left: 0; right: 0; bottom: 0;
@@ -168,7 +170,7 @@ pre {
 <body>
 <header>
   <div style="display:flex; align-items:center; gap:8px;">
-    <h1>RWS BlackFog – Player v4.9</h1>
+    <h1>RWS BlackFog – Player v4.11</h1>
     <span class="pill" id="conn">Connecting…</span>
   </div>
   <button class="btn" id="btnRestart">Reset view</button>
@@ -180,14 +182,13 @@ pre {
       <section class="card">
         <h2 id="scTitle">Standby – awaiting scenario</h2>
         <p id="scDesc" class="standby">
-          Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.
+          Facilitator has not started the exercise yet. Once the first inject goes live, you’ll see the scenario here.
         </p>
       </section>
 
       <section class="card" id="injCard" style="margin-top:10px; display:none;">
         <h3>Latest inject</h3>
         <pre id="injText">Waiting for first inject…</pre>
-        <img id="injImage" style="margin-top:6px; max-width:100%; border-radius:10px; display:none; border:1px solid var(--stroke);" alt="Inject visual context" />
       </section>
 
       <section class="card" id="decCard" style="margin-top:10px; display:none;">
@@ -211,7 +212,7 @@ pre {
       <h3 class="vciso-title"><span class="icon"></span> Live Mentor (vCISO)</h3>
       <div id="vcisoFeed">
         <div id="vcisoMsg" class="vciso-msg">
-          I’m here to guide you through the exercise. I’ll comment on what each inject means and how a seasoned CISO might approach it.
+          I’m in the room with you for this one. Once the first inject lands, I’ll help you make sense of what it really means.
         </div>
         <div id="vcisoTyping" class="vciso-typing" style="display:none;">typing…</div>
       </div>
@@ -241,7 +242,6 @@ const firebaseConfig = {
   messagingSenderId: "473543964029",
   appId: "1:473543964029:web:4bc0db33634ed2f8894814"
 };
-
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -276,102 +276,132 @@ onValue(ref(db, ".info/connected"), snap => {
 const vcisoMsg = $("vcisoMsg");
 const vcisoTyping = $("vcisoTyping");
 
-
 const commentBank = {
   Intel: [
-    "Okay, this isn’t the usual noisy background. If this popped at 9am on a normal day, I’d pause and look twice.",
-    "My first question here is simple: is this just a weird blip, or does it look like someone is deliberately testing us?",
-    "Good instinct is to slow down and map out what we actually know, instead of filling in the gaps with imagination."
+    "This isn’t just background noise. Ask yourself: what here feels out-of-pattern for a normal day at RWS?",
+    "Start by grounding yourself: what do we know for sure, what do we suspect, and what is just gut feel right now?",
+    "Good intel work is boring and methodical. Map out the moving parts before you jump to conclusions."
   ],
   Detection: [
-    "This is the part where the story starts to show. Don’t stare at a single alert — zoom out and look for a pattern.",
-    "Ask yourself: if this is real, where else should we be seeing similar signals right now?",
-    "If this were just a false positive, would it look this coordinated across different systems? Usually not."
+    "Detections are the story trying to tell itself. Don’t look at each alert in isolation, look for the narrative.",
+    "If this signal is real, where else should it show up in the environment? That’s where you want to look next.",
+    "You rarely get a perfect alert. Treat this as a clue, not a conclusion."
   ],
   Containment: [
-    "This is where things get uncomfortable. Someone’s revenue, someone’s KPI, is going to feel this decision.",
-    "You rarely get perfect information in time. The real skill is choosing a move you can explain and live with later.",
-    "Think in terms of trade-offs: a smaller, earlier disruption versus a bigger, later incident."
+    "This is the moment where someone’s KPI will hurt. Containment always trades convenience for safety.",
+    "Ask: what’s the smallest decisive move that meaningfully reduces risk without breaking the business entirely?",
+    "If this were a real APT, they’d be betting on you hesitating right now."
   ],
   Comms: [
-    "The technical problem is one thing; how people feel about it is another. Both need attention.",
-    "If you don’t give people a simple, honest line to use, they’ll make up their own version.",
-    "You don’t have to overshare, but whatever you say needs to stay true as the incident evolves."
+    "Once guests and staff feel it, this stops being a pure cyber problem and becomes a trust problem.",
+    "You don’t need a perfect message, you need a clear and honest one that people can repeat.",
+    "Front-line teams will repeat whatever you tell them. Give them one simple sentence they can use with guests."
   ],
   Recovery: [
-    "Recovery is when everyone wants to rush back to normal. This is also when we quietly decide what we’ve learned.",
-    "It’s tempting to declare victory too early. Make sure we’re not rebuilding on top of the same weak foundations.",
-    "Ask: after this, what will we do differently next time? If the answer is “nothing”, that’s a red flag."
+    "Recovery is where we’re tempted to rush. Be careful you’re not rebuilding on compromised ground.",
+    "There’s a difference between restoring service and restoring confidence. Executives care about both.",
+    "Treat recovery as your chance to quietly fix the security debt you’ve been carrying."
   ],
   Default: [
-    "Keep it simple: protect people, protect data, protect the brand. Use that as your north star.",
-    "Future you has to write the report. Make decisions that will still make sense when the adrenaline is gone."
+    "Come back to basics: protect people, protect data, protect the brand. Everything else is detail.",
+    "Ask yourself: if this decision lands in a Board pack next month, are you comfortable standing by it?"
   ]
 };
+
+const idleLines = [
+  "Looks quiet for now. We’re just waiting for the first inject to land.",
+  "Use this calm moment to get your bearings. Once the first inject drops, things usually move fast.",
+  "No signals yet from the facilitator. Stay ready — the story starts with the first inject.",
+  "This is the easy part of any incident: the waiting. Take a breath and be ready to move when something appears.",
+  "Nothing on the radar yet. When the first inject arrives, focus on what it’s really telling you, not just the words."
+];
 
 const extraBank = {
   calm: [
-    " Take ten seconds and write down what you actually know, not what you fear.",
-    " It’s okay not to have a perfect answer yet — clarity often comes from the next couple of steps.",
-    " Slow down just enough so you don’t miss something obvious in the rush."
+    " Take a breath and write down what you know in two bullet points.",
+    " Give yourself a moment to think before you speak in the room.",
+    " It’s okay to say ‘we don’t know yet’ as long as you follow it with ‘here’s what we’re doing next’."
   ],
   direct: [
-    " At some point, someone needs to say, ‘We’re doing this.’ Don’t drag it out forever.",
-    " If you had to choose in the next minute, what’s your honest pick? That’s usually the real answer.",
-    " Try not to hide behind tools or process here — this is a judgment call."
+    " You already know what a sensible first move looks like here.",
+    " If you had to choose in the next 60 seconds, what would you actually do?",
+    " Someone has to own this call. If it’s you, decide and move."
   ],
   human: [
-    " You’re allowed to feel pressure here. The trick is to let it sharpen you, not paralyse you.",
-    " You don’t have to sound clever in the room. You just have to be clear and honest.",
-    " Imagine explaining this later to a smart colleague who wasn’t here — what would you say?"
+    " Imagine explaining this to a smart non-technical colleague — how would you put it?",
+    " People will remember how you carried yourself here more than which tool you used.",
+    " Feeling pressure is normal. Just don’t let it make the decision for you."
   ]
 };
 
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function chooseTone(type, phase) {
   if (phase === "intel") return "calm";
   if (phase === "decision") return (type === "Containment" || type === "Comms") ? "direct" : "human";
   if (phase === "after") return "human";
+  if (phase === "idle") return "calm";
   return "calm";
 }
 
-function speakLikeVCISO(type, context = {}) {
-  const pool = commentBank[type] || commentBank.Default;
-  const phase = context.phase || "intel";
-  const tone = chooseTone(type, phase);
+let lastVCISOTime = Date.now();
+let vcisoBusy = false;
 
+function speakLikeVCISO(type, context = {}) {
+  const phase = context.phase || "intel";
+  const pool = commentBank[type] || commentBank.Default;
+  const tone = chooseTone(type, phase);
   const phaseHints = {
-    intel: " Right now the goal is to separate signal from noise, not to jump to the scariest conclusion.",
+    intel: " Right now your job is to separate real signal from background noise.",
     decision: " You’re choosing between imperfect options — that’s normal in incident work.",
-    after: " This is a good moment to capture why you chose this path, in plain language."
+    after: " Capture this in language future you will actually understand when you read the report.",
+    idle: ""
   };
 
   const base = pick(pool) + (phaseHints[phase] || "");
-  const extras = extraBank[tone] || extraBank.calm;
-  const extra = Math.random() < 0.8 ? pick(extras) : "";
+  const extras = phase === "idle" ? idleLines : (extraBank[tone] || extraBank.calm);
+  const extra = Math.random() < 0.75 ? pick(extras) : "";
   const msg = base + extra;
 
+  vcisoBusy = true;
   vcisoTyping.style.display = "block";
   vcisoMsg.textContent = "";
   let i = 0;
   const step = 3 + Math.floor(Math.random() * 4);
-
   const interval = setInterval(() => {
     vcisoMsg.textContent = msg.slice(0, i);
     i += step;
-
     if (i >= msg.length) {
       vcisoMsg.textContent = msg;
       vcisoTyping.style.display = "none";
       clearInterval(interval);
+      vcisoBusy = false;
+      lastVCISOTime = Date.now();
     }
   }, 40);
 }
 
-// Ticker// Ticker// Ticker
+function speakIdleVCISO() {
+  if (vcisoBusy) return;
+  speakLikeVCISO("Default", { phase: "idle" });
+}
+
+// Idle timer (moderate frequency)
+function scheduleIdle() {
+  const delay = 25000 + Math.random() * 15000; // 25–40s
+  setTimeout(() => {
+    if (!currentInjectSeq) {
+      const now = Date.now();
+      if (now - lastVCISOTime > 15000) {
+        speakIdleVCISO();
+      }
+    }
+    scheduleIdle();
+  }, delay);
+}
+scheduleIdle();
+
+// Ticker
 let tickerItems = [
   { cat: "World", text: "Global markets steady as tech sector rebounds." },
   { cat: "Corporate", text: "RWS continues phased rollout of resilience improvements across IT and OT." },
@@ -389,34 +419,53 @@ function renderTicker() {
 }
 renderTicker();
 
+// Scenario deferral
+let latestScenario = null;
+let scenarioShown = false;
+
 // Reset UI
 function resetView() {
   $("scTitle").textContent = "Standby – awaiting scenario";
-  $("scDesc").textContent = "Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.";
+  $("scDesc").textContent = "Facilitator has not started the exercise yet. Once the first inject goes live, you’ll see the scenario here.";
+  scenarioShown = false;
+  latestScenario = null;
   if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
   $("injCard").style.display = "none";
   $("decCard").style.display = "none";
   $("decStatus").style.display = "none";
   ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
   $("timer").textContent = "--";
+  currentInjectSeq = null;
 }
 
 $("btnRestart").onclick = () => resetView();
 
-// Scenario
+// Scenario (do NOT immediately show)
 onValue(ref(db, `sessions/${session}/scenario`), snap => {
   const v = snap.val();
-  if (!v) return;
-  $("scTitle").textContent = v.title || "RWS Cyber Scenario";
-  $("scDesc").textContent = v.desc || "";
+  latestScenario = v || null;
+  // Intentionally do not update UI here.
 });
 
 // latest inject
 let currentInjectSeq = null;
+
 onValue(ref(db, `sessions/${session}/latestInject`), snap => {
   const inj = snap.val();
   if (!inj) return;
   currentInjectSeq = inj.seq || null;
+
+  // On first inject, show scenario if available
+  if (!scenarioShown) {
+    if (latestScenario) {
+      $("scTitle").textContent = latestScenario.title || "RWS Cyber Scenario";
+      $("scDesc").textContent = latestScenario.desc || "";
+    } else {
+      $("scTitle").textContent = "RWS Cyber Scenario";
+      $("scDesc").textContent = "The facilitator has started the exercise. Follow along with each inject as it appears.";
+    }
+    scenarioShown = true;
+  }
 
   const injCard = $("injCard");
   injCard.style.display = "block";
@@ -425,13 +474,6 @@ onValue(ref(db, `sessions/${session}/latestInject`), snap => {
   injCard.classList.add("card-pop");
 
   $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
-  const imgEl = $("injImage");
-  if (inj.image) {
-    imgEl.src = inj.image;
-    imgEl.style.display = "block";
-  } else {
-    imgEl.style.display = "none";
-  }
 
   // add to ticker
   tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC." });
@@ -463,7 +505,7 @@ onValue(ref(db, `sessions/${session}/latestInject`), snap => {
   $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
   $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
 
-  // simple local countdown timer (per player)
+  // countdown
   let remaining = 45;
   timerEl.classList.remove("timer-urgent");
   timerEl.textContent = `${remaining}s`;
