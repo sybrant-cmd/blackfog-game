@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Facilitator v7.0</title>
+  <title>RWS BlackFog – Facilitator v8.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -231,6 +231,9 @@
     th {
       background: #111827;
     }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -253,7 +256,7 @@
       <section class="card">
         <div class="card-header">
           <h2>Scenario & AI Engine</h2>
-          <span class="muted">Choose preset, publish, then drive injects</span>
+          <span class="muted">Choose preset, publish, then drive cascading injects</span>
         </div>
         <div class="row" style="margin-bottom:6px;">
           <div>
@@ -266,7 +269,7 @@
           </div>
           <div>
             <label>AI difficulty state</label>
-            <input id="aiStateLabel" readonly value="Level 1 – Normal" />
+            <input id="aiStateLabel" readonly value="L1 – Normal" />
           </div>
         </div>
         <div class="btn-bar" style="margin-bottom:6px;">
@@ -318,7 +321,7 @@
             </div>
             <div>
               <label>Option B</label>
-              <input id="decB" placeholder="e.g. Partial isolation with business exceptions" />
+              <input id="decB" placeholder="e.g. Partial isolation with exceptions" />
             </div>
             <div>
               <label>Option C</label>
@@ -405,35 +408,52 @@
     host.prepend(line);
   }
 
-  // Scenario library – each scenario with >=5 inject templates and cascading difficulty
+  // Scenario library with multi-stage, multi-level AI pools
   const scenarioLibrary = {
     blackfog: {
       title: "Operation BlackFog – Supply-Chain Compromise to APT Infiltration (RWS)",
       desc: "A trusted third-party payment vendor pushes an unscheduled update that quietly opens the door to an APT-style intrusion into RWS finance and loyalty systems.",
+      aiStages: ["early", "mid", "late", "business", "recovery"],
       aiPools: {
         1: [
           {
+            stage: "early",
             type: "Intel",
-            text: "Vendor PayGateX pushes an \"urgent\" compatibility patch to RWS POS endpoints outside the normal maintenance window. Change ticket reference is missing.",
+            text: "Vendor PayGateX pushes an "urgent" compatibility patch to RWS POS endpoints outside the normal maintenance window. The change ticket is missing and the rollout appears to be driven directly by the vendor.",
             decision: {
               question: "How should we react to this unexpected vendor push?",
               options: {
-                A: "Freeze rollout and demand full technical explanation from vendor.",
-                B: "Allow rollout, but place under heightened monitoring.",
-                C: "Treat as routine – no additional action."
+                A: "Freeze rollout and demand a full technical explanation from the vendor.",
+                B: "Allow rollout, but place all updated endpoints under heightened monitoring.",
+                C: "Treat this as routine and let the patch continue without friction."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "early",
             type: "Intel",
-            text: "Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host used by PayGateX.",
+            text: "Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host attributed to PayGateX. The host was not part of the original allow-list.",
             decision: {
-              question: "What is your immediate next step?",
+              question: "What is your immediate technical response?",
               options: {
-                A: "Block the new CDN host at the perimeter until validated.",
-                B: "Collect a sample of the binary for sandboxing first.",
-                C: "Log the observation but avoid disruption."
+                A: "Block the new CDN host at the perimeter until validated with PayGateX.",
+                B: "Collect a sample of the binary and route it to sandboxing before blocking.",
+                C: "Log the observation and rely on existing endpoint controls only."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "mid",
+            type: "Detection",
+            text: "EDR begins flagging low-severity alerts about unsigned binaries executing from the vendor patch directory on several POS endpoints.",
+            decision: {
+              question: "What do you prioritise at this point?",
+              options: {
+                A: "Escalate all related alerts to high severity and treat as a potential breach.",
+                B: "Tag the alerts for deeper triage while keeping business as usual.",
+                C: "Silence low-severity alerts to avoid alert fatigue during operations."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -441,27 +461,29 @@
         ],
         2: [
           {
+            stage: "mid",
             type: "Detection",
-            text: "EDR begins flagging unusual PowerShell usage on several POS endpoints that installed the patch. Commands appear to enumerate local users and services.",
+            text: "PowerShell telemetry from patched POS endpoints shows enumeration of local users, services and installed security tools within minutes of the update.",
             decision: {
               question: "How aggressively do you move on containment?",
               options: {
                 A: "Isolate all affected POS endpoints immediately.",
-                B: "Isolate a subset for analysis while keeping some live.",
-                C: "Monitor for one more cycle to gather more evidence."
+                B: "Isolate a subset for analysis while keeping some endpoints live for business continuity.",
+                C: "Continue monitoring for one more cycle to gather stronger indicators."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "late",
             type: "Containment",
-            text: "Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX.",
+            text: "Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX, over ports not typically used by the POS application.",
             decision: {
               question: "What is your network-level response?",
               options: {
-                A: "Block and sinkhole the suspicious IP range immediately.",
-                B: "Throttle connections and mirror traffic for deeper inspection.",
-                C: "Create an IDS rule only; no blocking yet."
+                A: "Block and sinkhole the suspicious IP range across the environment immediately.",
+                B: "Throttle connections and mirror traffic for deeper packet inspection.",
+                C: "Create IDS rules and continue to observe without blocking for now."
               },
               impact: { A: -1, B: -1, C: +1 }
             }
@@ -469,27 +491,89 @@
         ],
         3: [
           {
-            type: "Comms",
-            text: "Finance leadership receives complaints about intermittent POS outages in premium outlets during peak hours. They escalate directly to the CIO.",
+            stage: "late",
+            type: "Detection",
+            text: "Lateral movement telemetry suggests credential harvesting from a service account used to access finance and loyalty databases. Some logins appear from unusual admin workstations.",
             decision: {
-              question: "How do you frame the situation to senior leadership?",
+              question: "What containment step do you prioritise?",
               options: {
-                A: "Declare an active cyber incident with potential data-at-risk.",
-                B: "Describe it as a controlled containment exercise with some disruption.",
-                C: "Downplay as a stability issue until forensics are conclusive."
+                A: "Immediately rotate and revoke the affected service account and dependent credentials.",
+                B: "Add MFA and just-in-time controls around the account while gathering more evidence.",
+                C: "Enable enhanced logging only and postpone disruptive actions until confirmed."
               },
-              impact: { A: 0, B: 0, C: +1 }
+              impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
-            type: "Recovery",
-            text: "Evidence suggests persistence mechanisms were installed on multiple endpoints. Some logs indicate potential access to cardholder data segments.",
+            stage: "business",
+            type: "Comms",
+            text: "Finance leadership reports intermittent POS outages at premium outlets and is pressuring IT to restore stability before the evening peak.",
             decision: {
-              question: "What is your recovery posture?",
+              question: "How do you frame the situation to senior leadership?",
               options: {
-                A: "Rebuild affected endpoints from known-good images and rotate secrets.",
-                B: "Perform targeted remediation only where clear indicators exist.",
-                C: "Wait for full forensic report before major recovery actions."
+                A: "Declare an active cyber incident with potential data-at-risk and outline containment.",
+                B: "Describe it as a controlled containment exercise that may affect some outlets.",
+                C: "Position it as a generic stability issue until forensics are conclusive."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          }
+        ],
+        4: [
+          {
+            stage: "business",
+            type: "Comms",
+            text: "Rumours start circulating that a vendor patch has "broken" POS systems. Some outlet managers are considering local workarounds to keep transactions flowing.",
+            decision: {
+              question: "What governance stance do you take?",
+              options: {
+                A: "Formally instruct outlets to follow central guidance only and prohibit local workarounds.",
+                B: "Allow limited local workarounds with documented approvals.",
+                C: "Avoid explicit guidance and leave it to outlets to decide."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "recovery",
+            type: "Recovery",
+            text: "Forensics suggests the attacker had intermittent access to cardholder data segments but strong evidence of exfiltration is still inconclusive.",
+            decision: {
+              question: "What recovery and assurance step do you prioritise?",
+              options: {
+                A: "Rebuild affected endpoints from known-good images and rotate all relevant secrets.",
+                B: "Perform targeted remediation only where clear artifacts exist.",
+                C: "Wait for a full forensic report before executing major recovery actions."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        5: [
+          {
+            stage: "recovery",
+            type: "Recovery",
+            text: "Regulators request a briefing on possible payment data exposure linked to the vendor incident. Internal stakeholders want to minimise disruption to card processing.",
+            decision: {
+              question: "How do you handle the regulatory interface?",
+              options: {
+                A: "Share a frank interim view of risks, including investigative gaps and planned fixes.",
+                B: "Provide only high-level assurance and defer specifics until the report is final.",
+                C: "Delay engagement until you have a fully polished narrative ready.",
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "late",
+            type: "Containment",
+            text: "Residual beacons are still observed from a small subset of endpoints thought to be remediated, suggesting incomplete cleanup.",
+            decision: {
+              question: "What follow-up action do you take?",
+              options: {
+                A: "Trigger a focused re-imaging campaign for the affected estate.",
+                B: "Apply additional EDR policies and continue to monitor closely.",
+                C: "Accept the risk as low and add it to a backlog of improvements."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -497,34 +581,50 @@
         ]
       }
     },
-
     ransomware: {
       title: "Midweek Ransomware in Finance – Encrypted Shares & Distracted Staff",
-      desc: "Finance shares begin encrypting midweek during payment runs; staff are distracted by quarter-end pressure.",
+      desc: "Finance shares begin encrypting midweek during payment runs; staff are distracted by quarter-end pressure and competing priorities.",
+      aiStages: ["early", "mid", "late", "business", "recovery"],
       aiPools: {
         1: [
           {
+            stage: "early",
             type: "Intel",
-            text: "Helpdesk tickets spike from Finance staff reporting \"read-only\" and \"corrupted\" Excel files on a shared drive.",
+            text: "Helpdesk tickets spike from Finance staff reporting "read-only" and "corrupted" Excel files on a shared drive used for payment runs.",
             decision: {
               question: "What is your first move?",
               options: {
-                A: "Instruct helpdesk to immediately disconnect affected user PCs from the network.",
-                B: "Ask helpdesk to gather screenshots and logs before acting.",
-                C: "Treat as a storage glitch and escalate to infra only."
+                A: "Instruct helpdesk to disconnect affected user PCs from the network immediately.",
+                B: "Ask helpdesk to collect screenshots and basic logs before acting.",
+                C: "Treat this as a storage glitch and escalate only to infrastructure."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "early",
             type: "Intel",
-            text: "Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share.",
+            text: "Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share within a short time window.",
             decision: {
-              question: "At this point, how do you classify the event?",
+              question: "How do you classify the event at this point?",
               options: {
-                A: "Probable ransomware, trigger incident response playbook.",
-                B: "Suspicious activity needing deeper investigation.",
-                C: "Likely false positive from backup / sync tools."
+                A: "Probable ransomware, trigger the incident response playbook.",
+                B: "Suspicious activity needing deeper investigation before escalation.",
+                C: "Likely false positive due to backup or sync tooling."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "mid",
+            type: "Detection",
+            text: "A subset of Finance endpoints starts spawning processes from unusual directories when users open legacy spreadsheets.",
+            decision: {
+              question: "How do you follow up on these anomalies?",
+              options: {
+                A: "Block the processes and isolate endpoints from the network.",
+                B: "Collect forensic images before deciding on isolation.",
+                C: "Flag the events but let AV/EDR automatic actions handle them."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -532,27 +632,29 @@
         ],
         2: [
           {
+            stage: "mid",
             type: "Containment",
-            text: "Encryption events spread from Finance share to a nearby generic \"Shared\" drive used by multiple departments.",
+            text: "Encryption events spread from the core Finance share to a generic "Shared" drive used across multiple departments.",
             decision: {
-              question: "What containment decision do you make?",
+              question: "What containment decision do you take?",
               options: {
                 A: "Disconnect all affected file servers from the network immediately.",
-                B: "Disable SMB access for Finance only while monitoring others.",
-                C: "Attempt to kill suspected processes remotely but keep shares online."
+                B: "Disable SMB access for Finance while monitoring other departments.",
+                C: "Attempt to kill suspected processes but keep all shares online."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "mid",
             type: "Detection",
-            text: "EDR flags a small number of endpoints running suspicious executables from %TEMP% with network C2 indicators.",
+            text: "EDR flags endpoints running suspicious executables from %TEMP% with known ransomware TTPs and outbound C2 indicators.",
             decision: {
               question: "Where do you focus your detection and triage?",
               options: {
-                A: "Hunt across all endpoints for the hash and process tree.",
-                B: "Investigate only Finance endpoints first.",
-                C: "Rely on AV/EDR auto-remediation and wait."
+                A: "Hunt across all endpoints for the relevant hashes and process trees.",
+                B: "Investigate only Finance endpoints initially.",
+                C: "Rely on AV/EDR auto-remediation and wait for new alerts."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -560,27 +662,89 @@
         ],
         3: [
           {
-            type: "Comms",
-            text: "An internal ransom note appears on several Finance desktops and shared drives, demanding payment in crypto.",
+            stage: "late",
+            type: "Containment",
+            text: "The ransomware appears to be targeting mapped drives first, with signs of attempts to reach backup repositories.",
             decision: {
-              question: "How do you handle communications?",
+              question: "How do you protect backups?",
+              options: {
+                A: "Isolate backup infrastructure and suspend all non-essential jobs.",
+                B: "Increase monitoring on backup jobs but keep them running.",
+                C: "Assume backups are safe enough and focus on endpoints only."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "business",
+            type: "Comms",
+            text: "An internal ransom note appears on several Finance desktops and shared drives, demanding payment in cryptocurrency within 48 hours.",
+            decision: {
+              question: "How do you handle internal executive communications?",
               options: {
                 A: "Declare a cyber incident and brief ExCo with clear impact framing.",
-                B: "Keep communications limited to IT and key Finance leaders.",
-                C: "Avoid formal incident language until regulators ask questions."
+                B: "Limit communications to IT and key Finance leaders for now.",
+                C: "Avoid using the term "ransomware" until regulators ask questions."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          }
+        ],
+        4: [
+          {
+            stage: "business",
+            type: "Comms",
+            text: "Rumours of "the Finance servers being hacked" spread across departments, and staff start speculating about payroll impacts.",
+            decision: {
+              question: "How do you manage broader staff comms?",
+              options: {
+                A: "Issue a clear, honest communication acknowledging a cyber incident.",
+                B: "Publish a generic IT notice about file issues without mentioning ransomware.",
+                C: "Hold off on any message until you have a complete root cause."
               },
               impact: { A: 0, B: 0, C: +1 }
             }
           },
           {
+            stage: "recovery",
             type: "Recovery",
-            text: "Backups for the last 24 hours appear intact but restoring them will disrupt critical payment runs.",
+            text: "Backups for the last 24 hours appear intact but restoring them will cause delay to critical payment runs that ExCo is watching closely.",
             decision: {
-              question: "How do you balance recovery vs business continuity?",
+              question: "How do you balance recovery versus business continuity?",
               options: {
                 A: "Restore from backups immediately, accepting short-term disruption.",
-                B: "Restore partial data sets and attempt to keep payments running.",
-                C: "Delay restore to avoid any disruption to payment runs."
+                B: "Restore partial datasets and attempt to keep some payments running.",
+                C: "Delay restore to avoid any disruption to payment commitments."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        5: [
+          {
+            stage: "recovery",
+            type: "Recovery",
+            text: "Threat intel suggests this ransomware group often returns months later if initial access paths are not fully removed.",
+            decision: {
+              question: "What long-term follow-up action do you prioritise?",
+              options: {
+                A: "Commission a full architecture and control-gap review focused on lateral movement.",
+                B: "Tighten a few obvious security controls and move on.",
+                C: "Treat this as a one-off event and archive the incident quickly."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "late",
+            type: "Detection",
+            text: "A few weeks later, low-level anomalies appear again on a handful of Finance endpoints previously affected.",
+            decision: {
+              question: "How do you interpret and respond to these new weak signals?",
+              options: {
+                A: "Assume possible incomplete eradication and reopen the incident formally.",
+                B: "Launch a targeted threat-hunt limited to Finance endpoints.",
+                C: "Treat them as noise unless they escalate into clear alerts."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -588,28 +752,30 @@
         ]
       }
     },
-
     phishing: {
       title: "VIP Phishing & Account Takeover – Social Engineering of Executives",
       desc: "A targeted phishing campaign hits senior leadership and selected VIP guests, with signs of mailbox rule abuse and data exfiltration.",
+      aiStages: ["early", "mid", "late", "business", "recovery"],
       aiPools: {
         1: [
           {
+            stage: "early",
             type: "Intel",
             text: "Security gateway reports a spike in emails spoofing the CEO, sent to several directors with urgent wire transfer requests.",
             decision: {
               question: "What is your immediate action?",
               options: {
-                A: "Block all lookalike domains and warn recipients via out-of-band channels.",
-                B: "Quarantine future emails while quietly monitoring current ones.",
+                A: "Block lookalike domains and directly warn recipients via out-of-band channels.",
+                B: "Quarantine future emails while quietly monitoring existing ones.",
                 C: "Allow mail to flow and wait for confirmed user reports."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "early",
             type: "Intel",
-            text: "One PA reports clicking a link in an \"updated meeting invite\" from the CEO and entering credentials.",
+            text: "One PA reports clicking a link in an "updated meeting invite" from the CEO and entering credentials into a convincing login page.",
             decision: {
               question: "How do you handle the potential compromise?",
               options: {
@@ -619,31 +785,47 @@
               },
               impact: { A: -1, B: 0, C: +1 }
             }
+          },
+          {
+            stage: "mid",
+            type: "Detection",
+            text: "Mail hygiene logs show that the same phishing template has reached a small number of VIP guests via their loyalty program contact details.",
+            decision: {
+              question: "What scope of detection and communication do you launch?",
+              options: {
+                A: "Hunt across all VIP-related mailboxes and notify potentially affected guests.",
+                B: "Limit investigation to a few key VIP accounts first.",
+                C: "Rely on automated filters and avoid guest contact for now."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
           }
         ],
         2: [
           {
+            stage: "mid",
             type: "Detection",
-            text: "Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of messages to an external address.",
+            text: "Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of sensitive messages to an external address.",
             decision: {
-              question: "What scope of detection do you launch?",
+              question: "What scope of detection do you launch internally?",
               options: {
                 A: "Hunt for similar mailbox rules across all VIP and finance accounts.",
-                B: "Focus only on the director’s immediate team.",
-                C: "Disable the specific rule and move on."
+                B: "Focus only on the director’s immediate team and assistants.",
+                C: "Disable the specific rule and move on without wider hunting."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            stage: "late",
             type: "Containment",
-            text: "Cloud audit logs show sign-ins from an unusual country for the same director account.",
+            text: "Cloud audit logs show sign-ins from an unusual country using the director account, outside normal travel patterns.",
             decision: {
               question: "What containment step do you take?",
               options: {
                 A: "Block sign-ins from the suspicious location and invalidate sessions globally.",
-                B: "Require step-up MFA for that user only.",
-                C: "Add the location to a watchlist but no blocking yet."
+                B: "Require step-up MFA for that user and monitor sign-in risk.",
+                C: "Add the location to a watchlist but avoid blocking for now."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -651,27 +833,89 @@
         ],
         3: [
           {
+            stage: "late",
+            type: "Detection",
+            text: "Threat intel enrichment reveals that the attacker infrastructure overlaps with a known group targeting hospitality VIP programs.",
+            decision: {
+              question: "How do you adapt your detection posture?",
+              options: {
+                A: "Roll out expanded hunting based on IOCs and TTPs across mail and endpoints.",
+                B: "Constrain hunting to VIP and high-value accounts only.",
+                C: "Capture the intel for later but avoid noisy hunts now."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "business",
             type: "Comms",
-            text: "Rumours of \"executive email hacking\" begin spreading internally among staff.",
+            text: "Rumours of "executive email hacking" begin spreading internally among staff and middle management.",
             decision: {
               question: "How do you frame internal communications?",
               options: {
-                A: "Release a transparent internal advisory acknowledging targeted phishing.",
-                B: "Issue a generic reminder on phishing without mentioning executives.",
-                C: "Say nothing until an external incidence is confirmed."
+                A: "Release a transparent internal advisory acknowledging targeted phishing of executives.",
+                B: "Issue a generic reminder on phishing without mentioning executive targeting.",
+                C: "Say nothing until an external incident is confirmed."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          }
+        ],
+        4: [
+          {
+            stage: "business",
+            type: "Comms",
+            text: "Some VIPs begin asking relationship managers whether their communications with RWS have been compromised.",
+            decision: {
+              question: "How do you respond to concerned VIPs?",
+              options: {
+                A: "Provide honest, risk-based updates and outline additional protections.",
+                B: "Offer generic reassurances without going into specifics.",
+                C: "Avoid substantive responses until investigations are fully complete."
               },
               impact: { A: 0, B: 0, C: +1 }
             }
           },
           {
+            stage: "recovery",
             type: "Recovery",
-            text: "You have partially verified access abuse but impact to guest data is still uncertain.",
+            text: "You have partially verified access abuse, but the impact to guest data remains uncertain.",
             decision: {
-              question: "What recovery / follow-up action do you prioritise?",
+              question: "What follow-up action do you prioritise?",
               options: {
                 A: "Complete full mailbox forensics and notify potentially affected VIPs.",
-                B: "Focus on hardening email rules and MFA, defer forensics.",
+                B: "Focus on hardening email rules and MFA, deferring deeper forensics.",
                 C: "Park the investigation unless new alerts appear."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        5: [
+          {
+            stage: "recovery",
+            type: "Recovery",
+            text: "External regulators ask whether any VIP data could have been exposed via compromised mailboxes.",
+            decision: {
+              question: "How do you prepare for scrutiny?",
+              options: {
+                A: "Assemble a defensible timeline, decisions log, and evidence pack for review.",
+                B: "Provide a minimal written statement with generic assurances.",
+                C: "Delay detailed engagement while hoping the inquiry loses momentum."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            stage: "late",
+            type: "Containment",
+            text: "New login alerts appear for a separate executive account that previously passed phishing simulations without issue.",
+            decision: {
+              question: "What hypothesis do you test first?",
+              options: {
+                A: "Assume the campaign has shifted to fresh targets and widen detection immediately.",
+                B: "Treat this as a one-off anomaly until more evidence emerges.",
+                C: "Assume user error or accidental credential reuse and focus on training."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -685,16 +929,24 @@
   let seqCounter = 0;
   let exerciseEnded = false;
 
+  function levelLabel(lvl) {
+    const n = lvl || 1;
+    if (n === 1) return "L1 – Normal";
+    if (n === 2) return "L2 – Elevated";
+    if (n === 3) return "L3 – High";
+    if (n === 4) return "L4 – Severe";
+    return "L5 – Crisis";
+  }
+
   async function getAIState() {
     const snap = await get(ref(db, `sessions/${session}/state`));
     const presetKey = $("scenarioPreset").value || "blackfog";
-    return snap.val() || { level: 1, lastChoice: null, scenarioKey: presetKey, seq: 0 };
+    return snap.val() || { level: 1, lastChoice: null, scenarioKey: presetKey, seq: 0, stageIndex: 0 };
   }
 
   async function setAIState(state) {
     await set(ref(db, `sessions/${session}/state`), state);
-    const label = `Level ${state.level} – ${state.level === 1 ? "Normal" : state.level === 2 ? "Elevated" : "Severe"}`;
-    $("aiStateLabel").value = label;
+    $("aiStateLabel").value = levelLabel(state.level);
   }
 
   function renderTimeline() {
@@ -803,7 +1055,7 @@
       key,
       at: Date.now()
     });
-    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0 });
+    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     await set(ref(db, `sessions/${session}/ended`), null);
     log("Scenario published to players and AI state reset.");
   };
@@ -814,8 +1066,8 @@
       return;
     }
     const key = $("scenarioPreset").value || "blackfog";
-    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0 });
-    log("AI difficulty state reset to Level 1.");
+    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
+    log("AI difficulty state reset to L1 – Normal.");
   };
 
   $("btnAddInject").onclick = () => {
@@ -893,9 +1145,10 @@
       return;
     }
     const state = await getAIState();
-    const sc = scenarioLibrary[state.scenarioKey];
+    const sc = scenarioLibrary[state.scenarioKey || $("scenarioPreset").value || "blackfog"];
     if (!sc) { alert("Scenario not loaded / published yet."); return; }
 
+    // Difficulty adjustment based on last inject votes
     if (state.seq && state.seq > 0) {
       const majority = await getDominantChoice(state.seq);
       if (majority) {
@@ -907,21 +1160,31 @@
         } else {
           impact = majority === "A" ? -1 : majority === "B" ? 0 : 1;
         }
-        state.level = Math.max(1, Math.min(3, state.level + impact));
-        log(`AI engine: previous majority was ${majority}, difficulty adjusted to Level ${state.level}.`);
+        state.level = Math.max(1, Math.min(5, (state.level || 1) + impact));
+        log(`AI engine: previous majority was ${majority}, difficulty adjusted to ${levelLabel(state.level)}.`);
       } else {
         log("AI engine: no votes for previous inject; difficulty unchanged.");
       }
     }
 
-    const pools = sc.aiPools;
-    const pool = pools[state.level] || pools[2] || pools[1];
-    if (!pool || !pool.length) {
-      alert("No AI templates for this scenario / level.");
+    const stages = sc.aiStages || ["early", "mid", "late"];
+    if (state.seq === 0) {
+      state.stageIndex = 0;
+    } else if (state.stageIndex < stages.length - 1) {
+      state.stageIndex += 1;
+    }
+
+    const stageKey = stages[state.stageIndex] || stages[stages.length - 1];
+    const levelPools = sc.aiPools[state.level] || sc.aiPools[3] || sc.aiPools[1];
+    if (!levelPools || !levelPools.length) {
+      alert("No AI templates for this scenario / difficulty level.");
       return;
     }
 
+    const stageCandidates = levelPools.filter(t => t.stage === stageKey);
+    const pool = stageCandidates.length ? stageCandidates : levelPools;
     const template = pool[Math.floor(Math.random() * pool.length)];
+
     const newSeq = (state.seq || 0) + 1;
     const inj = {
       seq: newSeq,
@@ -1007,11 +1270,10 @@
     log("Exercise has been ended for this session.");
   };
 
-  // On load, pull any existing AI state so label is correct
   (async () => {
     const state = await getAIState();
     await setAIState(state);
-    log("Facilitator console initialised.");
+    log("Facilitator console initialised (v8).");
   })();
 </script>
 </body>

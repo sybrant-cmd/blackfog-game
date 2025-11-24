@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Player v7.0</title>
+  <title>RWS BlackFog – Player v8.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#d72638" />
   <style>
@@ -106,20 +106,24 @@
       background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,1));
       font-size: 12px;
       padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .ticker-live {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      margin-right: 12px;
       font-weight: 600;
       color: #fee2e2;
+      white-space: nowrap;
     }
     .ticker-live-dot {
       width: 8px;
       height: 8px;
       border-radius: 999px;
       background: #ef4444;
+      box-shadow: 0 0 8px rgba(248,113,113,0.85);
       animation: pulse 1.4s infinite;
     }
     @keyframes pulse {
@@ -127,25 +131,33 @@
       60% { transform: scale(1.8); opacity: 0; }
       100% { transform: scale(1); opacity: 0; }
     }
-    .ticker {
+    .ticker-viewport {
+      overflow: hidden;
+      flex: 1;
+    }
+    .ticker-track {
       display: inline-block;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: calc(100% - 160px);
-      vertical-align: bottom;
+      animation: ticker-scroll 40s linear infinite;
+    }
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
     .ticker-item {
-      margin-right: 18px;
+      margin-right: 32px;
       color: var(--muted);
+    }
+    .ticker-item strong {
+      color: #e5e7eb;
     }
     .footer-space { height: 40px; }
     .vciso {
-      background: radial-gradient(circle at top left, rgba(220,38,38,0.16), #020617);
+      background: radial-gradient(circle at top left, rgba(220,38,38,0.18), #020617);
       border-radius: 14px;
       border: 1px solid rgba(248, 250, 252, 0.12);
       padding: 10px 12px;
-      min-height: 140px;
+      min-height: 160px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -163,6 +175,7 @@
       border-radius: 999px;
       border: 2px solid #f97316;
       box-shadow: 0 0 8px rgba(248,113,113,0.75);
+      background: radial-gradient(circle at 30% 30%, #fed7aa, #7f1d1d);
     }
     .vciso-msg {
       font-size: 13px;
@@ -195,6 +208,7 @@
     }
     @media (max-width: 840px) {
       .grid { grid-template-columns: 1fr; }
+      .ticker-wrap { font-size: 11px; }
     }
   </style>
 </head>
@@ -252,7 +266,7 @@
       <h3 class="vciso-title"><span class="icon"></span> Live Mentor (vCISO)</h3>
       <div id="vcisoFeed">
         <div id="vcisoMsg" class="vciso-msg">
-          I’m here to guide you through the exercise. As injects land and you make choices, I’ll react like a human CISO sitting next to you.
+          I’m here to guide you through the exercise. As injects land and you make choices, I’ll react the way a human CISO might in the room with you.
         </div>
         <div id="vcisoTyping" class="vciso-typing" style="display:none;">typing…</div>
       </div>
@@ -263,9 +277,11 @@
 <div class="ticker-wrap">
   <div class="ticker-live">
     <div class="ticker-live-dot"></div>
-    <span>LIVESTREAM • RWS CYBER RANGE</span>
+    <span>CNA • CYBER INCIDENT DESK</span>
   </div>
-  <div class="ticker" id="ticker"></div>
+  <div class="ticker-viewport">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
 </div>
 <div class="footer-space"></div>
 
@@ -317,71 +333,97 @@
 
   onDisconnect(playerRef).update({ status: "offline", ts: Date.now() });
 
-  // vCISO brain
+  // vCISO brain: expanded, more dynamic
   const commentBank = {
     Intel: [
-      "Okay, this isn’t just background noise. If this landed on my desk at 9am, I’d pause and look twice before moving on.",
-      "First question: is this random weirdness, or does it look like someone is deliberately testing our guard rails?",
-      "Good instinct here is to slow down and write out what we actually know, not what we’re afraid of."
+      "Okay, this isn’t just background noise. If this landed on my desk mid-morning, I’d pause my email and read it twice.",
+      "First question here is simple: is this random weirdness, or does it smell like someone testing our guard rails on purpose?",
+      "This is where good teams build muscle memory – noticing the odd pattern before it becomes a headline.",
+      "If you feel a bit of unease reading this, that’s usually your pattern-recognition kicking in. Don’t ignore it.",
+      "Treat this like the opening scene in a movie. You don’t know the plot yet, but you know the scene matters."
     ],
     Detection: [
-      "This is where the story starts to form. Don’t stare at a single alert, zoom out and see the pattern.",
-      "Ask yourself: if this were real, where else in the estate would we expect to see similar signals?",
-      "If this were just a false positive, would it be this coordinated across different systems? Usually not."
+      "Now we’re past theory – telemetry is telling a story. Don’t stare at one alert, zoom out and look for repetition.",
+      "Ask yourself: if this behaviour is real, where else should we see it in the estate? That question drives good hunting.",
+      "If this were a pure false positive, would it line up this neatly across systems? Usually the answer is no.",
+      "This is the point where good logging pays off. Thin logs mean thin decisions.",
+      "You don’t need to be 100% sure yet, but you do need to be directionally honest about what the data suggests."
     ],
     Containment: [
-      "This is the uncomfortable part. Someone’s revenue, someone’s KPI, is going to feel this decision.",
-      "You almost never get perfect information in time. The skill is picking a move you can explain and sleep with later.",
-      "Think in trade-offs: smaller earlier disruption versus larger later incident."
+      "Containment is where someone’s revenue, someone’s KPI, will feel your decision. That’s why it’s uncomfortable.",
+      "You almost never get perfect information in time. Your job is to choose a move you can explain and live with later.",
+      "Think in trade-offs: a smaller, earlier disruption versus a bigger, later crisis. There is no option with zero pain.",
+      "Containment isn’t about fear, it’s about buying time and reducing blast radius so thinking can catch up.",
+      "If you’re hesitating, ask: if this is much worse than it looks, will I wish I’d moved faster right now?"
     ],
     Comms: [
-      "Technical truth is one thing; how people feel about it is another. Both matter right now.",
-      "When you speak up, aim for calm and specific. People can handle bad news, but they hate surprises.",
-      "Good comms is like good logging – clear, time-stamped, and honest about what’s known versus suspected."
+      "Technical accuracy is one thing; how people feel about the situation is another. Both matter in the next 30 minutes.",
+      "When you brief upwards, aim for calm and specific. People can handle bad news, but they hate confusion.",
+      "A solid one-line summary beats a ten-slide deck at this stage. Clarity travels faster than slides.",
+      "If your comms sound defensive, people will read that as ‘we’re not in control’. Aim for steady and factual instead.",
+      "In crisis calls, the most credible person is usually the one who can say ‘here’s what we know, here’s what we don’t’."
     ],
     Recovery: [
-      "Recovery is when everyone wants to rush back to ‘normal’. It’s also when we quietly decide whether we learned anything.",
-      "Declaring victory too early is how you end up with a sequel incident later.",
-      "Ask: after this, what will we do differently next time? If the answer is ‘nothing’, that’s a red flag."
+      "Recovery is when everyone wants to rush back to ‘normal’. It’s also where you quietly decide whether anything was learned.",
+      "Be careful declaring victory too early. Attackers love environments that celebrate recovery before closing all doors.",
+      "Ask yourself: after this, what will we do differently next time? If the answer is ‘not much’, that’s a warning sign.",
+      "This is the point to protect future you – write down what actually happened and what you’d change.",
+      "The best recovery plans include space for reflection, not just rebuilding servers and closing tickets."
     ],
     DecisionAggressive: [
-      "You’ve chosen a hard, protective line. That’s often the right instinct in the first hour of an incident.",
-      "Aggressive containment buys you time, but it spends goodwill. Make sure you can explain the business trade-off.",
-      "This is a ‘protect the crown jewels first’ move. Document that logic explicitly; it will help in the wash-up."
+      "You’ve chosen a hard, protective line. That’s often a good instinct in the first hour of an incident.",
+      "Aggressive containment buys you time, but it spends political capital. Make sure you can explain the trade-off clearly.",
+      "This is a ‘protect the crown jewels first’ move. Document that logic; it’s your shield in the post-mortem.",
+      "You’re signalling that safety and integrity trump short-term convenience. Many CISOs would back that call.",
+      "Just remember to pair strong moves with strong communication, or people will only remember the disruption."
     ],
     DecisionBalanced: [
-      "You’ve taken a middle path – some control, some observation. That can work if you stay disciplined about follow-through.",
-      "Balance is fine, as long as it doesn’t become indecision in disguise. Set a clear time-box to re-evaluate.",
-      "You’re trying to protect both uptime and security. Just be clear what you’ll accept if the risk tilts the wrong way."
+      "You’ve chosen a middle path – some control, some observation. That can work if you stay disciplined.",
+      "Balance is fine, as long as it doesn’t become slow-motion indecision. Set a clear checkpoint to re-evaluate.",
+      "You’re trying to protect both uptime and security. The key is to be explicit: what risk are you accepting for that?",
+      "This kind of choice lives or dies on follow-through. Without follow-up, a ‘balanced’ move just drifts.",
+      "If you go down the balanced route, write down what new signal would push you to act more strongly."
     ],
     DecisionConservative: [
-      "You’re holding back, which keeps the business happy for now but gives the attacker more room to move.",
-      "Conservative moves feel comfortable in the moment. Just remember: if this escalates, today’s caution will be tomorrow’s problem.",
-      "If you’re choosing to wait, decide explicitly what new signal would force you to act, and in how much time."
+      "You’re holding back, which keeps people comfortable in the short term but gives the attacker more room to move.",
+      "Conservative moves feel safe. Just be honest that the risk isn’t vanishing – it’s being deferred.",
+      "If this escalates, today’s caution could be tomorrow’s uncomfortable conversation. Make sure you’re okay with that.",
+      "Sometimes waiting is right, but it should be a deliberate choice, not just hoping for good luck.",
+      "If you choose to wait, be specific: how long, and what exactly would make you pull the trigger on stronger action?"
     ],
     Default: [
-      "Keep it simple: protect people, protect data, protect the brand. Use that as your north star.",
-      "Future you has to write the report. Make decisions that will still make sense when the adrenaline is gone."
+      "Keep it simple: protect people, protect data, protect the brand. Let that be your compass when the details blur.",
+      "Future you will have to write the report. Make decisions that will still make sense when the adrenaline is gone.",
+      "Good incident work is less about heroics and more about steady, explainable decisions under pressure.",
+      "You don’t need a perfect answer. You need a defendable one, delivered at the right time."
     ]
   };
 
   const extraBank = {
     calm: [
       " Take ten seconds and write down what you actually know, not what you fear.",
-      " It’s okay not to have a perfect answer yet – clarity usually comes from the next couple of steps.",
-      " Slow down just enough so you don’t miss something obvious in the rush."
+      " It’s okay not to have a perfect answer yet – clarity usually arrives one step at a time.",
+      " Slow yourself down just enough that you don’t miss something obvious.",
+      " A short, shared summary with your team here will reduce chaos later.",
+      " Don’t try to impress anyone – just try to be clear."
     ],
     direct: [
-      " At some point someone has to say, ‘We’re doing this.’ Don’t drag the moment out forever.",
-      " If you had to choose in the next minute, what’s your honest pick? That’s usually the real answer.",
-      " Try not to hide behind tools or process here – this is a judgment call."
+      " At some point someone has to say, ‘We’re doing this.’ Don’t drag that moment out forever.",
+      " If you had to choose in the next sixty seconds, what’s your honest pick? That’s usually your real answer.",
+      " Try not to hide behind tools or process – this is a judgment call more than a technology one.",
+      " Ask yourself what decision you’d back if you were the CISO on call tonight.",
+      " Don’t wait for a perfect signal. By then, the attacker will have moved on."
     ],
     human: [
-      " You’re allowed to feel pressure here. The trick is to let it sharpen you, not paralyse you.",
-      " You don’t have to sound clever in the room. You just have to be clear and honest.",
-      " Imagine explaining this later to a smart colleague who wasn’t here – what would you say?"
+      " You’re allowed to feel pressure here. The trick is to let it sharpen you rather than shut you down.",
+      " You don’t have to sound clever in the room; you just have to be honest and concrete.",
+      " Imagine explaining this call to a smart colleague tomorrow morning – what story would you want to tell?",
+      " The room will follow your energy. If you stay measured, they will too.",
+      " Remember, mistakes are inevitable. How you respond and adjust is what people remember."
     ]
   };
+
+  let lastVCISOText = "";
 
   function pick(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
@@ -413,14 +455,21 @@
 
     const phaseHints = {
       intel: " Right now the job is to separate signal from noise, not jump to the scariest conclusion.",
-      decision: " You’re choosing between imperfect options – that’s completely normal in real incident work.",
+      decision: " You’re choosing between imperfect options – that’s normal in real incident work.",
       after: " This is the moment to articulate why you chose that path, in plain language."
     };
 
-    const base = pick(pool) + (phaseHints[phase] || "");
-    const extras = extraBank[tone] || extraBank.calm;
-    const extra = Math.random() < 0.8 ? pick(extras) : "";
-    const msg = base + extra;
+    let base, extra, msg;
+    let attempts = 0;
+    do {
+      base = pick(pool) + (phaseHints[phase] || "");
+      const extras = extraBank[tone] || extraBank.calm;
+      extra = Math.random() < 0.8 ? pick(extras) : "";
+      msg = base + extra;
+      attempts++;
+    } while (msg === lastVCISOText && attempts < 5);
+
+    lastVCISOText = msg;
 
     const vcisoTyping = $("vcisoTyping");
     const vcisoMsg = $("vcisoMsg");
@@ -442,23 +491,58 @@
     }, 40);
   }
 
-  // Ticker
-  let tickerItems = [
-    { cat: "World", text: "Global markets steady as tech sector rebounds." },
-    { cat: "Corporate", text: "RWS continues phased rollout of resilience improvements across IT and OT." },
-    { cat: "Cyber", text: "CERT-SG highlights rise in supply-chain attacks targeting hospitality and travel." },
-    { cat: "Travel", text: "Regional travel flows remain strong ahead of holiday period." },
-    { cat: "Weather", text: "Scattered showers islandwide; operations remain normal." }
+  // CNA-style ticker
+  const worldNews = [
+    "Global markets steady as tech and travel sectors show cautious optimism.",
+    "Major economies weigh fresh cybersecurity regulations after high-profile breaches.",
+    "Key central banks signal a wait-and-see stance on interest rates."
+  ];
+  const sgNews = [
+    "Singapore regulators remind firms to tighten safeguards against third-party cyber risk.",
+    "Local hospitality players report strong bookings ahead of regional holiday periods.",
+    "Cyber-awareness campaigns continue across critical sectors in Singapore."
+  ];
+  const cyberNews = [
+    "CERT-SG highlights sharp rise in supply-chain attacks targeting hospitality and travel.",
+    "Regional SOCs report increased phishing and ransomware activity around month-end cycles.",
+    "Analysts warn that business email compromise remains a top financial loss vector."
+  ];
+  const travelNews = [
+    "Air travel volumes remain resilient despite macroeconomic headwinds.",
+    "Regional tourism boards collaborate on digital safety guidance for travellers.",
+    "Guest expectations for seamless, secure digital journeys continue to grow."
+  ];
+  const opsNews = [
+    "IT and OT teams across the region review incident response playbooks before peak season.",
+    "Organisations invest in combined cyber and business continuity exercises.",
+    "Boards are asking more detailed questions about cyber-resilience metrics."
   ];
 
+  let tickerItems = [];
+
+  function refreshTickerItems() {
+    tickerItems = [];
+    tickerItems.push({ cat: "World", text: pick(worldNews) });
+    tickerItems.push({ cat: "Singapore", text: pick(sgNews) });
+    tickerItems.push({ cat: "Cyber", text: pick(cyberNews) });
+    tickerItems.push({ cat: "Travel", text: pick(travelNews) });
+    tickerItems.push({ cat: "Business", text: pick(opsNews) });
+  }
+
   function renderTicker() {
-    const host = $("ticker");
-    host.innerHTML = tickerItems.map(item => {
+    const host = $("tickerTrack");
+    if (!host) return;
+    const items = tickerItems.length ? tickerItems : [{ cat: "Cyber", text: "Monitoring live exercise telemetry – no external impact." }];
+    const html = items.map(item => {
       const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
     }).join("");
+    host.innerHTML = html + html; // duplicate for continuous scroll
   }
+
+  refreshTickerItems();
   renderTicker();
+  setInterval(() => { refreshTickerItems(); renderTicker(); }, 25000);
 
   function resetView() {
     $("scTitle").textContent = "Standby – awaiting scenario";
@@ -494,7 +578,6 @@
     const decCard = $("decCard");
     const endCard = $("endCard");
 
-    // If exercise already ended, don't show new injects
     if (endCard.style.display === "block") {
       return;
     }
@@ -536,7 +619,7 @@
 
     let remaining = 45;
     timerEl.classList.remove("timer-urgent");
-    timerEl.textContent = `${remaining}s`;
+    timerEl.textContent = remaining + "s";
     if (window.__rwsTimer) clearInterval(window.__rwsTimer);
     window.__rwsTimer = setInterval(() => {
       remaining -= 1;
@@ -554,7 +637,7 @@
       if (remaining <= 10) {
         timerEl.classList.add("timer-urgent");
       }
-      timerEl.textContent = `${remaining}s`;
+      timerEl.textContent = remaining + "s";
     }, 1000);
 
     speakLikeVCISO(inj.type || "Intel", { phase: "decision", seq: inj.seq });
@@ -582,7 +665,6 @@
   $("optB").onclick = () => sendVote("B");
   $("optC").onclick = () => sendVote("C");
 
-  // End-of-exercise handling
   onValue(ref(db, `sessions/${session}/ended`), snap => {
     const v = snap.val();
     const endCard = $("endCard");
@@ -608,12 +690,12 @@
     speakLikeVCISO("Recovery", { phase: "after" });
   });
 
-  // Optional: watch AI state for difficulty hints
   onValue(ref(db, `sessions/${session}/state`), snap => {
     const st = snap.val();
     if (!st) return;
-    const label = `L${st.level || 1} • ${st.level === 1 ? "Normal" : st.level === 2 ? "Elevated" : "Severe"} AI difficulty`;
-    tickerItems.unshift({ cat: "Range", text: label });
+    const lvl = st.level || 1;
+    const label = lvl === 1 ? "Normal" : lvl === 2 ? "Elevated" : lvl === 3 ? "High" : lvl === 4 ? "Severe" : "Crisis";
+    tickerItems.unshift({ cat: "Range", text: `AI difficulty is now ${label}.` });
     if (tickerItems.length > 20) tickerItems.pop();
     renderTicker();
   });
