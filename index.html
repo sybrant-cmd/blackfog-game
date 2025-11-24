@@ -1,1 +1,1018 @@
-<!-- Full facilitator v7 placeholder. Integrate full logic manually. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RWS BlackFog – Facilitator v7.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --panel2: #0b1120;
+      --border: rgba(148, 163, 184, 0.5);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #d72638;
+      --accent-soft: rgba(215, 38, 56, 0.15);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 60%);
+      color: var(--text);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(15,23,42,0.85));
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.9);
+      margin-left: 8px;
+    }
+    .pill-live {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 2.1fr 1fr;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .card {
+      background: var(--panel2);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      box-shadow: 0 16px 42px rgba(0,0,0,0.6);
+      margin-bottom: 14px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .card-header h2 {
+      font-size: 15px;
+      margin: 0;
+    }
+    .muted {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+      color: var(--muted);
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 13px;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    .row > div { flex: 1; }
+    .btn-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .btn-danger {
+      border-color: #f97373;
+      color: #fecaca;
+      background: rgba(127,29,29,0.4);
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+    #timeline {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 6px;
+      background: #020617;
+      max-height: 320px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .inj-row {
+      display: grid;
+      grid-template-columns: 44px 82px 1fr;
+      gap: 6px;
+      align-items: flex-start;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+    }
+    .inj-row:nth-child(odd) {
+      background: rgba(15,23,42,0.7);
+    }
+    .inj-row:nth-child(even) {
+      background: rgba(15,23,42,0.45);
+    }
+    .inj-time {
+      font-weight: 600;
+      color: #eab308;
+    }
+    .inj-type {
+      font-size: 11px;
+      color: #bfdbfe;
+    }
+    .inj-text {
+      white-space: pre-wrap;
+    }
+    .inj-dec {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    #log {
+      font-size: 11px;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+    }
+    .log-line {
+      margin: 0;
+      padding: 2px 0;
+      color: var(--muted);
+    }
+    #playersList {
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+    .player-name { font-weight: 500; }
+    .player-status {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    #aar {
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 11px;
+    }
+    th, td {
+      border: 1px solid #374151;
+      padding: 4px;
+      text-align: left;
+    }
+    th {
+      background: #111827;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>RWS BlackFog – Facilitator</h1>
+    <span class="pill pill-live">LIVE SESSION <span id="sessionId"></span></span>
+  </div>
+  <div class="muted">
+    Players: <span id="playersCount">0</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <!-- LEFT: Scenario + Injects -->
+    <div>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Scenario & AI Engine</h2>
+          <span class="muted">Choose preset, publish, then drive injects</span>
+        </div>
+        <div class="row" style="margin-bottom:6px;">
+          <div>
+            <label>Scenario preset</label>
+            <select id="scenarioPreset">
+              <option value="blackfog">Operation BlackFog – Supply-Chain to APT</option>
+              <option value="ransomware">Midweek Ransomware in Finance</option>
+              <option value="phishing">VIP Phishing & Account Takeover</option>
+            </select>
+          </div>
+          <div>
+            <label>AI difficulty state</label>
+            <input id="aiStateLabel" readonly value="Level 1 – Normal" />
+          </div>
+        </div>
+        <div class="btn-bar" style="margin-bottom:6px;">
+          <button id="btnLoadScenario" class="btn">📦 Load preset into editor</button>
+          <button id="btnPublishScenario" class="btn-primary">📡 Publish scenario to players</button>
+          <button id="btnAINextInject" class="btn-primary">🤖 AI – Next inject</button>
+          <button id="btnResetAIState" class="btn">♻ Reset AI state</button>
+          <button id="btnEndExercise" class="btn-danger">⛔ End exercise</button>
+        </div>
+        <div>
+          <label>Scenario title</label>
+          <input id="scTitle" />
+          <label style="margin-top:4px;">Scenario description</label>
+          <textarea id="scDesc"></textarea>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Manual Inject Builder</h2>
+          <span class="muted">Craft or override AI injects</span>
+        </div>
+        <div class="row">
+          <div>
+            <label>Timecode</label>
+            <input id="injTime" placeholder="e.g. T+0m, T+15m" />
+          </div>
+          <div>
+            <label>Type</label>
+            <select id="injType">
+              <option>Intel</option>
+              <option>Detection</option>
+              <option>Containment</option>
+              <option>Comms</option>
+              <option>Recovery</option>
+            </select>
+          </div>
+        </div>
+        <label style="margin-top:6px;">Inject text</label>
+        <textarea id="injText" placeholder="What is happening? What do players see?"></textarea>
+
+        <div style="margin-top:8px;">
+          <label>Decision question (optional)</label>
+          <input id="decQuestion" placeholder="e.g. Do we isolate all affected endpoints immediately?" />
+          <div class="row" style="margin-top:4px;">
+            <div>
+              <label>Option A</label>
+              <input id="decA" placeholder="e.g. Yes – isolate aggressively now" />
+            </div>
+            <div>
+              <label>Option B</label>
+              <input id="decB" placeholder="e.g. Partial isolation with business exceptions" />
+            </div>
+            <div>
+              <label>Option C</label>
+              <input id="decC" placeholder="e.g. Monitor closely, no isolation yet" />
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-bar" style="margin-top:8px;">
+          <button id="btnAddInject" class="btn">➕ Add to local timeline</button>
+          <button id="btnSendLatest" class="btn-primary">🚀 Send latest inject to players</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Inject Timeline (this session)</h2>
+        </div>
+        <div id="timeline"></div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT: Players, log, AAR -->
+    <div>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Connected Players</h2>
+        </div>
+        <div id="playersList"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Console log</h2>
+        </div>
+        <div id="log"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>After Action – Votes per inject</h2>
+          <button id="btnBuildAAR" class="btn">📊 Build AAR snapshot</button>
+        </div>
+        <div id="aar">
+          <p class="muted">End a round, then build AAR to see A/B/C distribution per inject.</p>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
+    authDomain: "rws-blackfog-game.firebaseapp.com",
+    databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "rws-blackfog-game",
+    storageBucket: "rws-blackfog-game.firebasestorage.app",
+    messagingSenderId: "473543964029",
+    appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const $ = (id) => document.getElementById(id);
+
+  const urlS = new URLSearchParams(location.search).get("s");
+  const session = urlS && urlS.trim() ? urlS.trim() : "default";
+  $("sessionId").textContent = session;
+
+  function log(msg) {
+    const host = $("log");
+    const line = document.createElement("div");
+    line.className = "log-line";
+    const t = new Date().toLocaleTimeString();
+    line.textContent = "[" + t + "] " + msg;
+    host.prepend(line);
+  }
+
+  // Scenario library – each scenario with >=5 inject templates and cascading difficulty
+  const scenarioLibrary = {
+    blackfog: {
+      title: "Operation BlackFog – Supply-Chain Compromise to APT Infiltration (RWS)",
+      desc: "A trusted third-party payment vendor pushes an unscheduled update that quietly opens the door to an APT-style intrusion into RWS finance and loyalty systems.",
+      aiPools: {
+        1: [
+          {
+            type: "Intel",
+            text: "Vendor PayGateX pushes an \"urgent\" compatibility patch to RWS POS endpoints outside the normal maintenance window. Change ticket reference is missing.",
+            decision: {
+              question: "How should we react to this unexpected vendor push?",
+              options: {
+                A: "Freeze rollout and demand full technical explanation from vendor.",
+                B: "Allow rollout, but place under heightened monitoring.",
+                C: "Treat as routine – no additional action."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Intel",
+            text: "Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host used by PayGateX.",
+            decision: {
+              question: "What is your immediate next step?",
+              options: {
+                A: "Block the new CDN host at the perimeter until validated.",
+                B: "Collect a sample of the binary for sandboxing first.",
+                C: "Log the observation but avoid disruption."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        2: [
+          {
+            type: "Detection",
+            text: "EDR begins flagging unusual PowerShell usage on several POS endpoints that installed the patch. Commands appear to enumerate local users and services.",
+            decision: {
+              question: "How aggressively do you move on containment?",
+              options: {
+                A: "Isolate all affected POS endpoints immediately.",
+                B: "Isolate a subset for analysis while keeping some live.",
+                C: "Monitor for one more cycle to gather more evidence."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Containment",
+            text: "Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX.",
+            decision: {
+              question: "What is your network-level response?",
+              options: {
+                A: "Block and sinkhole the suspicious IP range immediately.",
+                B: "Throttle connections and mirror traffic for deeper inspection.",
+                C: "Create an IDS rule only; no blocking yet."
+              },
+              impact: { A: -1, B: -1, C: +1 }
+            }
+          }
+        ],
+        3: [
+          {
+            type: "Comms",
+            text: "Finance leadership receives complaints about intermittent POS outages in premium outlets during peak hours. They escalate directly to the CIO.",
+            decision: {
+              question: "How do you frame the situation to senior leadership?",
+              options: {
+                A: "Declare an active cyber incident with potential data-at-risk.",
+                B: "Describe it as a controlled containment exercise with some disruption.",
+                C: "Downplay as a stability issue until forensics are conclusive."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Recovery",
+            text: "Evidence suggests persistence mechanisms were installed on multiple endpoints. Some logs indicate potential access to cardholder data segments.",
+            decision: {
+              question: "What is your recovery posture?",
+              options: {
+                A: "Rebuild affected endpoints from known-good images and rotate secrets.",
+                B: "Perform targeted remediation only where clear indicators exist.",
+                C: "Wait for full forensic report before major recovery actions."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ]
+      }
+    },
+
+    ransomware: {
+      title: "Midweek Ransomware in Finance – Encrypted Shares & Distracted Staff",
+      desc: "Finance shares begin encrypting midweek during payment runs; staff are distracted by quarter-end pressure.",
+      aiPools: {
+        1: [
+          {
+            type: "Intel",
+            text: "Helpdesk tickets spike from Finance staff reporting \"read-only\" and \"corrupted\" Excel files on a shared drive.",
+            decision: {
+              question: "What is your first move?",
+              options: {
+                A: "Instruct helpdesk to immediately disconnect affected user PCs from the network.",
+                B: "Ask helpdesk to gather screenshots and logs before acting.",
+                C: "Treat as a storage glitch and escalate to infra only."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Intel",
+            text: "Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share.",
+            decision: {
+              question: "At this point, how do you classify the event?",
+              options: {
+                A: "Probable ransomware, trigger incident response playbook.",
+                B: "Suspicious activity needing deeper investigation.",
+                C: "Likely false positive from backup / sync tools."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        2: [
+          {
+            type: "Containment",
+            text: "Encryption events spread from Finance share to a nearby generic \"Shared\" drive used by multiple departments.",
+            decision: {
+              question: "What containment decision do you make?",
+              options: {
+                A: "Disconnect all affected file servers from the network immediately.",
+                B: "Disable SMB access for Finance only while monitoring others.",
+                C: "Attempt to kill suspected processes remotely but keep shares online."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Detection",
+            text: "EDR flags a small number of endpoints running suspicious executables from %TEMP% with network C2 indicators.",
+            decision: {
+              question: "Where do you focus your detection and triage?",
+              options: {
+                A: "Hunt across all endpoints for the hash and process tree.",
+                B: "Investigate only Finance endpoints first.",
+                C: "Rely on AV/EDR auto-remediation and wait."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        3: [
+          {
+            type: "Comms",
+            text: "An internal ransom note appears on several Finance desktops and shared drives, demanding payment in crypto.",
+            decision: {
+              question: "How do you handle communications?",
+              options: {
+                A: "Declare a cyber incident and brief ExCo with clear impact framing.",
+                B: "Keep communications limited to IT and key Finance leaders.",
+                C: "Avoid formal incident language until regulators ask questions."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Recovery",
+            text: "Backups for the last 24 hours appear intact but restoring them will disrupt critical payment runs.",
+            decision: {
+              question: "How do you balance recovery vs business continuity?",
+              options: {
+                A: "Restore from backups immediately, accepting short-term disruption.",
+                B: "Restore partial data sets and attempt to keep payments running.",
+                C: "Delay restore to avoid any disruption to payment runs."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ]
+      }
+    },
+
+    phishing: {
+      title: "VIP Phishing & Account Takeover – Social Engineering of Executives",
+      desc: "A targeted phishing campaign hits senior leadership and selected VIP guests, with signs of mailbox rule abuse and data exfiltration.",
+      aiPools: {
+        1: [
+          {
+            type: "Intel",
+            text: "Security gateway reports a spike in emails spoofing the CEO, sent to several directors with urgent wire transfer requests.",
+            decision: {
+              question: "What is your immediate action?",
+              options: {
+                A: "Block all lookalike domains and warn recipients via out-of-band channels.",
+                B: "Quarantine future emails while quietly monitoring current ones.",
+                C: "Allow mail to flow and wait for confirmed user reports."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Intel",
+            text: "One PA reports clicking a link in an \"updated meeting invite\" from the CEO and entering credentials.",
+            decision: {
+              question: "How do you handle the potential compromise?",
+              options: {
+                A: "Force password reset and revoke all tokens for the account immediately.",
+                B: "Start with targeted MFA reset and token revocation only.",
+                C: "Advise the PA to monitor for unusual activity but take no immediate action."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        2: [
+          {
+            type: "Detection",
+            text: "Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of messages to an external address.",
+            decision: {
+              question: "What scope of detection do you launch?",
+              options: {
+                A: "Hunt for similar mailbox rules across all VIP and finance accounts.",
+                B: "Focus only on the director’s immediate team.",
+                C: "Disable the specific rule and move on."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Containment",
+            text: "Cloud audit logs show sign-ins from an unusual country for the same director account.",
+            decision: {
+              question: "What containment step do you take?",
+              options: {
+                A: "Block sign-ins from the suspicious location and invalidate sessions globally.",
+                B: "Require step-up MFA for that user only.",
+                C: "Add the location to a watchlist but no blocking yet."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ],
+        3: [
+          {
+            type: "Comms",
+            text: "Rumours of \"executive email hacking\" begin spreading internally among staff.",
+            decision: {
+              question: "How do you frame internal communications?",
+              options: {
+                A: "Release a transparent internal advisory acknowledging targeted phishing.",
+                B: "Issue a generic reminder on phishing without mentioning executives.",
+                C: "Say nothing until an external incidence is confirmed."
+              },
+              impact: { A: 0, B: 0, C: +1 }
+            }
+          },
+          {
+            type: "Recovery",
+            text: "You have partially verified access abuse but impact to guest data is still uncertain.",
+            decision: {
+              question: "What recovery / follow-up action do you prioritise?",
+              options: {
+                A: "Complete full mailbox forensics and notify potentially affected VIPs.",
+                B: "Focus on hardening email rules and MFA, defer forensics.",
+                C: "Park the investigation unless new alerts appear."
+              },
+              impact: { A: -1, B: 0, C: +1 }
+            }
+          }
+        ]
+      }
+    }
+  };
+
+  let injects = [];
+  let seqCounter = 0;
+  let exerciseEnded = false;
+
+  async function getAIState() {
+    const snap = await get(ref(db, `sessions/${session}/state`));
+    const presetKey = $("scenarioPreset").value || "blackfog";
+    return snap.val() || { level: 1, lastChoice: null, scenarioKey: presetKey, seq: 0 };
+  }
+
+  async function setAIState(state) {
+    await set(ref(db, `sessions/${session}/state`), state);
+    const label = `Level ${state.level} – ${state.level === 1 ? "Normal" : state.level === 2 ? "Elevated" : "Severe"}`;
+    $("aiStateLabel").value = label;
+  }
+
+  function renderTimeline() {
+    const host = $("timeline");
+    host.innerHTML = "";
+    injects.forEach(inj => {
+      const row = document.createElement("div");
+      row.className = "inj-row";
+
+      const timeEl = document.createElement("div");
+      timeEl.className = "inj-time";
+      timeEl.textContent = inj.time || "T+?m";
+
+      const typeEl = document.createElement("div");
+      typeEl.className = "inj-type";
+      typeEl.textContent = `${inj.type || "Intel"} #${inj.seq}`;
+
+      const body = document.createElement("div");
+      const textEl = document.createElement("div");
+      textEl.className = "inj-text";
+      textEl.textContent = inj.text || "";
+
+      body.appendChild(textEl);
+
+      if (inj.decision && inj.decision.question) {
+        const decEl = document.createElement("div");
+        decEl.className = "inj-dec";
+        decEl.textContent = `Q: ${inj.decision.question} [A/B/C]`;
+        body.appendChild(decEl);
+      }
+
+      row.appendChild(timeEl);
+      row.appendChild(typeEl);
+      row.appendChild(body);
+      host.appendChild(row);
+    });
+  }
+
+  // Players presence
+  onValue(ref(db, `sessions/${session}/players`), snap => {
+    const data = snap.val() || {};
+    const entries = Object.values(data);
+    $("playersCount").textContent = entries.length;
+    const host = $("playersList");
+    host.innerHTML = "";
+    entries.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    entries.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "player-row";
+      const name = document.createElement("div");
+      name.className = "player-name";
+      name.textContent = p.name || p.id || "Unknown";
+      const st = document.createElement("div");
+      st.className = "player-status";
+      const age = Date.now() - (p.ts || 0);
+      const stale = age > 20000;
+      st.textContent = (p.status || "online") + (stale ? " (stale)" : "");
+      row.appendChild(name);
+      row.appendChild(st);
+      host.appendChild(row);
+    });
+  });
+
+  // Scenario controls
+  $("btnLoadScenario").onclick = () => {
+    if (exerciseEnded) {
+      alert("Exercise has ended. Start a new session to load a scenario.");
+      return;
+    }
+    const key = $("scenarioPreset").value || "blackfog";
+    const sc = scenarioLibrary[key];
+    if (!sc) return;
+    $("scTitle").value = sc.title;
+    $("scDesc").value = sc.desc;
+
+    injects = [];
+    seqCounter = 0;
+    const pools = sc.aiPools;
+    Object.keys(pools).sort().forEach(level => {
+      pools[level].forEach(t => {
+        seqCounter++;
+        injects.push({
+          seq: seqCounter,
+          time: `T+${seqCounter * 5}m`,
+          type: t.type,
+          text: t.text,
+          decision: t.decision || null
+        });
+      });
+    });
+    renderTimeline();
+    log(`Loaded preset scenario "${sc.title}" into editor (${injects.length} inject templates).`);
+  };
+
+  $("btnPublishScenario").onclick = async () => {
+    if (exerciseEnded) {
+      alert("Exercise has ended. Cannot publish new scenario in this session.");
+      return;
+    }
+    const title = $("scTitle").value || "RWS Cyber Crisis Scenario";
+    const desc = $("scDesc").value || "";
+    const key = $("scenarioPreset").value || "blackfog";
+    await set(ref(db, `sessions/${session}/scenario`), {
+      title,
+      desc,
+      key,
+      at: Date.now()
+    });
+    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0 });
+    await set(ref(db, `sessions/${session}/ended`), null);
+    log("Scenario published to players and AI state reset.");
+  };
+
+  $("btnResetAIState").onclick = async () => {
+    if (exerciseEnded) {
+      alert("Exercise has ended. Cannot reset AI state.");
+      return;
+    }
+    const key = $("scenarioPreset").value || "blackfog";
+    await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0 });
+    log("AI difficulty state reset to Level 1.");
+  };
+
+  $("btnAddInject").onclick = () => {
+    if (exerciseEnded) {
+      alert("Exercise has ended. Cannot add more injects.");
+      return;
+    }
+    const time = $("injTime").value || `T+${(seqCounter + 1) * 5}m`;
+    const type = $("injType").value || "Intel";
+    const text = $("injText").value.trim();
+    const q = $("decQuestion").value.trim();
+    const A = $("decA").value.trim();
+    const B = $("decB").value.trim();
+    const C = $("decC").value.trim();
+    const decision = q
+      ? {
+          question: q,
+          options: { A, B, C }
+        }
+      : null;
+
+    seqCounter += 1;
+    const inj = { seq: seqCounter, time, type, text, decision };
+    injects.push(inj);
+    renderTimeline();
+    log(`Inject #${inj.seq} added locally.`);
+
+    $("injText").value = "";
+    $("decQuestion").value = "";
+    $("decA").value = "";
+    $("decB").value = "";
+    $("decC").value = "";
+  };
+
+  async function sendInject(inj) {
+    if (exerciseEnded) {
+      log("Attempted to send inject after exercise end – blocked.");
+      return;
+    }
+    const payload = Object.assign({ at: Date.now() }, inj);
+    await set(ref(db, `sessions/${session}/latestInject`), payload);
+    await push(ref(db, `sessions/${session}/injects`), payload);
+    log(`Inject #${inj.seq} sent to players (${inj.type}).`);
+  }
+
+  $("btnSendLatest").onclick = async () => {
+    if (exerciseEnded) {
+      alert("Exercise has already ended. No further injects can be sent.");
+      return;
+    }
+    if (!injects.length) { alert("No injects in local timeline."); return; }
+    const inj = injects[injects.length - 1];
+    await sendInject(inj);
+  };
+
+  async function getDominantChoice(seq) {
+    const snap = await get(ref(db, `sessions/${session}/votes/${seq}`));
+    const votes = snap.val() || {};
+    const tally = { A: 0, B: 0, C: 0 };
+    Object.values(votes).forEach(v => {
+      if (v && v.choice && tally[v.choice] !== undefined) {
+        tally[v.choice] += 1;
+      }
+    });
+    let best = "A";
+    if (tally.B > tally[best]) best = "B";
+    if (tally.C > tally[best]) best = "C";
+    if (tally.A === 0 && tally.B === 0 && tally.C === 0) return null;
+    return best;
+  }
+
+  $("btnAINextInject").onclick = async () => {
+    if (exerciseEnded) {
+      alert("Exercise has already ended. No further injects can be sent.");
+      return;
+    }
+    const state = await getAIState();
+    const sc = scenarioLibrary[state.scenarioKey];
+    if (!sc) { alert("Scenario not loaded / published yet."); return; }
+
+    if (state.seq && state.seq > 0) {
+      const majority = await getDominantChoice(state.seq);
+      if (majority) {
+        state.lastChoice = majority;
+        const prev = injects.find(i => i.seq === state.seq);
+        let impact = 0;
+        if (prev && prev.decision && prev.decision.impact && prev.decision.impact[majority] !== undefined) {
+          impact = prev.decision.impact[majority];
+        } else {
+          impact = majority === "A" ? -1 : majority === "B" ? 0 : 1;
+        }
+        state.level = Math.max(1, Math.min(3, state.level + impact));
+        log(`AI engine: previous majority was ${majority}, difficulty adjusted to Level ${state.level}.`);
+      } else {
+        log("AI engine: no votes for previous inject; difficulty unchanged.");
+      }
+    }
+
+    const pools = sc.aiPools;
+    const pool = pools[state.level] || pools[2] || pools[1];
+    if (!pool || !pool.length) {
+      alert("No AI templates for this scenario / level.");
+      return;
+    }
+
+    const template = pool[Math.floor(Math.random() * pool.length)];
+    const newSeq = (state.seq || 0) + 1;
+    const inj = {
+      seq: newSeq,
+      time: `T+${newSeq * 5}m`,
+      type: template.type,
+      text: template.text,
+      decision: template.decision || null
+    };
+    injects.push(inj);
+    seqCounter = Math.max(seqCounter, newSeq);
+    renderTimeline();
+
+    await sendInject(inj);
+    state.seq = newSeq;
+    await setAIState(state);
+  };
+
+  $("btnBuildAAR").onclick = async () => {
+    const votesSnap = await get(ref(db, `sessions/${session}/votes`));
+    const votes = votesSnap.val() || {};
+    const byInject = {};
+    Object.keys(votes).forEach(seq => {
+      const perPlayer = votes[seq] || {};
+      const tally = { A: 0, B: 0, C: 0 };
+      Object.values(perPlayer).forEach(v => {
+        if (v && v.choice && tally[v.choice] !== undefined) {
+          tally[v.choice] += 1;
+        }
+      });
+      byInject[seq] = tally;
+    });
+
+    const host = $("aar");
+    host.innerHTML = "";
+    if (!injects.length) {
+      host.innerHTML = "<p class='muted'>No injects sent yet.</p>";
+      return;
+    }
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    thead.innerHTML = "<tr><th>#</th><th>Time</th><th>Type</th><th>Inject</th><th>A</th><th>B</th><th>C</th></tr>";
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+
+    injects.forEach(inj => {
+      const seq = String(inj.seq);
+      const tally = byInject[seq] || { A: 0, B: 0, C: 0 };
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        `<td>${inj.seq}</td>` +
+        `<td>${inj.time || ""}</td>` +
+        `<td>${inj.type || ""}</td>` +
+        `<td>${inj.text ? (inj.text.slice(0, 80) + (inj.text.length > 80 ? "…" : "")) : ""}</td>` +
+        `<td>${tally.A}</td>` +
+        `<td>${tally.B}</td>` +
+        `<td>${tally.C}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    host.appendChild(table);
+    log("AAR snapshot built from current votes.");
+  };
+
+  $("btnEndExercise").onclick = async () => {
+    if (exerciseEnded) return;
+    const ok = confirm("Are you sure you want to end the exercise for this session?");
+    if (!ok) return;
+    exerciseEnded = true;
+
+    await set(ref(db, `sessions/${session}/ended`), {
+      at: Date.now(),
+      by: "facilitator"
+    });
+
+    $("btnAINextInject").disabled = true;
+    $("btnSendLatest").disabled = true;
+    $("btnResetAIState").disabled = true;
+    $("btnPublishScenario").disabled = true;
+    $("btnLoadScenario").disabled = true;
+
+    log("Exercise has been ended for this session.");
+  };
+
+  // On load, pull any existing AI state so label is correct
+  (async () => {
+    const state = await getAIState();
+    await setAIState(state);
+    log("Facilitator console initialised.");
+  })();
+</script>
+</body>
+</html>
