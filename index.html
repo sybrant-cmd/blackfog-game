@@ -5,511 +5,189 @@
   <title>RWS BlackFog – Facilitator (Static v8.4.1)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-
-:root {
-  --bg: #050814;
-  --bg-elevated: #0b1020;
-  --bg-card: #111729;
-  --border-subtle: rgba(148, 163, 184, 0.35);
-  --border-strong: rgba(148, 163, 184, 0.65);
-  --text: #e5e7eb;
-  --muted: #9ca3af;
-  --accent: #f97316;
-  --accent-soft: rgba(249, 115, 22, 0.16);
-  --danger: #f97373;
-  --success: #22c55e;
-  --warning: #facc15;
-  --chip-bg: #020617;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top left, #111827 0, #020617 45%, #000 100%);
-  color: var(--text);
-}
-
-.app-shell {
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(15,23,42,0.94));
-}
-
-.sidebar {
-  width: 260px;
-  min-width: 240px;
-  border-right: 1px solid var(--border-subtle);
-  background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
-  padding: 18px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar-logo-mark {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: radial-gradient(circle at 30% 20%, #f97316, #991b1b 60%, #020617 100%);
-  box-shadow: 0 0 24px rgba(248,113,113,0.65);
-}
-
-.sidebar-title {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.sidebar-meta {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.sidebar-section h3 {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--muted);
-  margin: 0 0 6px 0;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(148,163,184,0.45);
-  background: var(--chip-bg);
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--success);
-  box-shadow: 0 0 10px rgba(34,197,94,0.9);
-}
-
-.sidebar-stat {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.topbar {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: radial-gradient(circle at top, #0f172a, #020617);
-}
-
-.topbar-left h1 {
-  margin: 0 0 4px 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.topbar-left .subtitle {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.badge-session {
-  font-size: 11px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--border-subtle);
-  background: rgba(15,23,42,0.9);
-}
-
-.badge-session span {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-.badge-mode {
-  font-size: 11px;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  border: 1px solid rgba(249,115,22,0.6);
-  color: #fed7aa;
-}
-
-.main-content {
-  padding: 18px;
-  display: grid;
-  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.45fr);
-  grid-auto-rows: minmax(80px, auto);
-  gap: 18px;
-}
-
-.card {
-  background: var(--bg-card);
-  border-radius: 14px;
-  border: 1px solid var(--border-subtle);
-  box-shadow:
-    0 18px 40px rgba(15,23,42,0.95),
-    0 0 0 1px rgba(15,23,42,0.8);
-  padding: 14px 14px 13px 14px;
-  position: relative;
-  overflow: hidden;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.card-header h2 {
-  margin: 0;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--muted);
-}
-
-.card-header .pill {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(148,163,184,0.45);
-  color: var(--muted);
-}
-
-.field-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-}
-
-.field label {
-  display: block;
-  font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 3px;
-}
-
-.field input,
-.field textarea,
-.field select {
-  width: 100%;
-  background: #020617;
-  border-radius: 8px;
-  border: 1px solid rgba(31,41,55,0.9);
-  color: var(--text);
-  padding: 7px 9px;
-  font-size: 12px;
-}
-
-.field textarea {
-  min-height: 60px;
-  resize: vertical;
-}
-
-.btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.btn {
-  border-radius: 999px;
-  border: 1px solid rgba(148,163,184,0.55);
-  background: radial-gradient(circle at 10% 0, #1d4ed8, #0f172a 70%);
-  color: #e5e7eb;
-  font-size: 12px;
-  padding: 7px 12px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease-out;
-}
-
-.btn.secondary {
-  background: rgba(15,23,42,0.9);
-}
-
-.btn.danger {
-  background: radial-gradient(circle at 10% 0, #b91c1c, #111827 70%);
-  border-color: rgba(248,113,113,0.9);
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px rgba(56,189,248,0.55);
-}
-
-.btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-  box-shadow: none;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  background: rgba(15,23,42,1);
-  border: 1px solid rgba(55,65,81,0.9);
-  color: var(--muted);
-}
-
-.badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--success);
-}
-
-#playersList {
-  font-size: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-  padding: 4px 6px;
-  background: rgba(15,23,42,0.95);
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-.player-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 2px;
-  border-bottom: 1px dashed rgba(55,65,81,0.7);
-}
-.player-row:last-child {
-  border-bottom: none;
-}
-
-.player-name {
-  font-weight: 500;
-}
-
-.player-status {
-  font-size: 11px;
-  color: var(--success);
-}
-
-#log {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 11px;
-  border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-  padding: 6px 8px;
-  background: rgba(15,23,42,0.96);
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.log-line {
-  margin: 0;
-  padding: 1px 0;
-  color: var(--muted);
-}
-
-#aar {
-  font-size: 11px;
-  max-height: 230px;
-  overflow: auto;
-}
-
-#aar table {
-  width: 100%;
-  border-collapse: collapse;
-}
-#aar th,
-#aar td {
-  padding: 4px 6px;
-  border-bottom: 1px solid rgba(55,65,81,0.8);
-}
-#aar th {
-  text-align: left;
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-#aar tbody tr:hover {
-  background: rgba(31,41,55,0.8);
-}
-
-.vciso-panel {
-  border-radius: 10px;
-  border: 1px solid rgba(56,189,248,0.5);
-  background: radial-gradient(circle at 0 0, rgba(56,189,248,0.16), rgba(15,23,42,0.96));
-  padding: 10px 10px 8px 10px;
-  font-size: 12px;
-  min-height: 72px;
-}
-
-.vciso-title {
-  margin: 0 0 4px 0;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: #7dd3fc;
-}
-
-.vciso-typing {
-  font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 2px;
-}
-
-.vciso-msg {
-  white-space: pre-wrap;
-}
-
-.ticker-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(15,23,42,0.96);
-  border: 1px solid rgba(55,65,81,0.9);
-  font-size: 11px;
-}
-
-.ticker-label {
-  font-weight: 500;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
-
-.ticker-viewport {
-  overflow: hidden;
-  flex: 1;
-}
-
-.ticker-track {
-  display: inline-block;
-  white-space: nowrap;
-  animation: ticker-scroll 40s linear infinite;
-}
-
-.ticker-item {
-  margin-right: 18px;
-  color: var(--muted);
-}
-
-@keyframes ticker-scroll {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
-}
-
-#voteOverlay {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  background: rgba(15,23,42,0.97);
-  border: 1px solid rgba(148,163,184,0.6);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 11px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  max-width: 280px;
-  box-shadow: 0 18px 38px rgba(0,0,0,0.9);
-}
-</style>
-
-</style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --panel2: #0b1120;
+      --border: rgba(148, 163, 184, 0.55);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #d72638;
+      --accent-soft: rgba(215, 38, 56, 0.15);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 60%);
+      color: var(--text);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(15,23,42,0.85));
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.9);
+      margin-left: 8px;
+    }
+    .pill-live {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 2.1fr 1fr;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .card {
+      background: var(--panel2);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      box-shadow: 0 16px 42px rgba(0,0,0,0.6);
+      margin-bottom: 14px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .card-header h2 {
+      font-size: 15px;
+      margin: 0;
+    }
+    .muted {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+      color: var(--muted);
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 13px;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+    .row { display: flex; gap: 8px; }
+    .row > div { flex: 1; }
+    .btn-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .btn-danger {
+      border-color: #f97373;
+      color: #fecaca;
+      background: rgba(127,29,29,0.4);
+    }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    #timeline {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 6px;
+      background: #020617;
+      max-height: 320px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .inj-row {
+      display: grid;
+      grid-template-columns: 44px 80px 1fr;
+      gap: 6px;
+      align-items: flex-start;
+      padding: 4px 6px;
+      border-radius: 8px;
+    }
+    .inj-row:nth-child(odd) { background: rgba(15,23,42,0.7); }
+    .inj-row:nth-child(even) { background: rgba(15,23,42,0.45); }
+    .inj-time { font-weight: 600; color: #eab308; }
+    .inj-type { font-size: 11px; color: #bfdbfe; }
+    .inj-text { white-space: pre-wrap; }
+    .inj-dec { margin-top: 4px; font-size: 11px; color: var(--muted); }
+    #log {
+      font-size: 11px;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+    }
+    .log-line { margin: 0; padding: 2px 0; color: var(--muted); }
+    #playersList {
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .player-row { display: flex; justify-content: space-between; padding: 2px 0; }
+    .player-name { font-weight: 500; }
+    .player-status { font-size: 11px; color: var(--muted); }
+    #aar {
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      background: #020617;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 11px; }
+    th, td { border: 1px solid #374151; padding: 4px; text-align: left; }
+    th { background: #111827; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
-
 <body data-role="facilitator">
-<div class="app-shell">
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-mark"></div>
-      <div>
-        <div class="sidebar-title">RWS Cyber TTX</div>
-        <div class="sidebar-meta">Control Console • Facilitator</div>
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <h3>Session</h3>
-      <div class="sidebar-stat">
-        <span>Session ID</span>
-        <span id="sessionId" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas; font-size: 11px;">default</span>
-      </div>
-      <div class="sidebar-stat">
-        <span>Players</span>
-        <span id="playersCount">0</span>
-      </div>
-      <div style="margin-top:10px;">
-        <span class="chip">
-          <span class="chip-dot"></span>
-          <span>Static Linear Scenario</span>
-        </span>
-      </div>
-    </div>
-    <div class="sidebar-section">
-      <h3>Global</h3>
-      <div class="muted" style="font-size:11px; margin-bottom:8px;">
-        Use the controls here to manage scenario, injects and voting for this session.
-      </div>
-      <div class="ticker-bar">
-        <div class="ticker-label">CNA • CYBER DESK</div>
-        <div class="ticker-viewport">
-          <div class="ticker-track" id="tickerTrack"></div>
-        </div>
-      </div>
-    </div>
-  </aside>
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1>Operation BlackFog – Facilitator</h1>
-        <div class="subtitle">Static incident walk-through from first signal to business pressure.</div>
-      </div>
-      <div class="topbar-right">
-        <div class="badge-session">Session: <span id="sessionPill">default</span></div>
-        <div class="badge-mode">Mode: Static Linear v8.6</div>
-      </div>
-    </header>
-    <main class="main-content">
-
 <header>
   <div>
     <h1>RWS BlackFog – Facilitator (Static)</h1>
@@ -615,10 +293,5 @@ body {
   import { initFacilitator } from "./engine_v8_4.js";
   initFacilitator();
 </script>
-
-    </main>
-  </div>
-</div>
 </body>
-
 </html>
