@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Facilitator v8.0</title>
+  <title>RWS BlackFog – Facilitator v8.1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -379,7 +379,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, set, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+  import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
@@ -559,7 +559,7 @@
               options: {
                 A: "Share a frank interim view of risks, including investigative gaps and planned fixes.",
                 B: "Provide only high-level assurance and defer specifics until the report is final.",
-                C: "Delay engagement until you have a fully polished narrative ready.",
+                C: "Delay engagement until you have a fully polished narrative ready."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
@@ -929,6 +929,17 @@
   let seqCounter = 0;
   let exerciseEnded = false;
 
+  // Local in-browser AI state to avoid race conditions
+  let aiState = {
+    level: 1,
+    lastChoice: null,
+    scenarioKey: "blackfog",
+    seq: 0,
+    stageIndex: 0
+  };
+
+  let usedInjectTexts = new Set();
+
   function levelLabel(lvl) {
     const n = lvl || 1;
     if (n === 1) return "L1 – Normal";
@@ -938,15 +949,15 @@
     return "L5 – Crisis";
   }
 
-  async function getAIState() {
-    const snap = await get(ref(db, `sessions/${session}/state`));
-    const presetKey = $("scenarioPreset").value || "blackfog";
-    return snap.val() || { level: 1, lastChoice: null, scenarioKey: presetKey, seq: 0, stageIndex: 0 };
+  function getAIState() {
+    return Object.assign({}, aiState);
   }
 
   async function setAIState(state) {
-    await set(ref(db, `sessions/${session}/state`), state);
-    $("aiStateLabel").value = levelLabel(state.level);
+    aiState = Object.assign({}, state, { lastUpdated: Date.now() });
+    $("aiStateLabel").value = levelLabel(aiState.level);
+    // still publish to DB so players can see difficulty in ticker
+    await set(ref(db, `sessions/${session}/state`), aiState);
   }
 
   function renderTimeline() {
@@ -1024,6 +1035,7 @@
 
     injects = [];
     seqCounter = 0;
+    usedInjectTexts.clear();
     const pools = sc.aiPools;
     Object.keys(pools).sort().forEach(level => {
       pools[level].forEach(t => {
@@ -1055,6 +1067,7 @@
       key,
       at: Date.now()
     });
+    usedInjectTexts.clear();
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     await set(ref(db, `sessions/${session}/ended`), null);
     log("Scenario published to players and AI state reset.");
@@ -1066,6 +1079,7 @@
       return;
     }
     const key = $("scenarioPreset").value || "blackfog";
+    usedInjectTexts.clear();
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     log("AI difficulty state reset to L1 – Normal.");
   };
@@ -1144,8 +1158,9 @@
       alert("Exercise has already ended. No further injects can be sent.");
       return;
     }
-    const state = await getAIState();
-    const sc = scenarioLibrary[state.scenarioKey || $("scenarioPreset").value || "blackfog"];
+    const state = getAIState();
+    const scKey = state.scenarioKey || $("scenarioPreset").value || "blackfog";
+    const sc = scenarioLibrary[scKey];
     if (!sc) { alert("Scenario not loaded / published yet."); return; }
 
     // Difficulty adjustment based on last inject votes
@@ -1168,10 +1183,12 @@
     }
 
     const stages = sc.aiStages || ["early", "mid", "late"];
+    // Stage progression: every 2 injects, advance a stage
     if (state.seq === 0) {
       state.stageIndex = 0;
-    } else if (state.stageIndex < stages.length - 1) {
-      state.stageIndex += 1;
+    } else {
+      const stageBoundary = Math.floor((state.seq) / 2); // seq 1-2 -> stage 0-1, etc.
+      state.stageIndex = Math.min(stageBoundary, stages.length - 1);
     }
 
     const stageKey = stages[state.stageIndex] || stages[stages.length - 1];
@@ -1181,11 +1198,28 @@
       return;
     }
 
-    const stageCandidates = levelPools.filter(t => t.stage === stageKey);
-    const pool = stageCandidates.length ? stageCandidates : levelPools;
-    const template = pool[Math.floor(Math.random() * pool.length)];
+    let stageCandidates = levelPools.filter(t => t.stage === stageKey);
+    if (!stageCandidates.length) stageCandidates = levelPools.slice();
 
-    const newSeq = (state.seq || 0) + 1;
+    // Avoid repeating same text
+    let pool = stageCandidates.filter(t => !usedInjectTexts.has(t.text));
+    if (!pool.length) pool = stageCandidates.slice();
+
+    let template;
+    if (pool.length === 1) {
+      template = pool[0];
+    } else {
+      let attempts = 0;
+      do {
+        template = pool[Math.floor(Math.random() * pool.length)];
+        attempts++;
+      } while (usedInjectTexts.has(template.text) && attempts < 5);
+    }
+    usedInjectTexts.add(template.text);
+
+    state.seq = (state.seq || 0) + 1;
+    const newSeq = state.seq;
+
     const inj = {
       seq: newSeq,
       time: `T+${newSeq * 5}m`,
@@ -1198,7 +1232,6 @@
     renderTimeline();
 
     await sendInject(inj);
-    state.seq = newSeq;
     await setAIState(state);
   };
 
@@ -1271,9 +1304,8 @@
   };
 
   (async () => {
-    const state = await getAIState();
-    await setAIState(state);
-    log("Facilitator console initialised (v8).");
+    await setAIState(aiState);
+    log("Facilitator console initialised (v8.1).");
   })();
 </script>
 </body>
