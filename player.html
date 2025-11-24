@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Player v8.4</title>
+  <title>RWS BlackFog – Player (Static v8.4.1)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#d72638" />
   <style>
@@ -43,10 +43,7 @@
       background: rgba(15,23,42,0.9);
       margin-left: 8px;
     }
-    .pill-live {
-      border-color: var(--live);
-      color: var(--live);
-    }
+    .pill-live { border-color: var(--live); color: var(--live); }
     .container { max-width: 1100px; margin: 0 auto; padding: 14px; }
     .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
     .card {
@@ -73,7 +70,6 @@
       font-size: 12px;
       cursor: pointer;
     }
-    .btn:hover { border-color: rgba(248,250,252,0.65); }
     .options { display: grid; gap: 6px; margin-top: 8px; }
     .options button {
       border-radius: 10px;
@@ -141,10 +137,7 @@
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
     }
-    .ticker-item {
-      margin-right: 32px;
-      color: var(--muted);
-    }
+    .ticker-item { margin-right: 32px; color: var(--muted); }
     .ticker-item strong { color: #e5e7eb; }
     .footer-space { height: 40px; }
     .vciso {
@@ -172,10 +165,7 @@
       box-shadow: 0 0 8px rgba(248,113,113,0.75);
       background: radial-gradient(circle at 30% 30%, #fed7aa, #7f1d1d);
     }
-    .vciso-msg {
-      font-size: 13px;
-      line-height: 1.4;
-    }
+    .vciso-msg { font-size: 13px; line-height: 1.4; }
     .vciso-typing {
       font-size: 11px;
       color: var(--muted);
@@ -187,25 +177,17 @@
       border: 1px solid var(--stroke);
       font-size: 11px;
     }
-    .timer-urgent {
-      border-color: #f97316;
-      color: #fed7aa;
-    }
-    .card-pop {
-      animation: pop 0.25s ease-out;
-    }
+    .timer-urgent { border-color: #f97316; color: #fed7aa; }
+    .card-pop { animation: pop 0.25s ease-out; }
     @keyframes pop {
       from { transform: scale(0.97); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
     #endCard h3 { color: #fecaca; }
-    @media (max-width: 840px) {
-      .grid { grid-template-columns: 1fr; }
-      .ticker-wrap { font-size: 11px; }
-    }
+    @media (max-width: 840px) { .grid { grid-template-columns: 1fr; } .ticker-wrap { font-size: 11px; } }
   </style>
 </head>
-<body>
+<body data-role="player">
 <header>
   <div>
     <h1>RWS BlackFog – Player</h1>
@@ -279,444 +261,8 @@
 <div class="footer-space"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, onValue, onDisconnect, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
-    authDomain: "rws-blackfog-game.firebaseapp.com",
-    databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "rws-blackfog-game",
-    storageBucket: "rws-blackfog-game.firebasestorage.app",
-    messagingSenderId: "473543964029",
-    appId: "1:473543964029:web:4bc0db33634ed2f8894814"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const $ = (id) => document.getElementById(id);
-
-  const urlS = new URLSearchParams(location.search).get("s");
-  const session = urlS && urlS.trim() ? urlS.trim() : "default";
-  $("sessionPill").textContent = "Session " + session;
-
-  function uid() { return "P-" + Math.random().toString(36).slice(2, 8).toUpperCase(); }
-  const storedId = localStorage.getItem("rws_player_id") || uid();
-  localStorage.setItem("rws_player_id", storedId);
-
-  let storedName = localStorage.getItem("rws_player_name");
-  if (!storedName) {
-    storedName = prompt("Enter your display name for this exercise:", storedId) || storedId;
-    localStorage.setItem("rws_player_name", storedName);
-  }
-
-  const playerRef = ref(db, `sessions/${session}/players/${storedId}`);
-  set(playerRef, {
-    id: storedId,
-    name: storedName,
-    ts: Date.now(),
-    status: "online"
-  });
-  $("playerPill").textContent = storedName + " • Connected";
-
-  setInterval(() => {
-    update(playerRef, { ts: Date.now(), status: "online" });
-  }, 5000);
-
-  onDisconnect(playerRef).update({ status: "offline", ts: Date.now() });
-
-  const vcisoCommentBank = {
-    Intel: [
-      "If this landed in my inbox, I’d pause whatever else I was doing. This is the sort of detail that usually ends up on line one of an incident timeline.",
-      "Treat this as the opening scene of a war-room, not a random log line. Patterns like this rarely happen by accident.",
-      "The content matters, but the context matters more – timing, who raised it, and how it bypassed normal process.",
-      "When something feels slightly out-of-profile like this, it’s usually better to ask one hard question now than ten excuses later.",
-      "The key here is to decide whether this is just messy operations, or the first real signal that someone is testing the perimeter."
-    ],
-    Detection: [
-      "Your tools are speaking. The real question is whether you’re prepared to believe them before the story is perfect.",
-      "If this was a false positive, you’d expect randomness. What you’re seeing here looks much closer to intent.",
-      "This is where good teams zoom out: look across endpoints, time windows and users, not just a single alert card.",
-      "Detection is giving you a sketch, not a full-resolution photo. It’s enough detail to justify moves, even if it’s not pretty.",
-      "You almost never get 100% certainty at this stage. You are deciding on probability, not perfection."
-    ],
-    Containment: [
-      "This is the point where every move spends political capital. The trick is to spend it early and deliberately, not late and desperately.",
-      "There is no zero-pain option here. You’re choosing the shape of the pain, not whether any exists.",
-      "Ask a simple question: if this escalates overnight, will you wish you had moved harder from this exact moment?",
-      "Containment is where someone’s KPIs, revenue numbers or guest experience metrics will feel the impact. That’s why the hesitation is real.",
-      "Make a call you can explain in three calm sentences to ExCo tomorrow morning – not twenty defensive slides in three weeks."
-    ],
-    Comms: [
-      "This is the crossover between technical fact and human reaction. People need to hear that someone credible is actually steering.",
-      "Upwards communication should be short and surgical: one line on impact, one on actions, one on what you genuinely don’t know yet.",
-      "If your message sounds defensive, it will be read as ‘we’ve lost control’. Aim for steady, factual and specific instead.",
-      "You’re not trying to sound heroic here, just in control: clear status, clear next moves, clear owners.",
-      "Silence is still a message. If you don’t shape the narrative, the organisation will happily invent its own."
-    ],
-    Recovery: [
-      "Recovery is where everyone wants to celebrate and move on. It’s also where unfinished work quietly leaves doors half open.",
-      "If nothing meaningful changes after this, all we ran was a stressful fire drill with no organisational learning.",
-      "Think of this phase as writing the closing chapter and the preface for the next incident at the same time.",
-      "Attackers love environments that rush to ‘systems are back’ without fixing the root cause. Don’t be that environment.",
-      "Use this window to lock in changes while the memory of pain is still fresh enough to overcome inertia."
-    ],
-    AggressiveChoice: [
-      "You’ve chosen the harder line here. That will upset a few people in the short term, but it sharply limits the attacker’s room to manoeuvre.",
-      "This sends a clear message that protecting guests and data outranks having a quiet operations day. That is usually the right narrative.",
-      "You’ve traded comfort now for less regret later. If this escalates, you’ll be glad you made the tighter call.",
-      "Be ready to explain in plain language what you protected, what you disrupted, and why that trade was worth it.",
-      "This is a ‘protect the crown jewels first’ move. Make sure your tone with stakeholders is as firm as the decision."
-    ],
-    BalancedChoice: [
-      "You’ve gone for a middle path – not full lockdown, not full denial. That can work if you stay disciplined about follow-up.",
-      "This choice keeps both uptime and security in view. Just be explicit about the risk you are consciously accepting.",
-      "Balanced decisions are fine as long as they are not an excuse to postpone discomfort. Put a clear time box around this stance.",
-      "You’re trying to buy yourself a bit of observation time. Use that time to learn, not simply to hope the alerts go away.",
-      "Write down what new signal would make you tighten this posture. Future you will be glad you did."
-    ],
-    ConservativeChoice: [
-      "You’ve held back here. That will keep some people more comfortable now, but it leaves more space for the attacker.",
-      "In practice, this shifts risk from operational disruption to potential impact. Own that trade-off consciously.",
-      "If this later becomes a headline incident, this moment will feature heavily in the timeline. Make sure you can defend it.",
-      "Waiting can be the right call, but only if it is deliberate – not just a hope that things will quieten down by themselves.",
-      "If you decide to wait, decide for how long and exactly what you expect to see before you change course."
-    ],
-    Default: [
-      "Keep your framing simple: protect people, protect data, protect brand. Most decisions fit inside that triangle.",
-      "Imagine you’re writing the incident report as you go. Make calls that will still make sense when the adrenaline fades.",
-      "Good incident handling is more about consistent, explainable decisions than dramatic heroics.",
-      "You don’t need a perfect answer, you need a defendable one at roughly the right time.",
-      "Document your thinking as you move. In real life, that audit trail is often your strongest defence."
-    ]
-  };
-
-  const extraLines = {
-    calm: [
-      "Take ten seconds to separate what you actually know from what you are guessing.",
-      "If something feels off, listen to that pattern-recognition; it’s often your most honest signal.",
-      "Slowing your thinking by even a few seconds usually leads to a cleaner, more confident decision.",
-      "Share a one-line summary with your table. A shared mental model cuts through a lot of noise.",
-      "You don’t need polished speeches in a crisis, just honest, concrete sentences people can follow."
-    ],
-    direct: [
-      "At some point someone has to say, ‘We’re doing this.’ Don’t drag that moment out forever.",
-      "If you had to decide in the next sixty seconds, what would you honestly pick?",
-      "Try not to hide behind tooling right now – this is mainly a judgement call.",
-      "Ask yourself what you’d back if you were the CISO on call tonight.",
-      "Don’t wait for a perfect signal. By the time it arrives, the attacker will have moved on."
-    ],
-    human: [
-      "It’s normal to feel pressure here – the goal is to let it sharpen your thinking, not paralyse it.",
-      "You don’t need polished speeches in a crisis, just honest, concrete sentences people can follow.",
-      "Imagine explaining this call tomorrow to a colleague you respect. Would you still stand by it?",
-      "Your tone will set the mood for the room. If you stay measured and factual, most people will match you.",
-      "Mistakes happen in every incident. What matters is how quickly and calmly you adjust."
-    ]
-  };
-
-  let lastVCISOText = "";
-  let lastInject = null;
-
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function chooseTone(context = {}) {
-    const phase = context.phase || "intel";
-    if (phase === "intel") return "calm";
-    if (phase === "decision") {
-      if (context.choice === "A") return "direct";
-      if (context.choice === "C") return "human";
-      return "calm";
-    }
-    if (phase === "after") return "human";
-    return "calm";
-  }
-
-  function speakLikeVCISO(kind, context = {}) {
-    const vcisoTyping = $("vcisoTyping");
-    const vcisoMsg = $("vcisoMsg");
-
-    const phase = context.phase || "intel";
-    let pool;
-
-    if (kind === "DecisionFeedback" && context.choice) {
-      if (context.choice === "A") pool = vcisoCommentBank.AggressiveChoice;
-      else if (context.choice === "B") pool = vcisoCommentBank.BalancedChoice;
-      else if (context.choice === "C") pool = vcisoCommentBank.ConservativeChoice;
-    } else {
-      pool = vcisoCommentBank[kind] || vcisoCommentBank.Default;
-    }
-    if (!pool || !pool.length) pool = vcisoCommentBank.Default;
-
-    const tone = chooseTone(context);
-    const extras = extraLines[tone] || extraLines.calm;
-
-    const phaseHintMap = {
-      intel: " Right now the goal is to decide if this is background noise or the start of a real incident timeline.",
-      decision: " You’re choosing between imperfect options – that is exactly how live incidents work in reality.",
-      after: " This is exactly the sort of decision that tends to appear in the written timeline later."
-    };
-    const phaseHint = phaseHintMap[phase] || "";
-
-    let explicitLine = "";
-    if (kind === "DecisionFeedback") {
-      const ch = context.choice;
-      const label = context.inject && context.inject.decision && context.inject.decision.options
-        ? context.inject.decision.options[ch]
-        : "";
-      const shortLabel = label && label.length > 70 ? label.slice(0, 67) + "…" : label;
-      if (ch && shortLabel) {
-        explicitLine = ` You’ve picked option ${ch} – “${shortLabel}”. In simple terms, that’s the posture you’re signalling to leadership and to the attacker.`;
-      } else if (ch) {
-        explicitLine = ` You’ve picked option ${ch}. That choice says a lot about how you balance risk against business comfort.`;
-      }
-    }
-
-    let base, extra, msg;
-    let attempts = 0;
-    do {
-      base = pick(pool);
-      extra = Math.random() < 0.8 ? pick(extras) : "";
-      msg = base + phaseHint + explicitLine + " " + extra;
-      attempts++;
-    } while (msg === lastVCISOText && attempts < 5);
-
-    lastVCISOText = msg;
-
-    vcisoTyping.style.display = "block";
-    vcisoMsg.textContent = "";
-    let i = 0;
-    const step = 3 + Math.floor(Math.random() * 4);
-
-    const interval = setInterval(() => {
-      vcisoMsg.textContent = msg.slice(0, i);
-      i += step;
-
-      if (i >= msg.length) {
-        vcisoMsg.textContent = msg;
-        vcisoTyping.style.display = "none";
-        clearInterval(interval);
-      }
-    }, 40);
-  }
-
-  const worldNews = [
-    "Global markets stay watchful as boards increasingly ask sharper questions on cyber resilience.",
-    "Major economies review supply-chain cyber rules after a series of payment platform incidents.",
-    "Regional travel and hospitality operators continue to invest in both guest experience and digital safety."
-  ];
-  const sgNews = [
-    "Singapore regulators reiterate expectations for managing third-party cyber risk in critical sectors.",
-    "Local hospitality operators report healthy bookings ahead of peak travel windows.",
-    "Industry bodies in Singapore highlight the need for regular joint business–cyber incident exercises."
-  ];
-  const cyberNews = [
-    "CERT-SG notes a continued rise in supply-chain attacks on payment and booking ecosystems.",
-    "Regional SOCs report elevated phishing and ransomware activity around payroll and quarter-end periods.",
-    "Analysts remind organisations that business email compromise remains a leading cause of financial loss."
-  ];
-  const travelNews = [
-    "Air travel across Asia-Pacific remains robust, with guests expecting seamless and secure digital journeys.",
-    "Tourism boards roll out joint campaigns emphasising both premium experience and cyber safety.",
-    "Guest expectations for frictionless, secure payment experiences continue to climb."
-  ];
-  const opsNews = [
-    "Organisations are investing in joint cyber and business continuity exercises ahead of peak seasons.",
-    "Boards are requesting clearer metrics on incident recovery time and resilience gaps.",
-    "IT and security teams refresh playbooks around third-party risk and identity-driven incidents."
-  ];
-
-  let tickerItems = [];
-
-  function refreshTickerItems() {
-    tickerItems = [];
-    tickerItems.push({ cat: "World", text: pick(worldNews) });
-    tickerItems.push({ cat: "Singapore", text: pick(sgNews) });
-    tickerItems.push({ cat: "Cyber", text: pick(cyberNews) });
-    tickerItems.push({ cat: "Travel", text: pick(travelNews) });
-    tickerItems.push({ cat: "Business", text: pick(opsNews) });
-  }
-
-  function renderTicker() {
-    const host = $("tickerTrack");
-    if (!host) return;
-    const items = tickerItems.length ? tickerItems : [{ cat: "Cyber", text: "Monitoring live exercise telemetry – no external impact reported." }];
-    const html = items.map(item => {
-      const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
-    }).join("");
-    host.innerHTML = html + html;
-  }
-
-  refreshTickerItems();
-  renderTicker();
-  setInterval(() => {
-    refreshTickerItems();
-    renderTicker();
-  }, 25000);
-
-  function resetView() {
-    $("scTitle").textContent = "Standby – awaiting scenario";
-    $("scDesc").textContent = "Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.";
-    if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
-    $("injCard").style.display = "none";
-    $("decCard").style.display = "none";
-    $("endCard").style.display = "none";
-    $("decStatus").style.display = "none";
-    ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
-    $("timer").textContent = "--";
-  }
-
-  $("btnRestart").onclick = () => resetView();
-
-  onValue(ref(db, `sessions/${session}/scenario`), snap => {
-    const v = snap.val();
-    if (!v || !v.published) {
-      resetView();
-      return;
-    }
-    $("scTitle").textContent = v.title || "RWS Cyber Scenario";
-    $("scDesc").textContent = v.desc || "";
-    speakLikeVCISO("Intel", { phase: "intel" });
-  });
-
-  let currentInjectSeq = null;
-
-  onValue(ref(db, `sessions/${session}/latestInject`), snap => {
-    const inj = snap.val();
-    if (!inj) return;
-    currentInjectSeq = inj.seq || null;
-    lastInject = inj;
-
-    const injCard = $("injCard");
-    const decCard = $("decCard");
-    const endCard = $("endCard");
-
-    if (endCard.style.display === "block") {
-      return;
-    }
-
-    injCard.style.display = "block";
-    injCard.classList.remove("card-pop");
-    void injCard.offsetWidth;
-    injCard.classList.add("card-pop");
-
-    $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
-
-    tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC on live exercise." });
-    if (tickerItems.length > 20) tickerItems.pop();
-    renderTicker();
-
-    const dec = inj.decision || null;
-    const statusEl = $("decStatus");
-    const timerEl = $("timer");
-
-    if (!dec || !dec.question) {
-      decCard.style.display = "none";
-      statusEl.style.display = "none";
-      timerEl.textContent = inj.time || "Live";
-      speakLikeVCISO(inj.type || "Intel", { phase: "intel", inject: inj });
-      return;
-    }
-
-    decCard.style.display = "block";
-    decCard.classList.remove("card-pop");
-    void decCard.offsetWidth;
-    decCard.classList.add("card-pop");
-
-    $("decQuestion").textContent = dec.question;
-    statusEl.style.display = "none";
-    ["optA","optB","optC"].forEach(id => { const b = $(id); b.disabled = false; });
-    $("optA").textContent = dec.options && dec.options.A ? "A) " + dec.options.A : "";
-    $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
-    $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
-
-    let remaining = 45;
-    timerEl.classList.remove("timer-urgent");
-    timerEl.textContent = remaining + "s";
-    if (window.__rwsTimer) clearInterval(window.__rwsTimer);
-    window.__rwsTimer = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) {
-        clearInterval(window.__rwsTimer);
-        window.__rwsTimer = null;
-        timerEl.textContent = "Time up";
-        timerEl.classList.add("timer-urgent");
-        ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-        statusEl.style.display = "block";
-        statusEl.textContent = "⏱ Time is up for this decision. Discuss what you would have chosen.";
-        speakLikeVCISO("DecisionFeedback", { phase: "after", choice: null, inject: inj });
-        return;
-      }
-      if (remaining <= 10) {
-        timerEl.classList.add("timer-urgent");
-      }
-      timerEl.textContent = remaining + "s";
-    }, 1000);
-
-    speakLikeVCISO(inj.type || "Intel", { phase: "decision", inject: inj });
-  });
-
-  async function sendVote(choice) {
-    if (!currentInjectSeq) return;
-    if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
-    const path = `sessions/${session}/votes/${currentInjectSeq}/${storedId}`;
-    const payload = {
-      playerId: storedId,
-      name: storedName,
-      choice,
-      at: Date.now()
-    };
-    await set(ref(db, path), payload);
-    ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-    const statusEl = $("decStatus");
-    statusEl.style.display = "block";
-    statusEl.textContent = `✅ You chose option ${choice}. Be ready to explain why.`;
-    speakLikeVCISO("DecisionFeedback", { phase: "after", choice, inject: lastInject });
-  }
-
-  $("optA").onclick = () => sendVote("A");
-  $("optB").onclick = () => sendVote("B");
-  $("optC").onclick = () => sendVote("C");
-
-  onValue(ref(db, `sessions/${session}/ended`), snap => {
-    const v = snap.val();
-    const endCard = $("endCard");
-    if (!v) {
-      if (endCard) endCard.style.display = "none";
-      return;
-    }
-
-    if (window.__rwsTimer) {
-      clearInterval(window.__rwsTimer);
-      window.__rwsTimer = null;
-    }
-
-    $("injCard").style.display = "none";
-    $("decCard").style.display = "none";
-    $("decStatus").style.display = "none";
-    ["optA","optB","optC"].forEach(id => {
-      const b = $(id);
-      if (b) b.disabled = true;
-    });
-
-    endCard.style.display = "block";
-    speakLikeVCISO("Recovery", { phase: "after" });
-  });
-
-  onValue(ref(db, `sessions/${session}/state`), snap => {
-    const st = snap.val();
-    if (!st) return;
-    const lvl = st.level || 1;
-    const label = lvl === 1 ? "Normal" : lvl === 2 ? "Elevated" : lvl === 3 ? "High" : lvl === 4 ? "Severe" : "Crisis";
-    tickerItems.unshift({ cat: "Range", text: `AI difficulty is now ${label}.` });
-    if (tickerItems.length > 20) tickerItems.pop();
-    renderTicker();
-  });
-
-  resetView();
+  import { initPlayer } from "./engine_v8_4.js";
+  initPlayer();
 </script>
 </body>
 </html>
