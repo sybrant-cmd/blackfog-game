@@ -579,7 +579,13 @@ export function initFacilitator() {
     const data = snap.val() || {};
     latestPlayers = data;
 
-    const entries = Object.values(data);
+    const now = Date.now();
+const TIMEOUT_MS = 10000;
+const entries = Object.values(data).filter(p => {
+  const last = p.lastSeen || p.ts || 0;
+  const isFresh = (now - last) < TIMEOUT_MS;
+  return p.status === "online" && isFresh;
+});
     const pc = $("playersCount");
     if (pc) pc.textContent = entries.length;
     const host = $("playersList");
