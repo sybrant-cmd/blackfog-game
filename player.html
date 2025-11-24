@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Player (Static v8.4.1)</title>
+  <title>RWS BlackFog – Player (Static Linear v8.6)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#d72638" />
   <style>
@@ -190,7 +190,7 @@
 <body data-role="player">
 <header>
   <div>
-    <h1>RWS BlackFog – Player</h1>
+    <h1>RWS BlackFog – Player <span style="font-size:0.8rem; color:var(--muted);">Static Linear v8.6</span></h1>
     <span class="pill pill-live">LIVE</span>
     <span class="pill" id="sessionPill"></span>
   </div>
@@ -235,6 +235,21 @@
           This exercise has been closed by the facilitator. Please await the debrief and feedback.
         </p>
       </section>
+
+      <section class="card" id="aarCard" style="margin-top:10px; display:none;">
+        <h3>After-Action Review (Group Summary)</h3>
+        <p class="standby" id="aarSummary">
+          Once the facilitator builds the AAR, you will see a summary of each inject here, including how the group voted and the vCISO perspective.
+        </p>
+      </section>
+
+      <section class="card" id="aarCard" style="margin-top:10px; display:none;">
+        <h3>After-Action Review</h3>
+        <div id="aarSummary" class="standby">
+          Awaiting the facilitator’s AAR. Once available, you’ll see a summary of each inject and how the group responded.
+        </div>
+      </section>
+
     </div>
 
     <aside class="vciso">
@@ -261,7 +276,7 @@
 <div class="footer-space"></div>
 
 <script type="module">
-  import { initPlayer } from "./engine_v8_4.js";
+  import { initPlayer } from "./engine_v8_6.js";
   initPlayer();
 </script>
 </body>
