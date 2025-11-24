@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Facilitator v8.3</title>
+  <title>RWS BlackFog – Facilitator v8.4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -34,10 +34,7 @@
       top: 0;
       z-index: 10;
     }
-    h1 {
-      margin: 0;
-      font-size: 18px;
-    }
+    h1 { margin: 0; font-size: 18px; }
     .pill {
       display: inline-block;
       font-size: 12px;
@@ -159,22 +156,10 @@
     .inj-row:nth-child(even) {
       background: rgba(15,23,42,0.45);
     }
-    .inj-time {
-      font-weight: 600;
-      color: #eab308;
-    }
-    .inj-type {
-      font-size: 11px;
-      color: #bfdbfe;
-    }
-    .inj-text {
-      white-space: pre-wrap;
-    }
-    .inj-dec {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--muted);
-    }
+    .inj-time { font-weight: 600; color: #eab308; }
+    .inj-type { font-size: 11px; color: #bfdbfe; }
+    .inj-text { white-space: pre-wrap; }
+    .inj-dec { margin-top: 4px; font-size: 11px; color: var(--muted); }
     #log {
       font-size: 11px;
       max-height: 180px;
@@ -184,11 +169,7 @@
       padding: 4px 6px;
       background: #020617;
     }
-    .log-line {
-      margin: 0;
-      padding: 2px 0;
-      color: var(--muted);
-    }
+    .log-line { margin: 0; padding: 2px 0; color: var(--muted); }
     #playersList {
       font-size: 12px;
       border-radius: 8px;
@@ -227,11 +208,36 @@
       padding: 4px;
       text-align: left;
     }
-    th {
-      background: #111827;
-    }
+    th { background: #111827; }
     @media (max-width: 960px) {
       .grid { grid-template-columns: 1fr; }
+    }
+    #voteOverlay {
+      position:fixed;
+      bottom:16px;
+      right:16px;
+      background:rgba(15,23,42,0.96);
+      border:1px solid rgba(148,163,184,0.6);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:12px;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#e5e7eb;
+      min-width:240px;
+      max-width:280px;
+      box-shadow:0 12px 32px rgba(0,0,0,0.7);
+      z-index:30;
+      display:none;
+      white-space:pre-wrap;
+    }
+    #voteOverlayTitle {
+      font-weight:600;
+      margin-bottom:4px;
+    }
+    #voteOverlayCount {
+      margin-top:2px;
+      font-size:11px;
+      color:#9ca3af;
     }
   </style>
 </head>
@@ -283,11 +289,12 @@
           </div>
         </div>
         <div class="btn-bar" style="margin-bottom:6px;">
-          <button id="btnLoadScenario" class="btn">📦 Load preset into editor</button>
-          <button id="btnPublishScenario" class="btn-primary">📡 Publish scenario to players</button>
+          <button id="btnLoadScenario" class="btn">📦 Load preset</button>
+          <button id="btnPublishScenario" class="btn-primary">📡 Publish to players</button>
           <button id="btnAINextInject" class="btn-primary">🤖 AI – Next inject</button>
-          <button id="btnResetAIState" class="btn">♻ Reset AI state</button>
+          <button id="btnResetAIState" class="btn">♻ Reset AI</button>
           <button id="btnEndExercise" class="btn-danger">⛔ End exercise</button>
+          <button id="btnNewSession" class="btn">✨ New session</button>
         </div>
         <div>
           <label>Scenario title</label>
@@ -342,7 +349,7 @@
 
         <div class="btn-bar" style="margin-top:8px;">
           <button id="btnAddInject" class="btn">➕ Add to local timeline</button>
-          <button id="btnSendLatest" class="btn-primary">🚀 Send latest inject to players</button>
+          <button id="btnSendLatest" class="btn-primary">🚀 Send latest to players</button>
         </div>
       </section>
 
@@ -383,9 +390,20 @@
   </div>
 </div>
 
+<div id="voteOverlay">
+  <div id="voteOverlayTitle">Voting status</div>
+  <div id="voteOverlayBody">Waiting for a decision inject…</div>
+  <div style="margin-top:6px;">
+    <div style="height:4px; border-radius:999px; background:#111827;">
+      <div id="voteOverlayBar" style="height:4px; border-radius:999px; background:#22c55e; width:0%;"></div>
+    </div>
+    <div id="voteOverlayCount">0 / 0 responses</div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+  import { getDatabase, ref, set, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
@@ -417,7 +435,7 @@
   const scenarioLibrary = {
     blackfog: {
       title: "Operation BlackFog – Supply-Chain Compromise to APT Infiltration (RWS)",
-      desc: "A trusted third-party payment vendor pushes an unscheduled update that quietly opens the door to an APT-style intrusion into RWS finance and loyalty systems.",
+      desc: "A trusted third-party payment vendor pushes an unscheduled update that opens the door to intrusion into RWS finance and loyalty systems.",
       aiStages: ["early", "mid", "late", "business", "recovery"],
       aiPools: {
         1: [
@@ -599,7 +617,7 @@
     },
     ransomware: {
       title: "Midweek Ransomware in Finance – Encrypted Shares & Distracted Staff",
-      desc: "Finance shares begin encrypting midweek during payment runs; staff are distracted by quarter-end pressure and competing priorities.",
+      desc: "Finance shares begin encrypting midweek during payment runs; staff are under quarter-end pressure and may miss early signals.",
       aiStages: ["early", "mid", "late", "business", "recovery"],
       aiPools: {
         1: [
@@ -707,7 +725,7 @@
               options: {
                 A: "Declare a cyber incident and brief ExCo with clear impact framing.",
                 B: "Limit communications to IT and key Finance leaders for now.",
-                C: "Avoid using the term " + '"ransomware"' + " until regulators ask questions."
+                C: "Avoid using the term 'ransomware' until regulators ask questions."
               },
               impact: { A: 0, B: 0, C: +1 }
             }
@@ -980,6 +998,10 @@
     ransomware: new Set(),
     phishing: new Set()
   };
+  let lastTemplateId = null;
+
+  let latestPlayers = {};
+  let latestVotesSnapshot = {};
 
   function levelLabel(lvl) {
     const n = lvl || 1;
@@ -1036,8 +1058,82 @@
     });
   }
 
+  function refreshVoteOverlay() {
+    const overlay = $("voteOverlay");
+    if (!overlay) return;
+
+    if (!injects.length) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    const lastInject = injects[injects.length - 1];
+
+    if (!lastInject.decision || !lastInject.decision.question) {
+      overlay.style.display = "none";
+      return;
+    }
+
+    const seqKey = String(lastInject.seq);
+    const votesForSeq = latestVotesSnapshot[seqKey] || {};
+
+    const totalPlayers = Object.keys(latestPlayers || {}).length;
+    const voters = Object.values(votesForSeq) || [];
+    const respondedCount = voters.length;
+
+    const tally = { A: 0, B: 0, C: 0 };
+    const byChoice = { A: [], B: [], C: [] };
+
+    voters.forEach(v => {
+      const ch = v.choice;
+      const name = v.name || v.playerId || "Unknown";
+      if (ch && tally[ch] !== undefined) {
+        tally[ch] += 1;
+        byChoice[ch].push(name);
+      }
+    });
+
+    const pending = [];
+    Object.values(latestPlayers || {}).forEach(p => {
+      const pid = p.id;
+      const name = p.name || pid;
+      const hasVoted = Object.values(votesForSeq).some(v => v.playerId === pid);
+      if (!hasVoted) pending.push(name);
+    });
+
+    const titleEl = $("voteOverlayTitle");
+    const bodyEl = $("voteOverlayBody");
+    const barEl = $("voteOverlayBar");
+    const countEl = $("voteOverlayCount");
+
+    titleEl.textContent = `Voting – inject #${lastInject.seq}`;
+
+    const lines = [];
+    lines.push(`A (${tally.A}): ${byChoice.A.join(", ") || "—"}`);
+    lines.push(`B (${tally.B}): ${byChoice.B.join(", ") || "—"}`);
+    lines.push(`C (${tally.C}): ${byChoice.C.join(", ") || "—"}`);
+
+    if (totalPlayers > 0) {
+      if (pending.length) {
+        lines.push(`Waiting for: ${pending.join(", ")}`);
+      } else {
+        lines.push("All players have submitted a choice.");
+      }
+    }
+
+    bodyEl.textContent = lines.join("\n");
+
+    const pct = totalPlayers > 0 ? Math.min(100, Math.round((respondedCount / totalPlayers) * 100)) : 0;
+    barEl.style.width = pct + "%";
+    countEl.textContent = `${respondedCount} / ${totalPlayers} responses`;
+
+    overlay.style.display = totalPlayers > 0 ? "block" : "none";
+  }
+
   onValue(ref(db, `sessions/${session}/players`), snap => {
     const data = snap.val() || {};
+    latestPlayers = data;
+
     const entries = Object.values(data);
     $("playersCount").textContent = entries.length;
     const host = $("playersList");
@@ -1058,6 +1154,13 @@
       row.appendChild(st);
       host.appendChild(row);
     });
+
+    refreshVoteOverlay();
+  });
+
+  onValue(ref(db, `sessions/${session}/votes`), snap => {
+    latestVotesSnapshot = snap.val() || {};
+    refreshVoteOverlay();
   });
 
   $("btnLoadScenario").onclick = () => {
@@ -1074,8 +1177,10 @@
     injects = [];
     seqCounter = 0;
     usedInjectIds[key] = new Set();
+    lastTemplateId = null;
     renderTimeline();
-    log(`Loaded preset scenario "${sc.title}" into editor (AI-driven injects; no static list).`);
+    refreshVoteOverlay();
+    log(`Loaded preset scenario "${sc.title}" into editor (AI-driven injects).`);
   };
 
   $("btnPublishScenario").onclick = async () => {
@@ -1095,11 +1200,13 @@
     });
 
     usedInjectIds[key] = new Set();
+    lastTemplateId = null;
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     await set(ref(db, `sessions/${session}/ended`), null);
     injects = [];
     seqCounter = 0;
     renderTimeline();
+    refreshVoteOverlay();
     log(`Scenario "${title}" published to players. AI state reset.`);
   };
 
@@ -1110,9 +1217,11 @@
     }
     const key = $("scenarioPreset").value || "blackfog";
     usedInjectIds[key] = new Set();
+    lastTemplateId = null;
     injects = [];
     seqCounter = 0;
     renderTimeline();
+    refreshVoteOverlay();
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     log("AI difficulty state and local timeline reset to L1 – Normal.");
   };
@@ -1140,6 +1249,7 @@
     const inj = { seq: seqCounter, time, type, text, decision, manual: true };
     injects.push(inj);
     renderTimeline();
+    refreshVoteOverlay();
     log(`Manual inject #${inj.seq} added locally.`);
 
     $("injText").value = "";
@@ -1168,6 +1278,7 @@
     if (!injects.length) { alert("No injects in local timeline."); return; }
     const inj = injects[injects.length - 1];
     await sendInject(inj);
+    refreshVoteOverlay();
   };
 
   async function getDominantChoice(seq) {
@@ -1213,7 +1324,17 @@
           } else {
             impact = majority === "A" ? -1 : majority === "B" ? 0 : majority === "C" ? 1 : 0;
           }
-          state.level = Math.max(1, Math.min(5, (state.level || 1) + impact));
+
+          const oldLevel = state.level || 1;
+          let newLevel = oldLevel + impact;
+
+          newLevel = Math.max(1, Math.min(5, newLevel));
+
+          if (Math.abs(newLevel - oldLevel) > 1) {
+            newLevel = oldLevel + Math.sign(newLevel - oldLevel);
+          }
+
+          state.level = newLevel;
           log(`AI engine: previous majority was ${majority}, difficulty adjusted to ${levelLabel(state.level)}.`);
         } else {
           log("AI engine: no votes for previous inject; difficulty unchanged.");
@@ -1255,9 +1376,10 @@
       do {
         template = pool[Math.floor(Math.random() * pool.length)];
         attempts++;
-      } while (usedSet.has(template.id) && attempts < 5);
+      } while (template.id === lastTemplateId && attempts < 10);
     }
     usedSet.add(template.id);
+    lastTemplateId = template.id;
 
     state.seq = nextSeq;
     state.stageIndex = stageIndex;
@@ -1276,6 +1398,7 @@
     injects.push(inj);
     seqCounter = Math.max(seqCounter, nextSeq);
     renderTimeline();
+    refreshVoteOverlay();
 
     await sendInject(inj);
     await setAIState(state);
@@ -1349,9 +1472,23 @@
     log("Exercise has been ended for this session.");
   };
 
+  $("btnNewSession").onclick = () => {
+    const current = session;
+    const suggestion = current && current !== "default"
+      ? current + "-2"
+      : "session-" + Math.random().toString(36).slice(2, 6);
+
+    const nextId = prompt("Enter new session ID (no spaces):", suggestion);
+    if (!nextId) return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("s", nextId.trim());
+    window.location.href = url.toString();
+  };
+
   (async () => {
     await setAIState(aiState);
-    log("Facilitator console initialised (v8.3).");
+    log("Facilitator console initialised (v8.4).");
   })();
 </script>
 </body>
