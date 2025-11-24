@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Player v8.1</title>
+  <title>RWS BlackFog – Player v8.2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#d72638" />
   <style>
@@ -332,94 +332,93 @@
 
   onDisconnect(playerRef).update({ status: "offline", ts: Date.now() });
 
-  // vCISO brain
   const vcisoCommentBank = {
     Intel: [
-      "Reading this, I’d pause whatever email I was writing. This isn’t background noise – it’s the kind of thing that usually sits at the start of a real incident timeline.",
-      "If this landed in my inbox, my first question would be: is this just messy change management, or the first sign that someone is testing how asleep we are at the wheel?",
-      "Treat this as the opening scene in a RWS war-room movie. You won’t see the full plot yet, but you can already tell this scene will be referenced later.",
-      "The risk here isn’t just the content, it’s the timing and the way it bypasses normal process. That pattern matters more than any single log line.",
-      "Ask yourself very simply: if this were nothing, would it really look this coordinated across systems and people?"
+      "If this landed in my inbox, I’d pause whatever else I was doing. This is the sort of detail that usually ends up on line one of an incident timeline.",
+      "Treat this as the opening scene of a war-room, not a random log line. Patterns like this rarely happen by accident.",
+      "The content matters, but the context matters more – timing, who raised it, and how it bypassed normal process.",
+      "When something feels slightly out-of-profile like this, it’s usually better to ask one hard question now than ten excuses later.",
+      "The key here is to decide whether this is just messy operations, or the first real signal that someone is testing the perimeter."
     ],
     Detection: [
-      "Now the tools are talking. You’re no longer dealing with theory – telemetry is spelling out a story. The question is whether you believe it early or late.",
-      "This is where good teams zoom out. Don’t fixate on a single alert; look for the rhythm across endpoints, accounts and time windows.",
-      "If this were a complete false positive, you’d expect randomness. What you’re seeing here looks more like a pattern with intent.",
-      "Detection is giving you a rough sketch, not a photograph. You have enough shape to act, even if the picture isn’t perfect yet.",
-      "The uncomfortable truth is that you rarely get 100% certainty at this stage. You decide on the balance of probability, not perfection."
+      "Your tools are speaking. The real question is whether you’re prepared to believe them before the story is perfect.",
+      "If this was a false positive, you’d expect randomness. What you’re seeing here looks much closer to intent.",
+      "This is where good teams zoom out: look across endpoints, time windows and users, not just a single alert card.",
+      "Detection is giving you a sketch, not a full-resolution photo. It’s enough detail to justify moves, even if it’s not pretty.",
+      "You almost never get 100% certainty at this stage. You are deciding on probability, not perfection."
     ],
     Containment: [
-      "Containment is where somebody’s KPI and someone else’s sleep will be affected. That’s why people hesitate – not because the risk is unclear, but because the trade-offs are uncomfortable.",
-      "Every containment move spends political capital. The critical question is whether you are spending it early in a controlled way, or later in a crisis.",
-      "You almost never have the luxury of a clean, impact-free option. You’re choosing the shape of the pain, not whether there will be any.",
-      "Ask yourself: if this gets worse overnight, will you wish you had moved harder and sooner from exactly this point?",
-      "A good containment decision is one you can calmly explain to ExCo the next morning using three sentences, not twenty slides."
+      "This is the point where every move spends political capital. The trick is to spend it early and deliberately, not late and desperately.",
+      "There is no zero-pain option here. You’re choosing the shape of the pain, not whether any exists.",
+      "Ask a simple question: if this escalates overnight, will you wish you had moved harder from this exact moment?",
+      "Containment is where someone’s KPIs, revenue numbers or guest experience metrics will feel the impact. That’s why the hesitation is real.",
+      "Make a call you can explain in three calm sentences to ExCo tomorrow morning – not twenty defensive slides in three weeks."
     ],
     Comms: [
-      "This is where technical truth and human reaction intersect. People don’t just want to know what’s happening – they want to know if someone credible is steering.",
-      "When you brief upwards, don’t decorate. One sentence on impact, one on what you’re doing, and one on what you don’t know yet beats a long monologue.",
-      "If your message sounds defensive, stakeholders will read that as ‘we’ve lost control’. Aim for steady, factual, and specific instead.",
-      "The goal here is not to sound heroic, it’s to sound in control: clear status, clear next steps, clear owners.",
-      "Remember, silence is also a message. If you don’t provide a narrative, the organisation will happily invent one for you."
+      "This is the crossover between technical fact and human reaction. People need to hear that someone credible is actually steering.",
+      "Upwards communication should be short and surgical: one line on impact, one on actions, one on what you genuinely don’t know yet.",
+      "If your message sounds defensive, it will be read as ‘we’ve lost control’. Aim for steady, factual and specific instead.",
+      "You’re not trying to sound heroic here, just in control: clear status, clear next moves, clear owners.",
+      "Silence is still a message. If you don’t shape the narrative, the organisation will happily invent its own."
     ],
     Recovery: [
-      "Recovery is where everyone wants to declare victory and move on. It’s also where many organisations quietly leave the back door half open.",
-      "If nothing meaningful changes after this incident, then all we did was run a very stressful fire drill with no learning.",
-      "This is the moment to lock in the story: what happened, why it mattered, and what we will concretely do differently next time.",
-      "Attackers love environments that celebrate ‘systems are back’ but ignore the root cause. Don’t be that environment.",
-      "Think of recovery as the start of the next prevention cycle, not just the end of today’s problem."
+      "Recovery is where everyone wants to celebrate and move on. It’s also where unfinished work quietly leaves doors half open.",
+      "If nothing meaningful changes after this, all we ran was a stressful fire drill with no organisational learning.",
+      "Think of this phase as writing the closing chapter and the preface for the next incident at the same time.",
+      "Attackers love environments that rush to ‘systems are back’ without fixing the root cause. Don’t be that environment.",
+      "Use this window to lock in changes while the memory of pain is still fresh enough to overcome inertia."
     ],
     AggressiveChoice: [
-      "You’ve taken the harder line here. That will create noise in the short term, but it sharply limits the attacker’s room to manoeuvre.",
-      "This choice tells the organisation that protecting guests and data comes before a quiet day for operations. That’s usually the right story to tell.",
-      "You’ve traded some comfort now for less regret later. If this escalates, you’ll be glad you made the tighter call.",
-      "Be ready to explain this move in plain language: what you protected, what got disrupted, and why that trade was worth it.",
-      "This is a ‘protect the crown jewels first’ decision. Keep your communication as firm as the decision itself."
+      "You’ve chosen the harder line here. That will upset a few people in the short term, but it sharply limits the attacker’s room to manoeuvre.",
+      "This sends a clear message that protecting guests and data outranks having a quiet operations day. That is usually the right narrative.",
+      "You’ve traded comfort now for less regret later. If this escalates, you’ll be glad you made the tighter call.",
+      "Be ready to explain in plain language what you protected, what you disrupted, and why that trade was worth it.",
+      "This is a ‘protect the crown jewels first’ move. Make sure your tone with stakeholders is as firm as the decision."
     ],
     BalancedChoice: [
-      "You’ve gone for a middle path – not full lockdown, not full denial. That can work if you’re disciplined about follow-up.",
-      "This choice keeps both uptime and security in view. Just be explicit about what risk you are consciously accepting.",
-      "The danger with balanced moves is drift. Set a clear time window when you’ll revisit this decision with fresh data.",
-      "You’ve tried to buy yourself observation time without fully pulling the plug. Make sure that time is actually used to learn, not to hope.",
-      "Write down what new signal would make you tighten this stance. Future you will thank you."
+      "You’ve gone for a middle path – not full lockdown, not full denial. That can work if you stay disciplined about follow-up.",
+      "This choice keeps both uptime and security in view. Just be explicit about the risk you are consciously accepting.",
+      "Balanced decisions are fine as long as they are not an excuse to postpone discomfort. Put a clear time box around this stance.",
+      "You’re trying to buy yourself a bit of observation time. Use that time to learn, not simply to hope the alerts go away.",
+      "Write down what new signal would make you tighten this posture. Future you will be glad you did."
     ],
     ConservativeChoice: [
-      "You’ve held back here. That will keep some people comfortable now, but it also gives the attacker more time to explore.",
-      "In practice, this shifts risk from operational disruption to potential impact. Be honest with yourself that this is the trade you just made.",
-      "If this later turns into a bigger incident, this moment will feature heavily in the timeline. Make sure you’re comfortable defending it.",
-      "Sometimes waiting is right – but it should be a deliberate choice, not just a hope that the noise goes away.",
-      "If you decide to wait, decide for how long and what exactly you expect to see before you change direction."
+      "You’ve held back here. That will keep some people more comfortable now, but it leaves more space for the attacker.",
+      "In practice, this shifts risk from operational disruption to potential impact. Own that trade-off consciously.",
+      "If this later becomes a headline incident, this moment will feature heavily in the timeline. Make sure you can defend it.",
+      "Waiting can be the right call, but only if it is deliberate – not just a hope that things will quieten down by themselves.",
+      "If you decide to wait, decide for how long and exactly what you expect to see before you change course."
     ],
     Default: [
-      "Keep your framing simple: protect people, protect data, protect the brand. Most decisions fit inside that triangle.",
-      "Future you will likely be writing the incident report. Make decisions that still make sense when the adrenaline has faded.",
-      "Good incident handling is more about consistent, explainable decisions than dramatic hero moments.",
-      "You don’t need a perfect answer; you need a defendable one delivered at the right time.",
-      "Document your thinking as you go. In real life, that audit trail is your best defence."
+      "Keep your framing simple: protect people, protect data, protect brand. Most decisions fit inside that triangle.",
+      "Imagine you’re writing the incident report as you go. Make calls that will still make sense when the adrenaline fades.",
+      "Good incident handling is more about consistent, explainable decisions than dramatic heroics.",
+      "You don’t need a perfect answer, you need a defendable one at roughly the right time.",
+      "Document your thinking as you move. In real life, that audit trail is often your strongest defence."
     ]
   };
 
   const extraLines = {
     calm: [
       "Take ten seconds to separate what you actually know from what you are guessing.",
-      "If you feel slightly uneasy, that’s usually your pattern-recognition doing its job – listen to it.",
-      "Slowing down your thinking by even a few seconds often leads to a cleaner decision.",
-      "Share a one-line summary with your table. Having a common picture reduces noise dramatically.",
-      "You don’t have to be dramatic – just be clear and specific about what you see."
+      "If something feels off, listen to that pattern-recognition; it’s often your most honest signal.",
+      "Slowing your thinking by even a few seconds usually leads to a cleaner, more confident decision.",
+      "Share a one-line summary with your table. A shared mental model cuts through a lot of noise.",
+      "You don’t need dramatic language here – just clear observations people can act on."
     ],
     direct: [
       "At some point someone has to say, ‘We’re doing this.’ Don’t drag that moment out forever.",
-      "If you had to decide in the next sixty seconds, what would you honestly choose?",
-      "Try not to hide behind tools or process right now – this is mainly a judgment call.",
-      "Ask yourself what decision you’d back if you were the CISO on call tonight.",
-      "Don’t wait for a perfect signal. By the time it appears, the attacker will have moved on."
+      "If you had to decide in the next sixty seconds, what would you honestly pick?",
+      "Try not to hide behind tooling right now – this is mainly a judgement call.",
+      "Ask yourself what you’d back if you were the CISO on call tonight.",
+      "Don’t wait for a perfect signal. By the time it arrives, the attacker will have moved on."
     ],
     human: [
-      "It’s normal to feel some pressure here. The trick is to let it sharpen, not paralyse, your thinking.",
-      "You don’t need fancy language in a crisis – just honest, concrete sentences people can act on.",
-      "Imagine explaining this call tomorrow to a colleague you respect. Would you still back it?",
-      "Your tone will shape the room. If you stay measured and factual, others usually follow.",
-      "Mistakes are inevitable in incidents. How you respond and adjust is what people remember."
+      "It’s normal to feel pressure here – the goal is to let it sharpen your thinking, not paralyse it.",
+      "You don’t need polished speeches in a crisis, just honest, concrete sentences people can follow.",
+      "Imagine explaining this call tomorrow to a colleague you respect. Would you still stand by it?",
+      "Your tone will set the mood for the room. If you stay measured and factual, most people will match you.",
+      "Mistakes happen in every incident. What matters is how quickly and calmly you adjust."
     ]
   };
 
@@ -462,9 +461,9 @@
     const extras = extraLines[tone] || extraLines.calm;
 
     const phaseHintMap = {
-      intel: " Right now the goal is to decide whether this is just background noise or the start of a real incident timeline.",
-      decision: " You’re choosing between imperfect options – in real war-rooms, that’s completely normal.",
-      after: " This is exactly the kind of decision that shows up in the written timeline later."
+      intel: " Right now the goal is to decide if this is background noise or the start of a real incident timeline.",
+      decision: " You’re choosing between imperfect options – that is exactly how live incidents work in reality.",
+      after: " This is exactly the sort of decision that tends to appear in the written timeline later."
     };
     const phaseHint = phaseHintMap[phase] || "";
 
@@ -476,9 +475,9 @@
         : "";
       const shortLabel = label && label.length > 70 ? label.slice(0, 67) + "…" : label;
       if (ch && shortLabel) {
-        explicitLine = ` You’ve picked option ${ch} – “${shortLabel}”. In simple terms, that’s the posture you’re signalling to leadership and the attacker.`;
+        explicitLine = ` You’ve picked option ${ch} – “${shortLabel}”. In simple terms, that’s the posture you’re signalling to leadership and to the attacker.`;
       } else if (ch) {
-        explicitLine = ` You’ve picked option ${ch}. That choice says a lot about how you balance risk versus business comfort.`;
+        explicitLine = ` You’ve picked option ${ch}. That choice says a lot about how you balance risk against business comfort.`;
       }
     }
 
@@ -510,31 +509,30 @@
     }, 40);
   }
 
-  // CNA-style ticker
   const worldNews = [
-    "Global markets hold steady as investors watch macroeconomic signals and digital risk headlines.",
-    "Major economies review cyber regulations after a series of high-profile supply-chain breaches.",
-    "Regional leaders underscore the importance of resilience as travel and hospitality continue to recover."
+    "Global markets stay watchful as boards increasingly ask sharper questions on cyber resilience.",
+    "Major economies review supply-chain cyber rules after a series of payment platform incidents.",
+    "Regional travel and hospitality operators continue to invest in both guest experience and digital safety."
   ];
   const sgNews = [
-    "Singapore regulators reiterate expectations on managing third-party cyber risk in critical sectors.",
-    "Local hospitality operators report healthy bookings ahead of peak travel periods.",
-    "Industry bodies in Singapore highlight the need for regular cyber crisis exercises."
+    "Singapore regulators reiterate expectations for managing third-party cyber risk in critical sectors.",
+    "Local hospitality operators report healthy bookings ahead of peak travel windows.",
+    "Industry bodies in Singapore highlight the need for regular joint business–cyber incident exercises."
   ];
   const cyberNews = [
-    "CERT-SG notes a continued rise in supply-chain attacks on payment and booking platforms.",
-    "Regional SOCs report increased phishing and ransomware activity around payroll and quarter-end periods.",
+    "CERT-SG notes a continued rise in supply-chain attacks on payment and booking ecosystems.",
+    "Regional SOCs report elevated phishing and ransomware activity around payroll and quarter-end periods.",
     "Analysts remind organisations that business email compromise remains a leading cause of financial loss."
   ];
   const travelNews = [
-    "Air travel across Asia-Pacific remains robust, with travellers expecting seamless and secure digital touchpoints.",
-    "Tourism boards collaborate on joint campaigns that emphasise both experience and digital safety.",
+    "Air travel across Asia-Pacific remains robust, with guests expecting seamless and secure digital journeys.",
+    "Tourism boards roll out joint campaigns emphasising both premium experience and cyber safety.",
     "Guest expectations for frictionless, secure payment experiences continue to climb."
   ];
   const opsNews = [
     "Organisations are investing in joint cyber and business continuity exercises ahead of peak seasons.",
-    "Boards are asking sharper questions about cyber-resilience metrics and recovery time expectations.",
-    "IT and security teams refresh playbooks to better handle third-party and identity-related incidents."
+    "Boards are requesting clearer metrics on incident recovery time and resilience gaps.",
+    "IT and security teams refresh playbooks around third-party risk and identity-driven incidents."
   ];
 
   let tickerItems = [];
@@ -580,10 +578,12 @@
 
   $("btnRestart").onclick = () => resetView();
 
-  // Scenario updates
   onValue(ref(db, `sessions/${session}/scenario`), snap => {
     const v = snap.val();
-    if (!v) return;
+    if (!v || !v.published) {
+      resetView();
+      return;
+    }
     $("scTitle").textContent = v.title || "RWS Cyber Scenario";
     $("scDesc").textContent = v.desc || "";
     speakLikeVCISO("Intel", { phase: "intel" });

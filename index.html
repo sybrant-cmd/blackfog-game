@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Facilitator v8.1</title>
+  <title>RWS BlackFog – Facilitator v8.2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -152,7 +152,6 @@
       align-items: flex-start;
       padding: 4px 6px;
       border-radius: 8px;
-      border: 1px solid transparent;
     }
     .inj-row:nth-child(odd) {
       background: rgba(15,23,42,0.7);
@@ -270,6 +269,19 @@
           <div>
             <label>AI difficulty state</label>
             <input id="aiStateLabel" readonly value="L1 – Normal" />
+          </div>
+        </div>
+        <div class="row" style="margin-bottom:6px;">
+          <div>
+            <label>AI difficulty control</label>
+            <select id="aiLevelSelect">
+              <option value="auto">AI – Auto (adaptive)</option>
+              <option value="1">L1 – Normal (fixed)</option>
+              <option value="2">L2 – Elevated (fixed)</option>
+              <option value="3">L3 – High (fixed)</option>
+              <option value="4">L4 – Severe (fixed)</option>
+              <option value="5">L5 – Crisis (fixed)</option>
+            </select>
           </div>
         </div>
         <div class="btn-bar" style="margin-bottom:6px;">
@@ -419,7 +431,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "Vendor PayGateX pushes an "urgent" compatibility patch to RWS POS endpoints outside the normal maintenance window. The change ticket is missing and the rollout appears to be driven directly by the vendor.",
+            text: `Vendor PayGateX pushes an "urgent" compatibility patch to RWS POS endpoints outside the normal maintenance window. The change ticket is missing and the rollout appears to be driven directly by the vendor.`,
             decision: {
               question: "How should we react to this unexpected vendor push?",
               options: {
@@ -433,7 +445,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host attributed to PayGateX. The host was not part of the original allow-list.",
+            text: `Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host attributed to PayGateX. The host was not part of the original allow-list.`,
             decision: {
               question: "What is your immediate technical response?",
               options: {
@@ -447,7 +459,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "EDR begins flagging low-severity alerts about unsigned binaries executing from the vendor patch directory on several POS endpoints.",
+            text: `EDR begins flagging low-severity alerts about unsigned binaries executing from the vendor patch directory on several POS endpoints.`,
             decision: {
               question: "What do you prioritise at this point?",
               options: {
@@ -463,7 +475,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "PowerShell telemetry from patched POS endpoints shows enumeration of local users, services and installed security tools within minutes of the update.",
+            text: `PowerShell telemetry from patched POS endpoints shows enumeration of local users, services and installed security tools within minutes of the update.`,
             decision: {
               question: "How aggressively do you move on containment?",
               options: {
@@ -477,7 +489,7 @@
           {
             stage: "late",
             type: "Containment",
-            text: "Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX, over ports not typically used by the POS application.",
+            text: `Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX, over ports not typically used by the POS application.`,
             decision: {
               question: "What is your network-level response?",
               options: {
@@ -493,7 +505,7 @@
           {
             stage: "late",
             type: "Detection",
-            text: "Lateral movement telemetry suggests credential harvesting from a service account used to access finance and loyalty databases. Some logins appear from unusual admin workstations.",
+            text: `Lateral movement telemetry suggests credential harvesting from a service account used to access finance and loyalty databases. Some logins appear from unusual admin workstations.`,
             decision: {
               question: "What containment step do you prioritise?",
               options: {
@@ -507,7 +519,7 @@
           {
             stage: "business",
             type: "Comms",
-            text: "Finance leadership reports intermittent POS outages at premium outlets and is pressuring IT to restore stability before the evening peak.",
+            text: `Finance leadership reports intermittent POS outages at premium outlets and is pressuring IT to restore stability before the evening peak.`,
             decision: {
               question: "How do you frame the situation to senior leadership?",
               options: {
@@ -523,7 +535,7 @@
           {
             stage: "business",
             type: "Comms",
-            text: "Rumours start circulating that a vendor patch has "broken" POS systems. Some outlet managers are considering local workarounds to keep transactions flowing.",
+            text: `Rumours start circulating that a vendor patch has "broken" POS systems. Some outlet managers are considering local workarounds to keep transactions flowing.`,
             decision: {
               question: "What governance stance do you take?",
               options: {
@@ -537,7 +549,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "Forensics suggests the attacker had intermittent access to cardholder data segments but strong evidence of exfiltration is still inconclusive.",
+            text: `Forensics suggests the attacker had intermittent access to cardholder data segments but strong evidence of exfiltration is still inconclusive.`,
             decision: {
               question: "What recovery and assurance step do you prioritise?",
               options: {
@@ -553,7 +565,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "Regulators request a briefing on possible payment data exposure linked to the vendor incident. Internal stakeholders want to minimise disruption to card processing.",
+            text: `Regulators request a briefing on possible payment data exposure linked to the vendor incident. Internal stakeholders want to minimise disruption to card processing.`,
             decision: {
               question: "How do you handle the regulatory interface?",
               options: {
@@ -567,7 +579,7 @@
           {
             stage: "late",
             type: "Containment",
-            text: "Residual beacons are still observed from a small subset of endpoints thought to be remediated, suggesting incomplete cleanup.",
+            text: `Residual beacons are still observed from a small subset of endpoints thought to be remediated, suggesting incomplete cleanup.`,
             decision: {
               question: "What follow-up action do you take?",
               options: {
@@ -590,7 +602,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "Helpdesk tickets spike from Finance staff reporting "read-only" and "corrupted" Excel files on a shared drive used for payment runs.",
+            text: `Helpdesk tickets spike from Finance staff reporting "read-only" and "corrupted" Excel files on a shared drive used for payment runs.`,
             decision: {
               question: "What is your first move?",
               options: {
@@ -604,7 +616,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share within a short time window.",
+            text: `Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share within a short time window.`,
             decision: {
               question: "How do you classify the event at this point?",
               options: {
@@ -618,7 +630,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "A subset of Finance endpoints starts spawning processes from unusual directories when users open legacy spreadsheets.",
+            text: `A subset of Finance endpoints starts spawning processes from unusual directories when users open legacy spreadsheets.`,
             decision: {
               question: "How do you follow up on these anomalies?",
               options: {
@@ -634,7 +646,7 @@
           {
             stage: "mid",
             type: "Containment",
-            text: "Encryption events spread from the core Finance share to a generic "Shared" drive used across multiple departments.",
+            text: `Encryption events spread from the core Finance share to a generic "Shared" drive used across multiple departments.`,
             decision: {
               question: "What containment decision do you take?",
               options: {
@@ -648,7 +660,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "EDR flags endpoints running suspicious executables from %TEMP% with known ransomware TTPs and outbound C2 indicators.",
+            text: `EDR flags endpoints running suspicious executables from %TEMP% with known ransomware TTPs and outbound C2 indicators.`,
             decision: {
               question: "Where do you focus your detection and triage?",
               options: {
@@ -664,7 +676,7 @@
           {
             stage: "late",
             type: "Containment",
-            text: "The ransomware appears to be targeting mapped drives first, with signs of attempts to reach backup repositories.",
+            text: `The ransomware appears to be targeting mapped drives first, with signs of attempts to reach backup repositories.`,
             decision: {
               question: "How do you protect backups?",
               options: {
@@ -678,13 +690,13 @@
           {
             stage: "business",
             type: "Comms",
-            text: "An internal ransom note appears on several Finance desktops and shared drives, demanding payment in cryptocurrency within 48 hours.",
+            text: `An internal ransom note appears on several Finance desktops and shared drives, demanding payment in cryptocurrency within 48 hours.`,
             decision: {
               question: "How do you handle internal executive communications?",
               options: {
                 A: "Declare a cyber incident and brief ExCo with clear impact framing.",
                 B: "Limit communications to IT and key Finance leaders for now.",
-                C: "Avoid using the term "ransomware" until regulators ask questions."
+                C: "Avoid using the term " + '"ransomware"' + " until regulators ask questions."
               },
               impact: { A: 0, B: 0, C: +1 }
             }
@@ -694,7 +706,7 @@
           {
             stage: "business",
             type: "Comms",
-            text: "Rumours of "the Finance servers being hacked" spread across departments, and staff start speculating about payroll impacts.",
+            text: `Rumours of "the Finance servers being hacked" spread across departments, and staff start speculating about payroll impacts.`,
             decision: {
               question: "How do you manage broader staff comms?",
               options: {
@@ -708,7 +720,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "Backups for the last 24 hours appear intact but restoring them will cause delay to critical payment runs that ExCo is watching closely.",
+            text: `Backups for the last 24 hours appear intact but restoring them will cause delay to critical payment runs that ExCo is watching closely.`,
             decision: {
               question: "How do you balance recovery versus business continuity?",
               options: {
@@ -724,7 +736,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "Threat intel suggests this ransomware group often returns months later if initial access paths are not fully removed.",
+            text: `Threat intel suggests this ransomware group often returns months later if initial access paths are not fully removed.`,
             decision: {
               question: "What long-term follow-up action do you prioritise?",
               options: {
@@ -738,7 +750,7 @@
           {
             stage: "late",
             type: "Detection",
-            text: "A few weeks later, low-level anomalies appear again on a handful of Finance endpoints previously affected.",
+            text: `A few weeks later, low-level anomalies appear again on a handful of Finance endpoints previously affected.`,
             decision: {
               question: "How do you interpret and respond to these new weak signals?",
               options: {
@@ -761,7 +773,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "Security gateway reports a spike in emails spoofing the CEO, sent to several directors with urgent wire transfer requests.",
+            text: `Security gateway reports a spike in emails spoofing the CEO, sent to several directors with urgent wire transfer requests.`,
             decision: {
               question: "What is your immediate action?",
               options: {
@@ -775,7 +787,7 @@
           {
             stage: "early",
             type: "Intel",
-            text: "One PA reports clicking a link in an "updated meeting invite" from the CEO and entering credentials into a convincing login page.",
+            text: `One PA reports clicking a link in an "updated meeting invite" from the CEO and entering credentials into a convincing login page.`,
             decision: {
               question: "How do you handle the potential compromise?",
               options: {
@@ -789,7 +801,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "Mail hygiene logs show that the same phishing template has reached a small number of VIP guests via their loyalty program contact details.",
+            text: `Mail hygiene logs show that the same phishing template has reached a small number of VIP guests via their loyalty program contact details.`,
             decision: {
               question: "What scope of detection and communication do you launch?",
               options: {
@@ -805,7 +817,7 @@
           {
             stage: "mid",
             type: "Detection",
-            text: "Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of sensitive messages to an external address.",
+            text: `Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of sensitive messages to an external address.`,
             decision: {
               question: "What scope of detection do you launch internally?",
               options: {
@@ -819,7 +831,7 @@
           {
             stage: "late",
             type: "Containment",
-            text: "Cloud audit logs show sign-ins from an unusual country using the director account, outside normal travel patterns.",
+            text: `Cloud audit logs show sign-ins from an unusual country using the director account, outside normal travel patterns.`,
             decision: {
               question: "What containment step do you take?",
               options: {
@@ -835,7 +847,7 @@
           {
             stage: "late",
             type: "Detection",
-            text: "Threat intel enrichment reveals that the attacker infrastructure overlaps with a known group targeting hospitality VIP programs.",
+            text: `Threat intel enrichment reveals that the attacker infrastructure overlaps with a known group targeting hospitality VIP programs.`,
             decision: {
               question: "How do you adapt your detection posture?",
               options: {
@@ -849,7 +861,7 @@
           {
             stage: "business",
             type: "Comms",
-            text: "Rumours of "executive email hacking" begin spreading internally among staff and middle management.",
+            text: `Rumours of "executive email hacking" begin spreading internally among staff and middle management.`,
             decision: {
               question: "How do you frame internal communications?",
               options: {
@@ -865,7 +877,7 @@
           {
             stage: "business",
             type: "Comms",
-            text: "Some VIPs begin asking relationship managers whether their communications with RWS have been compromised.",
+            text: `Some VIPs begin asking relationship managers whether their communications with RWS have been compromised.`,
             decision: {
               question: "How do you respond to concerned VIPs?",
               options: {
@@ -879,7 +891,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "You have partially verified access abuse, but the impact to guest data remains uncertain.",
+            text: `You have partially verified access abuse, but the impact to guest data remains uncertain.`,
             decision: {
               question: "What follow-up action do you prioritise?",
               options: {
@@ -895,7 +907,7 @@
           {
             stage: "recovery",
             type: "Recovery",
-            text: "External regulators ask whether any VIP data could have been exposed via compromised mailboxes.",
+            text: `External regulators ask whether any VIP data could have been exposed via compromised mailboxes.`,
             decision: {
               question: "How do you prepare for scrutiny?",
               options: {
@@ -909,7 +921,7 @@
           {
             stage: "late",
             type: "Containment",
-            text: "New login alerts appear for a separate executive account that previously passed phishing simulations without issue.",
+            text: `New login alerts appear for a separate executive account that previously passed phishing simulations without issue.`,
             decision: {
               question: "What hypothesis do you test first?",
               options: {
@@ -956,7 +968,6 @@
   async function setAIState(state) {
     aiState = Object.assign({}, state, { lastUpdated: Date.now() });
     $("aiStateLabel").value = levelLabel(aiState.level);
-    // still publish to DB so players can see difficulty in ticker
     await set(ref(db, `sessions/${session}/state`), aiState);
   }
 
@@ -1021,7 +1032,6 @@
     });
   });
 
-  // Scenario controls
   $("btnLoadScenario").onclick = () => {
     if (exerciseEnded) {
       alert("Exercise has ended. Start a new session to load a scenario.");
@@ -1065,6 +1075,7 @@
       title,
       desc,
       key,
+      published: true,
       at: Date.now()
     });
     usedInjectTexts.clear();
@@ -1163,31 +1174,36 @@
     const sc = scenarioLibrary[scKey];
     if (!sc) { alert("Scenario not loaded / published yet."); return; }
 
-    // Difficulty adjustment based on last inject votes
-    if (state.seq && state.seq > 0) {
-      const majority = await getDominantChoice(state.seq);
-      if (majority) {
-        state.lastChoice = majority;
-        const prev = injects.find(i => i.seq === state.seq);
-        let impact = 0;
-        if (prev && prev.decision && prev.decision.impact && prev.decision.impact[majority] !== undefined) {
-          impact = prev.decision.impact[majority];
+    const override = $("aiLevelSelect").value || "auto";
+
+    if (override === "auto") {
+      if (state.seq && state.seq > 0) {
+        const majority = await getDominantChoice(state.seq);
+        if (majority) {
+          state.lastChoice = majority;
+          const prev = injects.find(i => i.seq === state.seq);
+          let impact = 0;
+          if (prev && prev.decision && prev.decision.impact && prev.decision.impact[majority] !== undefined) {
+            impact = prev.decision.impact[majority];
+          } else {
+            impact = majority === "A" ? -1 : majority === "B" ? 0 : 1;
+          }
+          state.level = Math.max(1, Math.min(5, (state.level || 1) + impact));
+          log(`AI engine: previous majority was ${majority}, difficulty adjusted to ${levelLabel(state.level)}.`);
         } else {
-          impact = majority === "A" ? -1 : majority === "B" ? 0 : 1;
+          log("AI engine: no votes for previous inject; difficulty unchanged.");
         }
-        state.level = Math.max(1, Math.min(5, (state.level || 1) + impact));
-        log(`AI engine: previous majority was ${majority}, difficulty adjusted to ${levelLabel(state.level)}.`);
-      } else {
-        log("AI engine: no votes for previous inject; difficulty unchanged.");
       }
+    } else {
+      state.level = parseInt(override, 10);
+      log(`AI engine: difficulty forced to ${levelLabel(state.level)} by facilitator.`);
     }
 
     const stages = sc.aiStages || ["early", "mid", "late"];
-    // Stage progression: every 2 injects, advance a stage
     if (state.seq === 0) {
       state.stageIndex = 0;
     } else {
-      const stageBoundary = Math.floor((state.seq) / 2); // seq 1-2 -> stage 0-1, etc.
+      const stageBoundary = Math.floor(state.seq / 2);
       state.stageIndex = Math.min(stageBoundary, stages.length - 1);
     }
 
@@ -1201,7 +1217,6 @@
     let stageCandidates = levelPools.filter(t => t.stage === stageKey);
     if (!stageCandidates.length) stageCandidates = levelPools.slice();
 
-    // Avoid repeating same text
     let pool = stageCandidates.filter(t => !usedInjectTexts.has(t.text));
     if (!pool.length) pool = stageCandidates.slice();
 
@@ -1305,7 +1320,7 @@
 
   (async () => {
     await setAIState(aiState);
-    log("Facilitator console initialised (v8.1).");
+    log("Facilitator console initialised (v8.2).");
   })();
 </script>
 </body>
