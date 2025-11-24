@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>RWS BlackFog – Facilitator v8.2</title>
+  <title>RWS BlackFog – Facilitator v8.3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
       --bg: #020617;
       --panel: #020617;
       --panel2: #0b1120;
-      --border: rgba(148, 163, 184, 0.5);
+      --border: rgba(148, 163, 184, 0.55);
       --text: #e5e7eb;
       --muted: #9ca3af;
       --accent: #d72638;
@@ -147,7 +147,7 @@
     }
     .inj-row {
       display: grid;
-      grid-template-columns: 44px 82px 1fr;
+      grid-template-columns: 44px 80px 1fr;
       gap: 6px;
       align-items: flex-start;
       padding: 4px 6px;
@@ -249,13 +249,11 @@
 <div class="container">
   <div class="grid">
 
-    <!-- LEFT: Scenario + Injects -->
     <div>
-
       <section class="card">
         <div class="card-header">
           <h2>Scenario & AI Engine</h2>
-          <span class="muted">Choose preset, publish, then drive cascading injects</span>
+          <span class="muted">Pick scenario, publish once, then drive cascading AI injects</span>
         </div>
         <div class="row" style="margin-bottom:6px;">
           <div>
@@ -302,7 +300,7 @@
       <section class="card">
         <div class="card-header">
           <h2>Manual Inject Builder</h2>
-          <span class="muted">Craft or override AI injects</span>
+          <span class="muted">Override AI or insert custom curveballs</span>
         </div>
         <div class="row">
           <div>
@@ -354,12 +352,9 @@
         </div>
         <div id="timeline"></div>
       </section>
-
     </div>
 
-    <!-- RIGHT: Players, log, AAR -->
     <div>
-
       <section class="card">
         <div class="card-header">
           <h2>Connected Players</h2>
@@ -383,7 +378,6 @@
           <p class="muted">End a round, then build AAR to see A/B/C distribution per inject.</p>
         </div>
       </section>
-
     </div>
 
   </div>
@@ -420,7 +414,6 @@
     host.prepend(line);
   }
 
-  // Scenario library with multi-stage, multi-level AI pools
   const scenarioLibrary = {
     blackfog: {
       title: "Operation BlackFog – Supply-Chain Compromise to APT Infiltration (RWS)",
@@ -429,6 +422,7 @@
       aiPools: {
         1: [
           {
+            id: "bf-l1-e1",
             stage: "early",
             type: "Intel",
             text: `Vendor PayGateX pushes an "urgent" compatibility patch to RWS POS endpoints outside the normal maintenance window. The change ticket is missing and the rollout appears to be driven directly by the vendor.`,
@@ -443,9 +437,10 @@
             }
           },
           {
+            id: "bf-l1-e2",
             stage: "early",
             type: "Intel",
-            text: `Change management dashboard shows multiple production endpoints pulling binaries from a new CDN host attributed to PayGateX. The host was not part of the original allow-list.`,
+            text: `Change management dashboards show multiple production endpoints pulling binaries from a new CDN host attributed to PayGateX. The host was not part of the original allow-list.`,
             decision: {
               question: "What is your immediate technical response?",
               options: {
@@ -457,6 +452,7 @@
             }
           },
           {
+            id: "bf-l1-m1",
             stage: "mid",
             type: "Detection",
             text: `EDR begins flagging low-severity alerts about unsigned binaries executing from the vendor patch directory on several POS endpoints.`,
@@ -473,6 +469,7 @@
         ],
         2: [
           {
+            id: "bf-l2-m1",
             stage: "mid",
             type: "Detection",
             text: `PowerShell telemetry from patched POS endpoints shows enumeration of local users, services and installed security tools within minutes of the update.`,
@@ -487,6 +484,7 @@
             }
           },
           {
+            id: "bf-l2-l1",
             stage: "late",
             type: "Containment",
             text: `Network telemetry shows outbound connections from patched endpoints to an IP range not associated with PayGateX, over ports not typically used by the POS application.`,
@@ -494,7 +492,7 @@
               question: "What is your network-level response?",
               options: {
                 A: "Block and sinkhole the suspicious IP range across the environment immediately.",
-                B: "Throttle connections and mirror traffic for deeper packet inspection.",
+                B: "Throttle connections and mirror traffic for deeper inspection.",
                 C: "Create IDS rules and continue to observe without blocking for now."
               },
               impact: { A: -1, B: -1, C: +1 }
@@ -503,6 +501,7 @@
         ],
         3: [
           {
+            id: "bf-l3-l1",
             stage: "late",
             type: "Detection",
             text: `Lateral movement telemetry suggests credential harvesting from a service account used to access finance and loyalty databases. Some logins appear from unusual admin workstations.`,
@@ -510,13 +509,14 @@
               question: "What containment step do you prioritise?",
               options: {
                 A: "Immediately rotate and revoke the affected service account and dependent credentials.",
-                B: "Add MFA and just-in-time controls around the account while gathering more evidence.",
+                B: "Add just-in-time controls and enhanced MFA around the account while gathering more evidence.",
                 C: "Enable enhanced logging only and postpone disruptive actions until confirmed."
               },
               impact: { A: -1, B: 0, C: +1 }
             }
           },
           {
+            id: "bf-l3-b1",
             stage: "business",
             type: "Comms",
             text: `Finance leadership reports intermittent POS outages at premium outlets and is pressuring IT to restore stability before the evening peak.`,
@@ -533,6 +533,7 @@
         ],
         4: [
           {
+            id: "bf-l4-b1",
             stage: "business",
             type: "Comms",
             text: `Rumours start circulating that a vendor patch has "broken" POS systems. Some outlet managers are considering local workarounds to keep transactions flowing.`,
@@ -547,6 +548,7 @@
             }
           },
           {
+            id: "bf-l4-r1",
             stage: "recovery",
             type: "Recovery",
             text: `Forensics suggests the attacker had intermittent access to cardholder data segments but strong evidence of exfiltration is still inconclusive.`,
@@ -563,6 +565,7 @@
         ],
         5: [
           {
+            id: "bf-l5-r1",
             stage: "recovery",
             type: "Recovery",
             text: `Regulators request a briefing on possible payment data exposure linked to the vendor incident. Internal stakeholders want to minimise disruption to card processing.`,
@@ -577,6 +580,7 @@
             }
           },
           {
+            id: "bf-l5-l1",
             stage: "late",
             type: "Containment",
             text: `Residual beacons are still observed from a small subset of endpoints thought to be remediated, suggesting incomplete cleanup.`,
@@ -600,6 +604,7 @@
       aiPools: {
         1: [
           {
+            id: "rw-l1-e1",
             stage: "early",
             type: "Intel",
             text: `Helpdesk tickets spike from Finance staff reporting "read-only" and "corrupted" Excel files on a shared drive used for payment runs.`,
@@ -614,13 +619,14 @@
             }
           },
           {
+            id: "rw-l1-e2",
             stage: "early",
             type: "Intel",
             text: `Monitoring shows a sudden spike in file renames and new extensions appearing on the Finance share within a short time window.`,
             decision: {
               question: "How do you classify the event at this point?",
               options: {
-                A: "Probable ransomware, trigger the incident response playbook.",
+                A: "Probable ransomware – trigger the incident response playbook.",
                 B: "Suspicious activity needing deeper investigation before escalation.",
                 C: "Likely false positive due to backup or sync tooling."
               },
@@ -628,6 +634,7 @@
             }
           },
           {
+            id: "rw-l1-m1",
             stage: "mid",
             type: "Detection",
             text: `A subset of Finance endpoints starts spawning processes from unusual directories when users open legacy spreadsheets.`,
@@ -644,6 +651,7 @@
         ],
         2: [
           {
+            id: "rw-l2-m1",
             stage: "mid",
             type: "Containment",
             text: `Encryption events spread from the core Finance share to a generic "Shared" drive used across multiple departments.`,
@@ -658,6 +666,7 @@
             }
           },
           {
+            id: "rw-l2-m2",
             stage: "mid",
             type: "Detection",
             text: `EDR flags endpoints running suspicious executables from %TEMP% with known ransomware TTPs and outbound C2 indicators.`,
@@ -674,6 +683,7 @@
         ],
         3: [
           {
+            id: "rw-l3-l1",
             stage: "late",
             type: "Containment",
             text: `The ransomware appears to be targeting mapped drives first, with signs of attempts to reach backup repositories.`,
@@ -688,6 +698,7 @@
             }
           },
           {
+            id: "rw-l3-b1",
             stage: "business",
             type: "Comms",
             text: `An internal ransom note appears on several Finance desktops and shared drives, demanding payment in cryptocurrency within 48 hours.`,
@@ -704,6 +715,7 @@
         ],
         4: [
           {
+            id: "rw-l4-b1",
             stage: "business",
             type: "Comms",
             text: `Rumours of "the Finance servers being hacked" spread across departments, and staff start speculating about payroll impacts.`,
@@ -718,6 +730,7 @@
             }
           },
           {
+            id: "rw-l4-r1",
             stage: "recovery",
             type: "Recovery",
             text: `Backups for the last 24 hours appear intact but restoring them will cause delay to critical payment runs that ExCo is watching closely.`,
@@ -734,6 +747,7 @@
         ],
         5: [
           {
+            id: "rw-l5-r1",
             stage: "recovery",
             type: "Recovery",
             text: `Threat intel suggests this ransomware group often returns months later if initial access paths are not fully removed.`,
@@ -748,6 +762,7 @@
             }
           },
           {
+            id: "rw-l5-l1",
             stage: "late",
             type: "Detection",
             text: `A few weeks later, low-level anomalies appear again on a handful of Finance endpoints previously affected.`,
@@ -771,6 +786,7 @@
       aiPools: {
         1: [
           {
+            id: "ph-l1-e1",
             stage: "early",
             type: "Intel",
             text: `Security gateway reports a spike in emails spoofing the CEO, sent to several directors with urgent wire transfer requests.`,
@@ -785,6 +801,7 @@
             }
           },
           {
+            id: "ph-l1-e2",
             stage: "early",
             type: "Intel",
             text: `One PA reports clicking a link in an "updated meeting invite" from the CEO and entering credentials into a convincing login page.`,
@@ -799,6 +816,7 @@
             }
           },
           {
+            id: "ph-l1-m1",
             stage: "mid",
             type: "Detection",
             text: `Mail hygiene logs show that the same phishing template has reached a small number of VIP guests via their loyalty program contact details.`,
@@ -815,6 +833,7 @@
         ],
         2: [
           {
+            id: "ph-l2-m1",
             stage: "mid",
             type: "Detection",
             text: `Mail logs show forwarding rules created on a director’s mailbox, redirecting copies of sensitive messages to an external address.`,
@@ -829,6 +848,7 @@
             }
           },
           {
+            id: "ph-l2-l1",
             stage: "late",
             type: "Containment",
             text: `Cloud audit logs show sign-ins from an unusual country using the director account, outside normal travel patterns.`,
@@ -845,6 +865,7 @@
         ],
         3: [
           {
+            id: "ph-l3-l1",
             stage: "late",
             type: "Detection",
             text: `Threat intel enrichment reveals that the attacker infrastructure overlaps with a known group targeting hospitality VIP programs.`,
@@ -859,6 +880,7 @@
             }
           },
           {
+            id: "ph-l3-b1",
             stage: "business",
             type: "Comms",
             text: `Rumours of "executive email hacking" begin spreading internally among staff and middle management.`,
@@ -875,6 +897,7 @@
         ],
         4: [
           {
+            id: "ph-l4-b1",
             stage: "business",
             type: "Comms",
             text: `Some VIPs begin asking relationship managers whether their communications with RWS have been compromised.`,
@@ -889,6 +912,7 @@
             }
           },
           {
+            id: "ph-l4-r1",
             stage: "recovery",
             type: "Recovery",
             text: `You have partially verified access abuse, but the impact to guest data remains uncertain.`,
@@ -905,13 +929,14 @@
         ],
         5: [
           {
+            id: "ph-l5-r1",
             stage: "recovery",
             type: "Recovery",
             text: `External regulators ask whether any VIP data could have been exposed via compromised mailboxes.`,
             decision: {
               question: "How do you prepare for scrutiny?",
               options: {
-                A: "Assemble a defensible timeline, decisions log, and evidence pack for review.",
+                A: "Assemble a defensible timeline, decisions log and evidence pack for review.",
                 B: "Provide a minimal written statement with generic assurances.",
                 C: "Delay detailed engagement while hoping the inquiry loses momentum."
               },
@@ -919,6 +944,7 @@
             }
           },
           {
+            id: "ph-l5-l1",
             stage: "late",
             type: "Containment",
             text: `New login alerts appear for a separate executive account that previously passed phishing simulations without issue.`,
@@ -941,7 +967,6 @@
   let seqCounter = 0;
   let exerciseEnded = false;
 
-  // Local in-browser AI state to avoid race conditions
   let aiState = {
     level: 1,
     lastChoice: null,
@@ -950,7 +975,11 @@
     stageIndex: 0
   };
 
-  let usedInjectTexts = new Set();
+  const usedInjectIds = {
+    blackfog: new Set(),
+    ransomware: new Set(),
+    phishing: new Set()
+  };
 
   function levelLabel(lvl) {
     const n = lvl || 1;
@@ -1007,7 +1036,6 @@
     });
   }
 
-  // Players presence
   onValue(ref(db, `sessions/${session}/players`), snap => {
     const data = snap.val() || {};
     const entries = Object.values(data);
@@ -1045,22 +1073,9 @@
 
     injects = [];
     seqCounter = 0;
-    usedInjectTexts.clear();
-    const pools = sc.aiPools;
-    Object.keys(pools).sort().forEach(level => {
-      pools[level].forEach(t => {
-        seqCounter++;
-        injects.push({
-          seq: seqCounter,
-          time: `T+${seqCounter * 5}m`,
-          type: t.type,
-          text: t.text,
-          decision: t.decision || null
-        });
-      });
-    });
+    usedInjectIds[key] = new Set();
     renderTimeline();
-    log(`Loaded preset scenario "${sc.title}" into editor (${injects.length} inject templates).`);
+    log(`Loaded preset scenario "${sc.title}" into editor (AI-driven injects; no static list).`);
   };
 
   $("btnPublishScenario").onclick = async () => {
@@ -1078,10 +1093,14 @@
       published: true,
       at: Date.now()
     });
-    usedInjectTexts.clear();
+
+    usedInjectIds[key] = new Set();
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
     await set(ref(db, `sessions/${session}/ended`), null);
-    log("Scenario published to players and AI state reset.");
+    injects = [];
+    seqCounter = 0;
+    renderTimeline();
+    log(`Scenario "${title}" published to players. AI state reset.`);
   };
 
   $("btnResetAIState").onclick = async () => {
@@ -1090,9 +1109,12 @@
       return;
     }
     const key = $("scenarioPreset").value || "blackfog";
-    usedInjectTexts.clear();
+    usedInjectIds[key] = new Set();
+    injects = [];
+    seqCounter = 0;
+    renderTimeline();
     await setAIState({ level: 1, lastChoice: null, scenarioKey: key, seq: 0, stageIndex: 0 });
-    log("AI difficulty state reset to L1 – Normal.");
+    log("AI difficulty state and local timeline reset to L1 – Normal.");
   };
 
   $("btnAddInject").onclick = () => {
@@ -1115,10 +1137,10 @@
       : null;
 
     seqCounter += 1;
-    const inj = { seq: seqCounter, time, type, text, decision };
+    const inj = { seq: seqCounter, time, type, text, decision, manual: true };
     injects.push(inj);
     renderTimeline();
-    log(`Inject #${inj.seq} added locally.`);
+    log(`Manual inject #${inj.seq} added locally.`);
 
     $("injText").value = "";
     $("decQuestion").value = "";
@@ -1166,13 +1188,16 @@
 
   $("btnAINextInject").onclick = async () => {
     if (exerciseEnded) {
-      alert("Exercise has already ended. No further injects can be sent.");
+      alert("Exercise has already ended. No further AI injects can be sent.");
       return;
     }
     const state = getAIState();
     const scKey = state.scenarioKey || $("scenarioPreset").value || "blackfog";
     const sc = scenarioLibrary[scKey];
-    if (!sc) { alert("Scenario not loaded / published yet."); return; }
+    if (!sc) {
+      alert("Scenario not loaded / published yet.");
+      return;
+    }
 
     const override = $("aiLevelSelect").value || "auto";
 
@@ -1186,7 +1211,7 @@
           if (prev && prev.decision && prev.decision.impact && prev.decision.impact[majority] !== undefined) {
             impact = prev.decision.impact[majority];
           } else {
-            impact = majority === "A" ? -1 : majority === "B" ? 0 : 1;
+            impact = majority === "A" ? -1 : majority === "B" ? 0 : majority === "C" ? 1 : 0;
           }
           state.level = Math.max(1, Math.min(5, (state.level || 1) + impact));
           log(`AI engine: previous majority was ${majority}, difficulty adjusted to ${levelLabel(state.level)}.`);
@@ -1199,26 +1224,28 @@
       log(`AI engine: difficulty forced to ${levelLabel(state.level)} by facilitator.`);
     }
 
-    const stages = sc.aiStages || ["early", "mid", "late"];
-    if (state.seq === 0) {
-      state.stageIndex = 0;
-    } else {
-      const stageBoundary = Math.floor(state.seq / 2);
-      state.stageIndex = Math.min(stageBoundary, stages.length - 1);
-    }
+    const stages = sc.aiStages || ["early", "mid", "late", "business", "recovery"];
+    const nextSeq = (state.seq || 0) + 1;
+    const stageIndex = Math.min(Math.floor((nextSeq - 1) / 2), stages.length - 1);
+    const stageKey = stages[stageIndex] || stages[stages.length - 1];
 
-    const stageKey = stages[state.stageIndex] || stages[stages.length - 1];
     const levelPools = sc.aiPools[state.level] || sc.aiPools[3] || sc.aiPools[1];
     if (!levelPools || !levelPools.length) {
       alert("No AI templates for this scenario / difficulty level.");
       return;
     }
 
+    const usedSet = usedInjectIds[scKey] || new Set();
+    usedInjectIds[scKey] = usedSet;
+
     let stageCandidates = levelPools.filter(t => t.stage === stageKey);
     if (!stageCandidates.length) stageCandidates = levelPools.slice();
 
-    let pool = stageCandidates.filter(t => !usedInjectTexts.has(t.text));
-    if (!pool.length) pool = stageCandidates.slice();
+    let pool = stageCandidates.filter(t => !usedSet.has(t.id));
+    if (!pool.length) {
+      usedSet.clear();
+      pool = stageCandidates.slice();
+    }
 
     let template;
     if (pool.length === 1) {
@@ -1228,22 +1255,26 @@
       do {
         template = pool[Math.floor(Math.random() * pool.length)];
         attempts++;
-      } while (usedInjectTexts.has(template.text) && attempts < 5);
+      } while (usedSet.has(template.id) && attempts < 5);
     }
-    usedInjectTexts.add(template.text);
+    usedSet.add(template.id);
 
-    state.seq = (state.seq || 0) + 1;
-    const newSeq = state.seq;
+    state.seq = nextSeq;
+    state.stageIndex = stageIndex;
 
     const inj = {
-      seq: newSeq,
-      time: `T+${newSeq * 5}m`,
+      seq: nextSeq,
+      time: `T+${nextSeq * 5}m`,
       type: template.type,
       text: template.text,
-      decision: template.decision || null
+      decision: template.decision || null,
+      aiScenario: scKey,
+      aiLevel: state.level,
+      aiStage: stageKey
     };
+
     injects.push(inj);
-    seqCounter = Math.max(seqCounter, newSeq);
+    seqCounter = Math.max(seqCounter, nextSeq);
     renderTimeline();
 
     await sendInject(inj);
@@ -1320,7 +1351,7 @@
 
   (async () => {
     await setAIState(aiState);
-    log("Facilitator console initialised (v8.2).");
+    log("Facilitator console initialised (v8.3).");
   })();
 </script>
 </body>
