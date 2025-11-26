@@ -1,17 +1,428 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Facilitator</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gamified TTX - Facilitator</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #0b1120;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 16px 24px;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 16px;
+      padding: 16px 24px 24px;
+      flex: 1;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    select, button, textarea {
+      font-family: inherit;
+      font-size: 14px;
+    }
+    select, textarea {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 14px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.secondary {
+      background: #374151;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .inject-list {
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 8px;
+      border-top: 1px solid #111827;
+      padding-top: 8px;
+    }
+    .inject-item {
+      padding: 6px 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .inject-item span.meta {
+      opacity: 0.7;
+      font-size: 12px;
+    }
+    .inject-item.active {
+      background: #1d4ed8;
+    }
+    .inject-item:hover {
+      background: #111827;
+    }
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: #111827;
+      margin-left: 6px;
+    }
+    .current-inject {
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .votes {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .votes span.badge {
+      display: inline-block;
+      min-width: 22px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 2px 6px;
+      margin-right: 4px;
+      background: #111827;
+    }
+    .vciso {
+      font-size: 13px;
+      font-style: italic;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    #aarOutput {
+      width: 100%;
+      min-height: 200px;
+      resize: vertical;
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      padding: 8px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .players-list {
+      font-size: 13px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    footer {
+      font-size: 11px;
+      opacity: 0.6;
+      padding: 4px 24px 8px;
+    }
+  </style>
+</head>
 <body>
-<h1>Facilitator Console</h1>
-<select id="scenarioSelect"></select>
-<script type="module">
-import { loadScenario } from './engine.js';
-import { scenarios } from './scenarios.js';
-const sel = document.getElementById('scenarioSelect');
-Object.keys(scenarios).forEach(k=>{
-  const o=document.createElement('option'); o.value=k; o.textContent=scenarios[k].title;
-  sel.appendChild(o);
-});
-</script>
+  <header>
+    <h1>Gamified TTX Facilitator</h1>
+    <div style="font-size:12px;opacity:0.7;">Session: <span id="sessionIdLabel"></span></div>
+  </header>
+  <main>
+    <section class="column">
+      <div class="card">
+        <h2>Scenario &amp; Injects</h2>
+        <div class="row" style="margin-bottom:8px;">
+          <label for="scenarioSelect" style="font-size:13px;">Scenario</label>
+          <select id="scenarioSelect"></select>
+          <button id="loadScenarioBtn">Load</button>
+        </div>
+        <div id="scenarioDesc" style="font-size:13px;opacity:0.8;margin-bottom:8px;"></div>
+        <div class="row" style="margin-bottom:8px;">
+          <button id="sendNextBtn">Send Next Inject</button>
+          <button id="buildAARBtn" class="secondary">Build AAR</button>
+        </div>
+        <div class="inject-list" id="injectList"></div>
+      </div>
+      <div class="card">
+        <h2>Current Inject</h2>
+        <div id="currentInjectBox" class="current-inject">No inject sent yet.</div>
+      </div>
+    </section>
+    <section class="column">
+      <div class="card">
+        <h2>Votes &amp; vCISO</h2>
+        <div id="votesBox" class="votes">No votes yet.</div>
+        <div id="vcisoBox" class="vciso"></div>
+      </div>
+      <div class="card">
+        <h2>Connected Players</h2>
+        <div id="playersBox" class="players-list">Waiting for players...</div>
+      </div>
+      <div class="card">
+        <h2>AAR (Preview)</h2>
+        <textarea id="aarOutput" readonly>Click "Build AAR" after running the exercise.</textarea>
+      </div>
+    </section>
+  </main>
+  <footer>
+    Facilitator view · Use another browser / window with player.html?s=&lt;same_session&gt; for players.
+  </footer>
+
+  <script type="module">
+    import { scenarios } from './scenarios.js';
+    import { sessionId, channel, initVoteLog, registerVote, buildAAR, buildVCISOInjectComment } from './engine.js';
+
+    const scenarioSelect = document.getElementById('scenarioSelect');
+    const scenarioDesc = document.getElementById('scenarioDesc');
+    const injectList = document.getElementById('injectList');
+    const currentInjectBox = document.getElementById('currentInjectBox');
+    const votesBox = document.getElementById('votesBox');
+    const vcisoBox = document.getElementById('vcisoBox');
+    const playersBox = document.getElementById('playersBox');
+    const aarOutput = document.getElementById('aarOutput');
+    const loadScenarioBtn = document.getElementById('loadScenarioBtn');
+    const sendNextBtn = document.getElementById('sendNextBtn');
+    const buildAARBtn = document.getElementById('buildAARBtn');
+    const sessionIdLabel = document.getElementById('sessionIdLabel');
+
+    sessionIdLabel.textContent = sessionId;
+
+    let currentScenarioId = null;
+    let currentInjectIndex = -1;
+    let voteLog = initVoteLog();
+    const connectedPlayers = new Map(); // playerId -> lastSeen
+
+    // populate scenario select
+    for (const [id, sc] of Object.entries(scenarios)) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = sc.title;
+      scenarioSelect.appendChild(opt);
+    }
+
+    function renderInjectList() {
+      injectList.innerHTML = '';
+      const sc = scenarios[currentScenarioId];
+      if (!sc) return;
+      sc.injects.forEach((inj, idx) => {
+        const div = document.createElement('div');
+        div.className = 'inject-item' + (idx === currentInjectIndex ? ' active' : '');
+        const left = document.createElement('div');
+        left.textContent = `#${inj.seq} ${inj.phase || ''}`;
+        const right = document.createElement('div');
+        right.className = 'meta';
+        right.innerHTML = `<span class="pill">${inj.time}</span>`;
+        div.appendChild(left);
+        div.appendChild(right);
+        div.addEventListener('click', () => {
+          currentInjectIndex = idx;
+          sendInject();
+        });
+        injectList.appendChild(div);
+      });
+    }
+
+    function renderScenarioDesc() {
+      const sc = scenarios[currentScenarioId];
+      scenarioDesc.textContent = sc ? sc.description : '';
+    }
+
+    function renderCurrentInject(inject) {
+      if (!inject) {
+        currentInjectBox.textContent = 'No inject sent yet.';
+        return;
+      }
+      const lines = [];
+      lines.push(`${inject.time}  •  ${inject.phase || ''}`);
+      lines.push(`${inject.cues?.severity || ''}  ${ (inject.cues?.impact || []).join('  ') }  ${inject.cues?.phase || ''}`);
+      lines.push('');
+      lines.push(inject.narrative || '');
+      if (inject.decision) {
+        lines.push('');
+        lines.push(`Decision: ${inject.decision.question}`);
+        for (const [optKey, optText] of Object.entries(inject.decision.options || {})) {
+          lines.push(`  ${optKey}. ${optText}`);
+        }
+      }
+      currentInjectBox.textContent = lines.join('\n');
+    }
+
+    function renderVotes(inject) {
+      if (!inject) {
+        votesBox.textContent = 'No votes yet.';
+        vcisoBox.textContent = '';
+        return;
+      }
+      const key = `${currentScenarioId}:${inject.seq}`;
+      const tally = voteLog[key] || { A: 0, B: 0, C: 0 };
+      votesBox.innerHTML =
+        `<div><span class="badge">A</span> ${tally.A || 0}</div>` +
+        `<div><span class="badge">B</span> ${tally.B || 0}</div>` +
+        `<div><span class="badge">C</span> ${tally.C || 0}</div>`;
+
+      const vcisoText = buildVCISOInjectComment(inject, tally);
+      vcisoBox.textContent = vcisoText ? `vCISO: ${vcisoText}` : '';
+    }
+
+    function renderPlayers() {
+      if (connectedPlayers.size === 0) {
+        playersBox.textContent = 'Waiting for players...';
+        return;
+      }
+      const now = Date.now();
+      const lines = [];
+      for (const [id, ts] of connectedPlayers.entries()) {
+        const age = Math.round((now - ts) / 1000);
+        lines.push(`${id}  (last seen ${age}s ago)`);
+      }
+      playersBox.textContent = lines.join('\n');
+    }
+
+    function loadScenario() {
+      const id = scenarioSelect.value;
+      if (!id || !scenarios[id]) return;
+      currentScenarioId = id;
+      currentInjectIndex = -1;
+      voteLog = initVoteLog();
+      renderScenarioDesc();
+      renderInjectList();
+      currentInjectBox.textContent = 'Scenario loaded. Click "Send Next Inject" to start.';
+      votesBox.textContent = 'No votes yet.';
+      vcisoBox.textContent = '';
+      aarOutput.value = 'Click "Build AAR" after running the exercise.';
+      channel.postMessage({
+        session: sessionId,
+        type: 'scenarioLoaded',
+        scenarioId: currentScenarioId,
+        title: scenarios[currentScenarioId].title
+      });
+    }
+
+    function sendInject() {
+      const sc = scenarios[currentScenarioId];
+      if (!sc) return;
+      if (currentInjectIndex < 0 || currentInjectIndex >= sc.injects.length) return;
+      const inj = sc.injects[currentInjectIndex];
+      renderInjectList();
+      renderCurrentInject(inj);
+      renderVotes(inj);
+      channel.postMessage({
+        session: sessionId,
+        type: 'inject',
+        scenarioId: currentScenarioId,
+        injectSeq: inj.seq,
+        inject: inj
+      });
+    }
+
+    function sendNextInject() {
+      const sc = scenarios[currentScenarioId];
+      if (!sc) return;
+      if (currentInjectIndex + 1 >= sc.injects.length) return;
+      currentInjectIndex += 1;
+      sendInject();
+    }
+
+    function doBuildAAR() {
+      if (!currentScenarioId) return;
+      const aar = buildAAR(currentScenarioId, voteLog);
+      if (!aar) return;
+      const lines = [];
+      lines.push(`Scenario: ${aar.title}`);
+      lines.push('');
+      aar.perInject.forEach((r) => {
+        lines.push(`Inject #${r.seq} [${r.phase} | ${r.time}]`);
+        lines.push(`  Q: ${r.question}`);
+        lines.push(`  Votes - A: ${r.tally.A || 0}, B: ${r.tally.B || 0}, C: ${r.tally.C || 0}`);
+        lines.push(`  Majority: ${r.majority || 'None / Split'}`);
+        lines.push(`  vCISO: ${r.vcisoComment}`);
+        lines.push('');
+      });
+      lines.push('--- vCISO Final Debrief ---');
+      lines.push(aar.finalDebrief);
+      aarOutput.value = lines.join('\n');
+
+      channel.postMessage({
+        session: sessionId,
+        type: 'aar',
+        scenarioId: currentScenarioId,
+        aarText: aarOutput.value
+      });
+    }
+
+    loadScenarioBtn.addEventListener('click', loadScenario);
+    sendNextBtn.addEventListener('click', sendNextInject);
+    buildAARBtn.addEventListener('click', doBuildAAR);
+
+    channel.onmessage = (ev) => {
+      const msg = ev.data;
+      if (!msg || msg.session !== sessionId) return;
+      if (msg.type === 'join') {
+        connectedPlayers.set(msg.playerId, Date.now());
+        renderPlayers();
+      } else if (msg.type === 'ping') {
+        connectedPlayers.set(msg.playerId, Date.now());
+        renderPlayers();
+      } else if (msg.type === 'vote') {
+        if (!currentScenarioId || msg.scenarioId !== currentScenarioId) return;
+        registerVote(voteLog, msg.scenarioId, msg.injectSeq, msg.choice);
+        const sc = scenarios[currentScenarioId];
+        const inj = sc.injects.find(i => i.seq === msg.injectSeq);
+        if (inj) {
+          renderVotes(inj);
+        }
+      }
+    };
+
+    // initial
+    if (scenarioSelect.options.length > 0) {
+      scenarioSelect.selectedIndex = 0;
+      loadScenario();
+    }
+  </script>
 </body>
 </html>
