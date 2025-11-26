@@ -1,50 +1,696 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Facilitator</title>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, update, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
-  authDomain: "rws-blackfog-game.firebaseapp.com",
-  databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "rws-blackfog-game",
-  storageBucket: "rws-blackfog-game.firebasestorage.app",
-  messagingSenderId: "473543964029",
-  appId: "1:473543964029:web:4bc0db33634ed2f8894814"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const session = new URLSearchParams(location.search).get("s") || "default";
-
-document.getElementById("pushInject").onclick = () => {
-  const text = document.getElementById("injectText").value;
-  const ts = Date.now();
-  set(ref(db, "sessions/" + session + "/latestInject"), { text, ts });
-};
-
-onValue(ref(db, "sessions/" + session + "/players"), snap => {
-  const div = document.getElementById("players");
-  div.innerHTML = "";
-  snap.forEach(s => {
-    const p = s.val();
-    div.innerHTML += `<div>${p.name} - ${p.status}</div>`;
-  });
-});
-</script>
+  <meta charset="UTF-8" />
+  <title>BlackFog TTX – Facilitator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 12px 20px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    header .session {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    main {
+      flex: 1;
+      padding: 14px 20px 10px;
+      display: grid;
+      grid-template-columns: 2fr 1.6fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 10px 12px;
+      box-shadow: 0 14px 35px rgba(0,0,0,.55);
+    }
+    .card h2 {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9ca3af;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    label {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+    input[type="text"], textarea, select {
+      font-family: inherit;
+      font-size: 12px;
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      padding: 4px 6px;
+    }
+    input[type="text"] { min-width: 120px; }
+    textarea {
+      width: 100%;
+      resize: vertical;
+      min-height: 70px;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    button.primary {
+      background: #2563eb;
+      color: #f9fafb;
+    }
+    button.secondary {
+      background: #374151;
+      color: #e5e7eb;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .meta {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-bottom: 6px;
+      white-space: pre-wrap;
+    }
+    .scenario-text {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 6px;
+      white-space: pre-wrap;
+    }
+    .inject-list {
+      max-height: 210px;
+      overflow-y: auto;
+      border-top: 1px dashed #111827;
+      margin-top: 6px;
+      padding-top: 4px;
+    }
+    .inject-item {
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 7px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      background: #020617;
+    }
+    .inject-item.current {
+      border: 1px solid #2563eb;
+      background: radial-gradient(circle at top left, rgba(37,99,235,0.2), #020617 60%);
+    }
+    .pill {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 1px 6px;
+      background: #111827;
+      margin-left: 4px;
+    }
+    .current-inject {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .votes {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      min-width: 22px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: #020617;
+      margin-right: 6px;
+    }
+    .majority-label {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .players {
+      font-size: 12px;
+      max-height: 130px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    #aarBox {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+    }
+    footer {
+      padding: 6px 20px 9px;
+      border-top: 1px solid #111827;
+      background: #020617;
+      font-size: 11px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #ticker {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.9;
+    }
+    #footerHint {
+      opacity: 0.7;
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
-<h2>Facilitator Panel</h2>
-<div>
-  <textarea id="injectText" placeholder="Inject text" style="width:300px;height:100px;"></textarea><br>
-  <button id="pushInject">Send Inject</button>
-</div>
-<h3>Players Online</h3>
-<div id="players"></div>
+  <header>
+    <h1>BLACKFOG TTX – FACILITATOR</h1>
+    <div class="session">
+      Session: <span id="sessionLabel"></span> · Players: <span id="playerCount"></span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="card">
+        <h2>Scenario</h2>
+        <div class="row">
+          <label for="scenarioTitle">Title</label>
+          <input type="text" id="scenarioTitle" placeholder="e.g. Hospitality ransomware in peak season" />
+        </div>
+        <div class="row">
+          <textarea id="scenarioDescription" placeholder="Scenario summary..."></textarea>
+        </div>
+        <div class="row">
+          <button class="primary" id="saveScenarioBtn">Save / Update Scenario</button>
+        </div>
+        <div id="scenarioText" class="scenario-text"></div>
+        <div id="runStatus" class="meta">No scenario loaded yet.</div>
+      </div>
+
+      <div class="card">
+        <h2>Inject Builder & Timeline</h2>
+        <div class="row">
+          <label for="injectTime">Time</label>
+          <input type="text" id="injectTime" placeholder="T+00m" />
+          <label for="injectPhase">Phase</label>
+          <input type="text" id="injectPhase" placeholder="Intel / Detection / Containment..." />
+          <label for="injectSeverity">Severity</label>
+          <input type="text" id="injectSeverity" placeholder="Low / Medium / High / Critical" />
+        </div>
+        <div class="row">
+          <textarea id="injectNarrative" placeholder="Narrative..."></textarea>
+        </div>
+        <div class="row">
+          <input type="text" id="decisionQuestion" placeholder="Decision question (optional)" style="flex:1;" />
+        </div>
+        <div class="row">
+          <input type="text" id="optA" placeholder="Option A" style="flex:1;" />
+        </div>
+        <div class="row">
+          <input type="text" id="optB" placeholder="Option B" style="flex:1;" />
+        </div>
+        <div class="row">
+          <input type="text" id="optC" placeholder="Option C" style="flex:1;" />
+        </div>
+        <div class="row">
+          <button class="secondary" id="addInjectBtn">Add / Update Inject</button>
+          <button class="primary" id="sendNextBtn" disabled>Send next inject</button>
+        </div>
+        <div id="injectList" class="inject-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>Current Inject</h2>
+        <div id="currentInjectBox" class="current-inject">No inject sent yet.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="card">
+        <h2>Votes</h2>
+        <div id="votesBox" class="votes">No votes yet.</div>
+      </div>
+
+      <div class="card">
+        <h2>Players</h2>
+        <div id="playersBox" class="players">Waiting for players…</div>
+      </div>
+
+      <div class="card">
+        <h2>AAR</h2>
+        <textarea id="aarBox" readonly>Click "Build AAR" after running through the injects.</textarea>
+        <div class="row" style="margin-top:6px;">
+          <button class="secondary" id="buildAarBtn">Build AAR</button>
+          <button class="secondary" id="broadcastAarBtn">Broadcast AAR to players</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div id="ticker">Ready. Set scenario title + description, then add injects.</div>
+    <div id="footerHint">Players join via <code>player.html?s=&lt;session_id&gt;</code></div>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      update,
+      onValue,
+      onDisconnect,
+      push,
+      child,
+      get
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
+      authDomain: "rws-blackfog-game.firebaseapp.com",
+      databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "rws-blackfog-game",
+      storageBucket: "rws-blackfog-game.firebasestorage.app",
+      messagingSenderId: "473543964029",
+      appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get("s") || "default";
+
+    document.getElementById("sessionLabel").textContent = sessionId;
+
+    const scenarioRef   = ref(db, "sessions/" + sessionId + "/scenario");
+    const injectsRef    = ref(db, "sessions/" + sessionId + "/injects");
+    const latestInjectRef = ref(db, "sessions/" + sessionId + "/latestInject");
+    const playersRef    = ref(db, "sessions/" + sessionId + "/players");
+    const votesRef      = ref(db, "sessions/" + sessionId + "/votes");
+    const aarRef        = ref(db, "sessions/" + sessionId + "/aar");
+
+    const scenarioTitleEl = document.getElementById("scenarioTitle");
+    const scenarioDescEl  = document.getElementById("scenarioDescription");
+    const scenarioTextEl  = document.getElementById("scenarioText");
+    const runStatusEl     = document.getElementById("runStatus");
+    const injectTimeEl    = document.getElementById("injectTime");
+    const injectPhaseEl   = document.getElementById("injectPhase");
+    const injectSeverityEl= document.getElementById("injectSeverity");
+    const injectNarrativeEl = document.getElementById("injectNarrative");
+    const decisionQuestionEl = document.getElementById("decisionQuestion");
+    const optAEl          = document.getElementById("optA");
+    const optBEl          = document.getElementById("optB");
+    const optCEl          = document.getElementById("optC");
+    const injectListEl    = document.getElementById("injectList");
+    const currentInjectBox= document.getElementById("currentInjectBox");
+    const votesBox        = document.getElementById("votesBox");
+    const playersBox      = document.getElementById("playersBox");
+    const playerCountEl   = document.getElementById("playerCount");
+    const aarBox          = document.getElementById("aarBox");
+    const tickerEl        = document.getElementById("ticker");
+
+    const saveScenarioBtn = document.getElementById("saveScenarioBtn");
+    const addInjectBtn    = document.getElementById("addInjectBtn");
+    const sendNextBtn     = document.getElementById("sendNextBtn");
+    const buildAarBtn     = document.getElementById("buildAarBtn");
+    const broadcastAarBtn = document.getElementById("broadcastAarBtn");
+
+    let injects = [];     // {key, seq, time, phase, severity, narrative, decision}
+    let currentSeq = null;
+    let votesBySeq = {};  // seq -> { playerId: { choice, ts } }
+    let tickerMessages = [];
+    let tickerIndex = 0;
+
+    function pushTicker(msg) {
+      const ts = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      tickerMessages.unshift("[" + ts + "] " + msg);
+      if (tickerMessages.length > 30) tickerMessages.length = 30;
+    }
+
+    function startTicker() {
+      setInterval(() => {
+        if (tickerMessages.length === 0) {
+          tickerEl.textContent = "Ready. Set scenario title + description, then add injects.";
+          return;
+        }
+        tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+        tickerEl.textContent = tickerMessages[tickerIndex];
+      }, 5000);
+    }
+
+    function computeTallyForSeq(seq) {
+      const votes = votesBySeq[seq] || {};
+      let tally = { A: 0, B: 0, C: 0 };
+      Object.values(votes).forEach(v => {
+        if (v.choice === "A") tally.A++;
+        else if (v.choice === "B") tally.B++;
+        else if (v.choice === "C") tally.C++;
+      });
+      return tally;
+    }
+
+    function computeMajority(tally) {
+      const arr = [["A", tally.A], ["B", tally.B], ["C", tally.C]];
+      arr.sort((a,b) => b[1]-a[1]);
+      if (arr[0][1] === 0) return null;
+      const top = arr[0][1];
+      const ties = arr.filter(x => x[1] === top).length;
+      return ties > 1 ? null : arr[0][0];
+    }
+
+    function renderScenarioText(s) {
+      if (!s) {
+        scenarioTextEl.textContent = "";
+        runStatusEl.textContent = "No scenario loaded yet.";
+        return;
+      }
+      scenarioTextEl.textContent = s.title + "\n\n" + (s.description || "");
+      if (injects.length === 0) {
+        runStatusEl.textContent = "Scenario saved. No injects yet.";
+      } else if (currentSeq == null) {
+        runStatusEl.textContent = "Scenario ready. Injects prepared: " + injects.length + ". Click "Send next inject" to begin.";
+      } else {
+        const idx = injects.findIndex(i => i.seq === currentSeq);
+        runStatusEl.textContent = "Inject " + (idx+1) + " of " + injects.length + " is current.";
+      }
+    }
+
+    function renderInjectList() {
+      injectListEl.innerHTML = "";
+      if (injects.length === 0) {
+        injectListEl.textContent = "No injects added yet.";
+        sendNextBtn.disabled = true;
+        return;
+      }
+      injects.forEach(inj => {
+        const div = document.createElement("div");
+        div.className = "inject-item" + (inj.seq === currentSeq ? " current" : "");
+        const left = document.createElement("div");
+        left.textContent = "#" + inj.seq + " " + (inj.phase || "");
+        const right = document.createElement("div");
+        right.innerHTML = "<span class=\"pill\">" + (inj.time || "") + "</span>";
+        div.appendChild(left);
+        div.appendChild(right);
+        injectListEl.appendChild(div);
+      });
+      sendNextBtn.disabled = false;
+    }
+
+    function renderCurrentInject() {
+      if (currentSeq == null) {
+        currentInjectBox.textContent = "No inject sent yet.";
+        votesBox.textContent = "No votes yet.";
+        return;
+      }
+      const inj = injects.find(i => i.seq === currentSeq);
+      if (!inj) {
+        currentInjectBox.textContent = "No inject sent yet.";
+        votesBox.textContent = "No votes yet.";
+        return;
+      }
+      const lines = [];
+      lines.push((inj.time || "") + " • " + (inj.phase || ""));
+      lines.push((inj.severity || ""));
+      lines.push("");
+      lines.push(inj.narrative || "");
+      if (inj.decision && inj.decision.question) {
+        lines.push("");
+        lines.push("Decision: " + inj.decision.question);
+        const opts = inj.decision.options || {};
+        if (opts.A) lines.push("  A. " + opts.A);
+        if (opts.B) lines.push("  B. " + opts.B);
+        if (opts.C) lines.push("  C. " + opts.C);
+      }
+      currentInjectBox.textContent = lines.join("\n");
+
+      const tally = computeTallyForSeq(currentSeq);
+      const majority = computeMajority(tally);
+      votesBox.innerHTML =
+        "<div><span class='badge'>A</span>" + tally.A + "</div>" +
+        "<div><span class='badge'>B</span>" + tally.B + "</div>" +
+        "<div><span class='badge'>C</span>" + tally.C + "</div>" +
+        "<div class='majority-label'>Majority: " + (majority || "None / Split") + "</div>";
+    }
+
+    function renderPlayers(playersSnapshot) {
+      const now = Date.now();
+      const lines = [];
+      let active = 0;
+      let total = 0;
+      playersSnapshot.forEach(child => {
+        total++;
+        const v = child.val();
+        const lastSeen = v.ts || 0;
+        const age = now - lastSeen;
+        const online = v.status === "online" && age < 70000;
+        if (online) active++;
+        const label = online ? "online" : "inactive";
+        lines.push((v.name || child.key) + " (" + label + ", " + Math.round(age/1000) + "s)");
+      });
+      if (total === 0) {
+        playersBox.textContent = "Waiting for players…";
+        playerCountEl.textContent = "0";
+      } else {
+        playersBox.textContent = lines.join("\n");
+        playerCountEl.textContent = active + " / " + total;
+      }
+    }
+
+    saveScenarioBtn.addEventListener("click", () => {
+      const title = scenarioTitleEl.value.trim();
+      const description = scenarioDescEl.value.trim();
+      if (!title) {
+        alert("Scenario title is required.");
+        return;
+      }
+      set(scenarioRef, { title, description })
+        .then(() => {
+          pushTicker("Scenario saved: " + title);
+        })
+        .catch(err => console.error(err));
+    });
+
+    addInjectBtn.addEventListener("click", async () => {
+      const time = injectTimeEl.value.trim();
+      const phase = injectPhaseEl.value.trim();
+      const severity = injectSeverityEl.value.trim();
+      const narrative = injectNarrativeEl.value.trim();
+      const question = decisionQuestionEl.value.trim();
+      const optA = optAEl.value.trim();
+      const optB = optBEl.value.trim();
+      const optC = optCEl.value.trim();
+
+      if (!narrative) {
+        alert("Narrative is required.");
+        return;
+      }
+
+      // Determine next seq
+      let nextSeq = 1;
+      if (injects.length > 0) {
+        const maxSeq = Math.max(...injects.map(i => i.seq || 0));
+        nextSeq = maxSeq + 1;
+      }
+
+      const toSave = {
+        seq: nextSeq,
+        time,
+        phase,
+        severity,
+        narrative,
+        createdAt: Date.now()
+      };
+
+      if (question || optA || optB || optC) {
+        toSave.decision = {
+          question,
+          options: { A: optA, B: optB, C: optC }
+        };
+      }
+
+      await set(ref(db, "sessions/" + sessionId + "/injects/" + nextSeq), toSave);
+      pushTicker("Inject #" + nextSeq + " added.");
+      // Clear narrative & decisions but keep time/phase/severity for convenience
+      injectNarrativeEl.value = "";
+      decisionQuestionEl.value = "";
+      optAEl.value = "";
+      optBEl.value = "";
+      optCEl.value = "";
+    });
+
+    sendNextBtn.addEventListener("click", () => {
+      if (injects.length === 0) return;
+      let seqToSend = null;
+      if (currentSeq == null) {
+        seqToSend = injects[0].seq;
+      } else {
+        const idx = injects.findIndex(i => i.seq === currentSeq);
+        if (idx >= 0 && idx < injects.length - 1) {
+          seqToSend = injects[idx+1].seq;
+        }
+      }
+      if (seqToSend == null) {
+        pushTicker("Already at last inject.");
+        return;
+      }
+      const inj = injects.find(i => i.seq === seqToSend);
+      if (!inj) return;
+      currentSeq = seqToSend;
+      set(latestInjectRef, inj);
+      pushTicker("Inject #" + seqToSend + " sent.");
+      renderInjectList();
+      renderCurrentInject();
+    });
+
+    buildAarBtn.addEventListener("click", () => {
+      if (injects.length === 0) {
+        aarBox.value = "No injects.";
+        return;
+      }
+      const lines = [];
+      lines.push("=== After-Action Review ===");
+      lines.push("");
+      injects.forEach((inj, idx) => {
+        const tally = computeTallyForSeq(inj.seq);
+        const majority = computeMajority(tally);
+        lines.push("Inject #" + inj.seq + "  [" + (inj.time || "") + " | " + (inj.phase || "") + "]");
+        lines.push("Narrative: " + (inj.narrative || ""));
+        if (inj.decision && inj.decision.question) {
+          lines.push("Decision: " + inj.decision.question);
+          const opts = inj.decision.options || {};
+          if (opts.A) lines.push("  A. " + opts.A);
+          if (opts.B) lines.push("  B. " + opts.B);
+          if (opts.C) lines.push("  C. " + opts.C);
+        }
+        lines.push("Votes → A: " + tally.A + "  B: " + tally.B + "  C: " + tally.C);
+        lines.push("Majority: " + (majority || "None / Split"));
+        lines.push("");
+      });
+
+      // Simple pattern summary
+      let proactive=0, cautious=0, delayed=0, noVotes=0;
+      injects.forEach(inj => {
+        const tally = computeTallyForSeq(inj.seq);
+        const total = tally.A + tally.B + tally.C;
+        const maj = computeMajority(tally);
+        if (total === 0) noVotes++;
+        else if (maj === "A") proactive++;
+        else if (maj === "B") cautious++;
+        else if (maj === "C") delayed++;
+      });
+
+      lines.push("--- Overall pattern ---");
+      lines.push("Proactive (A-majority) decisions: " + proactive);
+      lines.push("Cautious / wait (B-majority) decisions: " + cautious);
+      lines.push("Delay / least action (C-majority) decisions: " + delayed);
+      lines.push("Injects with no votes: " + noVotes);
+      lines.push("");
+      lines.push("Use this as a neutral starting point for your own discussion.");
+
+      aarBox.value = lines.join("\n");
+      pushTicker("AAR built locally. Click "Broadcast AAR" to push to players.");
+    });
+
+    broadcastAarBtn.addEventListener("click", () => {
+      const text = aarBox.value || "";
+      set(aarRef, { text, ts: Date.now() })
+        .then(() => pushTicker("AAR broadcast to players."))
+        .catch(err => console.error(err));
+    });
+
+    // Firebase listeners
+    onValue(scenarioRef, snap => {
+      const sc = snap.val();
+      if (sc) {
+        scenarioTitleEl.value = sc.title || "";
+        scenarioDescEl.value = sc.description || "";
+      }
+      renderScenarioText(sc);
+    });
+
+    onValue(injectsRef, snap => {
+      const arr = [];
+      snap.forEach(child => {
+        const v = child.val();
+        if (!v) return;
+        v.seq = Number(v.seq || child.key);
+        arr.push(v);
+      });
+      arr.sort((a,b) => (a.seq||0) - (b.seq||0));
+      injects = arr;
+      renderScenarioText(snap.exists() ? { title: scenarioTitleEl.value, description: scenarioDescEl.value } : null);
+      renderInjectList();
+      renderCurrentInject();
+    });
+
+    onValue(playersRef, snap => {
+      renderPlayers(snap);
+    });
+
+    onValue(votesRef, snap => {
+      const bySeq = {};
+      snap.forEach(seqSnap => {
+        const seqKey = seqSnap.key;
+        const seq = Number(seqKey);
+        const playersVotes = {};
+        seqSnap.forEach(voteSnap => {
+          playersVotes[voteSnap.key] = voteSnap.val();
+        });
+        bySeq[seq] = playersVotes;
+      });
+      votesBySeq = bySeq;
+      renderCurrentInject();
+    });
+
+    onValue(latestInjectRef, snap => {
+      const inj = snap.val();
+      if (!inj) return;
+      currentSeq = Number(inj.seq || currentSeq);
+      renderInjectList();
+      renderCurrentInject();
+    });
+
+    startTicker();
+  </script>
 </body>
 </html>
