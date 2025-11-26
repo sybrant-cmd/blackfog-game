@@ -1,225 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>RWS BlackFog – Player v8.1</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#d72638" />
-  <style>
-    :root {
-      --live: #d72638;
-      --black: #020617;
-      --panel: #0b1120;
-      --stroke: rgba(148,163,184,0.35);
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020617 60%);
-      color: var(--text);
-    }
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(15,23,42,0.85));
-      backdrop-filter: blur(10px);
-    }
-    h1 { margin: 0; font-size: 18px; }
-    .pill {
-      display: inline-block;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(15,23,42,0.9);
-      margin-left: 8px;
-    }
-    .pill-live {
-      border-color: var(--live);
-      color: var(--live);
-    }
-    .container { max-width: 1100px; margin: 0 auto; padding: 14px; }
-    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-    .card {
-      background: var(--panel);
-      border-radius: 14px;
-      border: 1px solid var(--stroke);
-      box-shadow: 0 16px 42px rgba(0,0,0,0.6);
-      padding: 14px 14px 12px;
-    }
-    .card h2 { margin: 0 0 4px 0; font-size: 16px; }
-    .card h3 { margin: 0 0 6px 0; font-size: 14px; }
-    .standby { font-size: 13px; color: var(--muted); }
-    pre {
-      white-space: pre-wrap;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-    }
-    .btn {
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      background: rgba(15,23,42,0.9);
-      color: var(--text);
-      padding: 6px 10px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .btn:hover { border-color: rgba(248,250,252,0.65); }
-    .options { display: grid; gap: 6px; margin-top: 8px; }
-    .options button {
-      border-radius: 10px;
-      border: 1px solid var(--stroke);
-      background: #020617;
-      color: var(--text);
-      padding: 8px 10px;
-      font-size: 13px;
-      text-align: left;
-      cursor: pointer;
-      transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.08s ease;
-    }
-    .options button:hover {
-      border-color: rgba(248,250,252,0.85);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-      transform: translateY(-1px);
-    }
-    .options button:disabled {
-      opacity: 0.5;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
-    }
-    .ticker-wrap {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border-top: 1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(15,23,42,1));
-      font-size: 12px;
-      padding: 4px 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .ticker-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 600;
-      color: #fee2e2;
-      white-space: nowrap;
-    }
-    .ticker-live-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #ef4444;
-      box-shadow: 0 0 8px rgba(248,113,113,0.85);
-      animation: pulse 1.4s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      60% { transform: scale(1.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
-    }
-    .ticker-viewport {
-      overflow: hidden;
-      flex: 1;
-    }
-    .ticker-track {
-      display: inline-block;
-      white-space: nowrap;
-      animation: ticker-scroll 40s linear infinite;
-    }
-    @keyframes ticker-scroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    .ticker-item {
-      margin-right: 32px;
-      color: var(--muted);
-    }
-    .ticker-item strong {
-      color: #e5e7eb;
-    }
-    .footer-space { height: 40px; }
-    .vciso {
-      background: radial-gradient(circle at top left, rgba(220,38,38,0.18), #020617);
-      border-radius: 14px;
-      border: 1px solid rgba(248, 250, 252, 0.12);
-      padding: 10px 12px;
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .vciso-title {
-      margin: 0;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .vciso-title .icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      border: 2px solid #f97316;
-      box-shadow: 0 0 8px rgba(248,113,113,0.75);
-      background: radial-gradient(circle at 30% 30%, #fed7aa, #7f1d1d);
-    }
-    .vciso-msg {
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    .vciso-typing {
-      font-size: 11px;
-      color: var(--muted);
-      font-style: italic;
-    }
-    #timer {
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke);
-      font-size: 11px;
-    }
-    .timer-urgent {
-      border-color: #f97316;
-      color: #fed7aa;
-    }
-    .card-pop {
-      animation: pop 0.25s ease-out;
-    }
-    @keyframes pop {
-      from { transform: scale(0.97); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    #endCard h3 {
-      color: #fecaca;
-    }
-    @media (max-width: 840px) {
-      .grid { grid-template-columns: 1fr; }
-      .ticker-wrap { font-size: 11px; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RWS BlackFog – Player v4.9</title>
+<meta name="theme-color" content="#d72638" />
+<style>
+:root {
+  --live: #d72638;
+  --black: #020617;
+  --panel: #0b1120;
+  --stroke: rgba(148,163,184,0.35);
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #111827 0, #020617 60%);
+  color: var(--text);
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(15,23,42,0.85));
+  backdrop-filter: blur(10px);
+}
+h1 { margin: 0; font-size: 18px; }
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.9);
+  margin-left: 8px;
+}
+.container { max-width: 1100px; margin: 0 auto; padding: 14px; }
+.grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+.card {
+  background: var(--panel);
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  box-shadow: 0 16px 42px rgba(0,0,0,0.6);
+  padding: 14px 14px 12px;
+}
+.card h2 { margin: 0 0 4px 0; font-size: 16px; }
+.card h3 { margin: 0 0 6px 0; font-size: 14px; }
+.standby { font-size: 13px; color: var(--muted); }
+pre {
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+.btn {
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.9);
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn:hover { border-color: rgba(248,250,252,0.65); }
+.options { display: grid; gap: 6px; margin-top: 8px; }
+.options button {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(15,23,42,0.95);
+  color: var(--text);
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+}
+.options button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.vciso {
+  background: #020617;
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  padding: 12px;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+.vciso-title { display:flex; align-items:center; gap:8px; margin:0 0 6px 0; }
+.vciso-title span.icon {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 14px rgba(215,38,56,0.9);
+}
+.vciso-msg {
+  background: rgba(15,23,42,0.95);
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.45);
+  padding: 8px 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.vciso-typing { font-size: 12px; color: var(--muted); font-family: ui-monospace,monospace; }
+
+.ticker-wrap {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 40px;
+  background: #020617;
+  border-top: 2px solid var(--live);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  z-index: 20;
+}
+.ticker-live {
+  display: flex; align-items: center; gap: 6px;
+  margin: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ticker-live-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 10px rgba(215,38,56,0.9);
+  animation: blink 1.2s infinite;
+}
+@keyframes blink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: .4; }
+}
+.ticker {
+  white-space: nowrap;
+  display: inline-block;
+  animation: ticker 90s linear infinite;
+  font-size: 12px;
+}
+.ticker:hover { animation-play-state: paused; }
+.ticker-item {
+  display:inline-block;
+  margin-right: 30px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.4);
+}
+.ticker-item strong { color: #facc15; }
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+.card-pop { animation: cardPop 0.28s ease-out; }
+@keyframes cardPop {
+  0% { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.timer-urgent { color:#f97316; border-color:#f97316; }
+.footer-space { height: 50px; }
+</style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>RWS BlackFog – Player</h1>
-    <span class="pill pill-live">LIVE</span>
-    <span class="pill" id="sessionPill"></span>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <h1>RWS BlackFog – Player v4.9</h1>
+    <span class="pill" id="conn">Connecting…</span>
   </div>
-  <div class="pill" id="playerPill">Connecting…</div>
+  <button class="btn" id="btnRestart">Reset view</button>
 </header>
 
 <div class="container">
@@ -230,12 +182,12 @@
         <p id="scDesc" class="standby">
           Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.
         </p>
-        <button id="btnRestart" class="btn">Reset View</button>
       </section>
 
       <section class="card" id="injCard" style="margin-top:10px; display:none;">
-        <h3>Live Inject</h3>
-        <pre id="injText" class="standby"></pre>
+        <h3>Latest inject</h3>
+        <pre id="injText">Waiting for first inject…</pre>
+        <img id="injImage" style="margin-top:6px; max-width:100%; border-radius:10px; display:none; border:1px solid var(--stroke);" alt="Inject visual context" />
       </section>
 
       <section class="card" id="decCard" style="margin-top:10px; display:none;">
@@ -253,20 +205,13 @@
           ✅ Response recorded. You can discuss your rationale with the facilitator.
         </p>
       </section>
-
-      <section class="card" id="endCard" style="margin-top:10px; display:none;">
-        <h3>Exercise Ended</h3>
-        <p class="standby">
-          This exercise has been closed by the facilitator. Please await the debrief and feedback.
-        </p>
-      </section>
     </div>
 
     <aside class="vciso">
       <h3 class="vciso-title"><span class="icon"></span> Live Mentor (vCISO)</h3>
       <div id="vcisoFeed">
         <div id="vcisoMsg" class="vciso-msg">
-          I’m here as your CISO in the room – I’ll react to each inject and the choices you make, the way a human leader would during a live war-room.
+          I’m here to guide you through the exercise. I’ll comment on what each inject means and how a seasoned CISO might approach it.
         </div>
         <div id="vcisoTyping" class="vciso-typing" style="display:none;">typing…</div>
       </div>
@@ -277,453 +222,296 @@
 <div class="ticker-wrap">
   <div class="ticker-live">
     <div class="ticker-live-dot"></div>
-    <span>CNA • CYBER INCIDENT DESK</span>
+    <span>LIVESTREAM • RWS CYBER RANGE</span>
   </div>
-  <div class="ticker-viewport">
-    <div class="ticker-track" id="tickerTrack"></div>
-  </div>
+  <div class="ticker" id="ticker"></div>
 </div>
 <div class="footer-space"></div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, onValue, onDisconnect, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, onDisconnect, set, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
-    authDomain: "rws-blackfog-game.firebaseapp.com",
-    databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "rws-blackfog-game",
-    storageBucket: "rws-blackfog-game.firebasestorage.app",
-    messagingSenderId: "473543964029",
-    appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+const firebaseConfig = {
+  apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
+  authDomain: "rws-blackfog-game.firebaseapp.com",
+  databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rws-blackfog-game",
+  storageBucket: "rws-blackfog-game.firebasestorage.app",
+  messagingSenderId: "473543964029",
+  appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const $ = (id) => document.getElementById(id);
+
+const urlS = new URLSearchParams(location.search).get('s');
+const session = urlS && urlS.trim() ? urlS.trim() : 'default';
+
+// Player identity
+function uid() { return "P-" + Math.random().toString(36).slice(2,8).toUpperCase(); }
+const storedId = localStorage.getItem("rws_player_id") || uid();
+localStorage.setItem("rws_player_id", storedId);
+let storedName = localStorage.getItem("rws_player_name");
+if (!storedName) {
+  storedName = prompt("Enter your display name for this exercise:", storedId) || storedId;
+  localStorage.setItem("rws_player_name", storedName);
+}
+
+const meRef = ref(db, `sessions/${session}/players/${storedId}`);
+set(meRef, { id: storedId, name: storedName, connected: true, lastSeen: Date.now(), createdAt: Date.now() });
+onDisconnect(meRef).remove();
+onValue(ref(db, ".info/connected"), snap => {
+  if (snap.val() === true) {
+    $("conn").textContent = "Connected";
+    update(meRef, { connected: true, lastSeen: Date.now() });
+  } else {
+    $("conn").textContent = "Reconnecting…";
+  }
+});
+
+// vCISO helper
+const vcisoMsg = $("vcisoMsg");
+const vcisoTyping = $("vcisoTyping");
+
+
+const commentBank = {
+  Intel: [
+    "Okay, this isn’t the usual noisy background. If this popped at 9am on a normal day, I’d pause and look twice.",
+    "My first question here is simple: is this just a weird blip, or does it look like someone is deliberately testing us?",
+    "Good instinct is to slow down and map out what we actually know, instead of filling in the gaps with imagination."
+  ],
+  Detection: [
+    "This is the part where the story starts to show. Don’t stare at a single alert — zoom out and look for a pattern.",
+    "Ask yourself: if this is real, where else should we be seeing similar signals right now?",
+    "If this were just a false positive, would it look this coordinated across different systems? Usually not."
+  ],
+  Containment: [
+    "This is where things get uncomfortable. Someone’s revenue, someone’s KPI, is going to feel this decision.",
+    "You rarely get perfect information in time. The real skill is choosing a move you can explain and live with later.",
+    "Think in terms of trade-offs: a smaller, earlier disruption versus a bigger, later incident."
+  ],
+  Comms: [
+    "The technical problem is one thing; how people feel about it is another. Both need attention.",
+    "If you don’t give people a simple, honest line to use, they’ll make up their own version.",
+    "You don’t have to overshare, but whatever you say needs to stay true as the incident evolves."
+  ],
+  Recovery: [
+    "Recovery is when everyone wants to rush back to normal. This is also when we quietly decide what we’ve learned.",
+    "It’s tempting to declare victory too early. Make sure we’re not rebuilding on top of the same weak foundations.",
+    "Ask: after this, what will we do differently next time? If the answer is “nothing”, that’s a red flag."
+  ],
+  Default: [
+    "Keep it simple: protect people, protect data, protect the brand. Use that as your north star.",
+    "Future you has to write the report. Make decisions that will still make sense when the adrenaline is gone."
+  ]
+};
+
+const extraBank = {
+  calm: [
+    " Take ten seconds and write down what you actually know, not what you fear.",
+    " It’s okay not to have a perfect answer yet — clarity often comes from the next couple of steps.",
+    " Slow down just enough so you don’t miss something obvious in the rush."
+  ],
+  direct: [
+    " At some point, someone needs to say, ‘We’re doing this.’ Don’t drag it out forever.",
+    " If you had to choose in the next minute, what’s your honest pick? That’s usually the real answer.",
+    " Try not to hide behind tools or process here — this is a judgment call."
+  ],
+  human: [
+    " You’re allowed to feel pressure here. The trick is to let it sharpen you, not paralyse you.",
+    " You don’t have to sound clever in the room. You just have to be clear and honest.",
+    " Imagine explaining this later to a smart colleague who wasn’t here — what would you say?"
+  ]
+};
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function chooseTone(type, phase) {
+  if (phase === "intel") return "calm";
+  if (phase === "decision") return (type === "Containment" || type === "Comms") ? "direct" : "human";
+  if (phase === "after") return "human";
+  return "calm";
+}
+
+function speakLikeVCISO(type, context = {}) {
+  const pool = commentBank[type] || commentBank.Default;
+  const phase = context.phase || "intel";
+  const tone = chooseTone(type, phase);
+
+  const phaseHints = {
+    intel: " Right now the goal is to separate signal from noise, not to jump to the scariest conclusion.",
+    decision: " You’re choosing between imperfect options — that’s normal in incident work.",
+    after: " This is a good moment to capture why you chose this path, in plain language."
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const $ = (id) => document.getElementById(id);
+  const base = pick(pool) + (phaseHints[phase] || "");
+  const extras = extraBank[tone] || extraBank.calm;
+  const extra = Math.random() < 0.8 ? pick(extras) : "";
+  const msg = base + extra;
 
-  const urlS = new URLSearchParams(location.search).get("s");
-  const session = urlS && urlS.trim() ? urlS.trim() : "default";
-  $("sessionPill").textContent = "Session " + session;
+  vcisoTyping.style.display = "block";
+  vcisoMsg.textContent = "";
+  let i = 0;
+  const step = 3 + Math.floor(Math.random() * 4);
 
-  function uid() { return "P-" + Math.random().toString(36).slice(2, 8).toUpperCase(); }
-  const storedId = localStorage.getItem("rws_player_id") || uid();
-  localStorage.setItem("rws_player_id", storedId);
+  const interval = setInterval(() => {
+    vcisoMsg.textContent = msg.slice(0, i);
+    i += step;
 
-  let storedName = localStorage.getItem("rws_player_name");
-  if (!storedName) {
-    storedName = prompt("Enter your display name for this exercise:", storedId) || storedId;
-    localStorage.setItem("rws_player_name", storedName);
-  }
-
-  const playerRef = ref(db, `sessions/${session}/players/${storedId}`);
-  set(playerRef, {
-    id: storedId,
-    name: storedName,
-    ts: Date.now(),
-    status: "online"
-  });
-  $("playerPill").textContent = storedName + " • Connected";
-
-  setInterval(() => {
-    update(playerRef, { ts: Date.now(), status: "online" });
-  }, 5000);
-
-  onDisconnect(playerRef).update({ status: "offline", ts: Date.now() });
-
-  // vCISO brain
-  const vcisoCommentBank = {
-    Intel: [
-      "Reading this, I’d pause whatever email I was writing. This isn’t background noise – it’s the kind of thing that usually sits at the start of a real incident timeline.",
-      "If this landed in my inbox, my first question would be: is this just messy change management, or the first sign that someone is testing how asleep we are at the wheel?",
-      "Treat this as the opening scene in a RWS war-room movie. You won’t see the full plot yet, but you can already tell this scene will be referenced later.",
-      "The risk here isn’t just the content, it’s the timing and the way it bypasses normal process. That pattern matters more than any single log line.",
-      "Ask yourself very simply: if this were nothing, would it really look this coordinated across systems and people?"
-    ],
-    Detection: [
-      "Now the tools are talking. You’re no longer dealing with theory – telemetry is spelling out a story. The question is whether you believe it early or late.",
-      "This is where good teams zoom out. Don’t fixate on a single alert; look for the rhythm across endpoints, accounts and time windows.",
-      "If this were a complete false positive, you’d expect randomness. What you’re seeing here looks more like a pattern with intent.",
-      "Detection is giving you a rough sketch, not a photograph. You have enough shape to act, even if the picture isn’t perfect yet.",
-      "The uncomfortable truth is that you rarely get 100% certainty at this stage. You decide on the balance of probability, not perfection."
-    ],
-    Containment: [
-      "Containment is where somebody’s KPI and someone else’s sleep will be affected. That’s why people hesitate – not because the risk is unclear, but because the trade-offs are uncomfortable.",
-      "Every containment move spends political capital. The critical question is whether you are spending it early in a controlled way, or later in a crisis.",
-      "You almost never have the luxury of a clean, impact-free option. You’re choosing the shape of the pain, not whether there will be any.",
-      "Ask yourself: if this gets worse overnight, will you wish you had moved harder and sooner from exactly this point?",
-      "A good containment decision is one you can calmly explain to ExCo the next morning using three sentences, not twenty slides."
-    ],
-    Comms: [
-      "This is where technical truth and human reaction intersect. People don’t just want to know what’s happening – they want to know if someone credible is steering.",
-      "When you brief upwards, don’t decorate. One sentence on impact, one on what you’re doing, and one on what you don’t know yet beats a long monologue.",
-      "If your message sounds defensive, stakeholders will read that as ‘we’ve lost control’. Aim for steady, factual, and specific instead.",
-      "The goal here is not to sound heroic, it’s to sound in control: clear status, clear next steps, clear owners.",
-      "Remember, silence is also a message. If you don’t provide a narrative, the organisation will happily invent one for you."
-    ],
-    Recovery: [
-      "Recovery is where everyone wants to declare victory and move on. It’s also where many organisations quietly leave the back door half open.",
-      "If nothing meaningful changes after this incident, then all we did was run a very stressful fire drill with no learning.",
-      "This is the moment to lock in the story: what happened, why it mattered, and what we will concretely do differently next time.",
-      "Attackers love environments that celebrate ‘systems are back’ but ignore the root cause. Don’t be that environment.",
-      "Think of recovery as the start of the next prevention cycle, not just the end of today’s problem."
-    ],
-    AggressiveChoice: [
-      "You’ve taken the harder line here. That will create noise in the short term, but it sharply limits the attacker’s room to manoeuvre.",
-      "This choice tells the organisation that protecting guests and data comes before a quiet day for operations. That’s usually the right story to tell.",
-      "You’ve traded some comfort now for less regret later. If this escalates, you’ll be glad you made the tighter call.",
-      "Be ready to explain this move in plain language: what you protected, what got disrupted, and why that trade was worth it.",
-      "This is a ‘protect the crown jewels first’ decision. Keep your communication as firm as the decision itself."
-    ],
-    BalancedChoice: [
-      "You’ve gone for a middle path – not full lockdown, not full denial. That can work if you’re disciplined about follow-up.",
-      "This choice keeps both uptime and security in view. Just be explicit about what risk you are consciously accepting.",
-      "The danger with balanced moves is drift. Set a clear time window when you’ll revisit this decision with fresh data.",
-      "You’ve tried to buy yourself observation time without fully pulling the plug. Make sure that time is actually used to learn, not to hope.",
-      "Write down what new signal would make you tighten this stance. Future you will thank you."
-    ],
-    ConservativeChoice: [
-      "You’ve held back here. That will keep some people comfortable now, but it also gives the attacker more time to explore.",
-      "In practice, this shifts risk from operational disruption to potential impact. Be honest with yourself that this is the trade you just made.",
-      "If this later turns into a bigger incident, this moment will feature heavily in the timeline. Make sure you’re comfortable defending it.",
-      "Sometimes waiting is right – but it should be a deliberate choice, not just a hope that the noise goes away.",
-      "If you decide to wait, decide for how long and what exactly you expect to see before you change direction."
-    ],
-    Default: [
-      "Keep your framing simple: protect people, protect data, protect the brand. Most decisions fit inside that triangle.",
-      "Future you will likely be writing the incident report. Make decisions that still make sense when the adrenaline has faded.",
-      "Good incident handling is more about consistent, explainable decisions than dramatic hero moments.",
-      "You don’t need a perfect answer; you need a defendable one delivered at the right time.",
-      "Document your thinking as you go. In real life, that audit trail is your best defence."
-    ]
-  };
-
-  const extraLines = {
-    calm: [
-      "Take ten seconds to separate what you actually know from what you are guessing.",
-      "If you feel slightly uneasy, that’s usually your pattern-recognition doing its job – listen to it.",
-      "Slowing down your thinking by even a few seconds often leads to a cleaner decision.",
-      "Share a one-line summary with your table. Having a common picture reduces noise dramatically.",
-      "You don’t have to be dramatic – just be clear and specific about what you see."
-    ],
-    direct: [
-      "At some point someone has to say, ‘We’re doing this.’ Don’t drag that moment out forever.",
-      "If you had to decide in the next sixty seconds, what would you honestly choose?",
-      "Try not to hide behind tools or process right now – this is mainly a judgment call.",
-      "Ask yourself what decision you’d back if you were the CISO on call tonight.",
-      "Don’t wait for a perfect signal. By the time it appears, the attacker will have moved on."
-    ],
-    human: [
-      "It’s normal to feel some pressure here. The trick is to let it sharpen, not paralyse, your thinking.",
-      "You don’t need fancy language in a crisis – just honest, concrete sentences people can act on.",
-      "Imagine explaining this call tomorrow to a colleague you respect. Would you still back it?",
-      "Your tone will shape the room. If you stay measured and factual, others usually follow.",
-      "Mistakes are inevitable in incidents. How you respond and adjust is what people remember."
-    ]
-  };
-
-  let lastVCISOText = "";
-  let lastInject = null;
-
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function chooseTone(context = {}) {
-    const phase = context.phase || "intel";
-    if (phase === "intel") return "calm";
-    if (phase === "decision") {
-      if (context.choice === "A") return "direct";
-      if (context.choice === "C") return "human";
-      return "calm";
+    if (i >= msg.length) {
+      vcisoMsg.textContent = msg;
+      vcisoTyping.style.display = "none";
+      clearInterval(interval);
     }
-    if (phase === "after") return "human";
-    return "calm";
+  }, 40);
+}
+
+// Ticker// Ticker// Ticker
+let tickerItems = [
+  { cat: "World", text: "Global markets steady as tech sector rebounds." },
+  { cat: "Corporate", text: "RWS continues phased rollout of resilience improvements across IT and OT." },
+  { cat: "Cyber", text: "CERT-SG highlights rise in supply-chain attacks targeting hospitality and travel." },
+  { cat: "Travel", text: "Regional travel flows remain strong ahead of holiday period." },
+  { cat: "Weather", text: "Scattered showers islandwide; operations remain normal." }
+];
+
+function renderTicker() {
+  const host = $("ticker");
+  host.innerHTML = tickerItems.map(item => {
+    const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
+  }).join("");
+}
+renderTicker();
+
+// Reset UI
+function resetView() {
+  $("scTitle").textContent = "Standby – awaiting scenario";
+  $("scDesc").textContent = "Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.";
+  if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
+  $("injCard").style.display = "none";
+  $("decCard").style.display = "none";
+  $("decStatus").style.display = "none";
+  ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
+  $("timer").textContent = "--";
+}
+
+$("btnRestart").onclick = () => resetView();
+
+// Scenario
+onValue(ref(db, `sessions/${session}/scenario`), snap => {
+  const v = snap.val();
+  if (!v) return;
+  $("scTitle").textContent = v.title || "RWS Cyber Scenario";
+  $("scDesc").textContent = v.desc || "";
+});
+
+// latest inject
+let currentInjectSeq = null;
+onValue(ref(db, `sessions/${session}/latestInject`), snap => {
+  const inj = snap.val();
+  if (!inj) return;
+  currentInjectSeq = inj.seq || null;
+
+  const injCard = $("injCard");
+  injCard.style.display = "block";
+  injCard.classList.remove("card-pop");
+  void injCard.offsetWidth;
+  injCard.classList.add("card-pop");
+
+  $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
+  const imgEl = $("injImage");
+  if (inj.image) {
+    imgEl.src = inj.image;
+    imgEl.style.display = "block";
+  } else {
+    imgEl.style.display = "none";
   }
 
-  function speakLikeVCISO(kind, context = {}) {
-    const vcisoTyping = $("vcisoTyping");
-    const vcisoMsg = $("vcisoMsg");
-
-    const phase = context.phase || "intel";
-    let pool;
-
-    if (kind === "DecisionFeedback" && context.choice) {
-      if (context.choice === "A") pool = vcisoCommentBank.AggressiveChoice;
-      else if (context.choice === "B") pool = vcisoCommentBank.BalancedChoice;
-      else if (context.choice === "C") pool = vcisoCommentBank.ConservativeChoice;
-    } else {
-      pool = vcisoCommentBank[kind] || vcisoCommentBank.Default;
-    }
-    if (!pool || !pool.length) pool = vcisoCommentBank.Default;
-
-    const tone = chooseTone(context);
-    const extras = extraLines[tone] || extraLines.calm;
-
-    const phaseHintMap = {
-      intel: " Right now the goal is to decide whether this is just background noise or the start of a real incident timeline.",
-      decision: " You’re choosing between imperfect options – in real war-rooms, that’s completely normal.",
-      after: " This is exactly the kind of decision that shows up in the written timeline later."
-    };
-    const phaseHint = phaseHintMap[phase] || "";
-
-    let explicitLine = "";
-    if (kind === "DecisionFeedback") {
-      const ch = context.choice;
-      const label = context.inject && context.inject.decision && context.inject.decision.options
-        ? context.inject.decision.options[ch]
-        : "";
-      const shortLabel = label && label.length > 70 ? label.slice(0, 67) + "…" : label;
-      if (ch && shortLabel) {
-        explicitLine = ` You’ve picked option ${ch} – “${shortLabel}”. In simple terms, that’s the posture you’re signalling to leadership and the attacker.`;
-      } else if (ch) {
-        explicitLine = ` You’ve picked option ${ch}. That choice says a lot about how you balance risk versus business comfort.`;
-      }
-    }
-
-    let base, extra, msg;
-    let attempts = 0;
-    do {
-      base = pick(pool);
-      extra = Math.random() < 0.8 ? pick(extras) : "";
-      msg = base + phaseHint + explicitLine + " " + extra;
-      attempts++;
-    } while (msg === lastVCISOText && attempts < 5);
-
-    lastVCISOText = msg;
-
-    vcisoTyping.style.display = "block";
-    vcisoMsg.textContent = "";
-    let i = 0;
-    const step = 3 + Math.floor(Math.random() * 4);
-
-    const interval = setInterval(() => {
-      vcisoMsg.textContent = msg.slice(0, i);
-      i += step;
-
-      if (i >= msg.length) {
-        vcisoMsg.textContent = msg;
-        vcisoTyping.style.display = "none";
-        clearInterval(interval);
-      }
-    }, 40);
-  }
-
-  // CNA-style ticker
-  const worldNews = [
-    "Global markets hold steady as investors watch macroeconomic signals and digital risk headlines.",
-    "Major economies review cyber regulations after a series of high-profile supply-chain breaches.",
-    "Regional leaders underscore the importance of resilience as travel and hospitality continue to recover."
-  ];
-  const sgNews = [
-    "Singapore regulators reiterate expectations on managing third-party cyber risk in critical sectors.",
-    "Local hospitality operators report healthy bookings ahead of peak travel periods.",
-    "Industry bodies in Singapore highlight the need for regular cyber crisis exercises."
-  ];
-  const cyberNews = [
-    "CERT-SG notes a continued rise in supply-chain attacks on payment and booking platforms.",
-    "Regional SOCs report increased phishing and ransomware activity around payroll and quarter-end periods.",
-    "Analysts remind organisations that business email compromise remains a leading cause of financial loss."
-  ];
-  const travelNews = [
-    "Air travel across Asia-Pacific remains robust, with travellers expecting seamless and secure digital touchpoints.",
-    "Tourism boards collaborate on joint campaigns that emphasise both experience and digital safety.",
-    "Guest expectations for frictionless, secure payment experiences continue to climb."
-  ];
-  const opsNews = [
-    "Organisations are investing in joint cyber and business continuity exercises ahead of peak seasons.",
-    "Boards are asking sharper questions about cyber-resilience metrics and recovery time expectations.",
-    "IT and security teams refresh playbooks to better handle third-party and identity-related incidents."
-  ];
-
-  let tickerItems = [];
-
-  function refreshTickerItems() {
-    tickerItems = [];
-    tickerItems.push({ cat: "World", text: pick(worldNews) });
-    tickerItems.push({ cat: "Singapore", text: pick(sgNews) });
-    tickerItems.push({ cat: "Cyber", text: pick(cyberNews) });
-    tickerItems.push({ cat: "Travel", text: pick(travelNews) });
-    tickerItems.push({ cat: "Business", text: pick(opsNews) });
-  }
-
-  function renderTicker() {
-    const host = $("tickerTrack");
-    if (!host) return;
-    const items = tickerItems.length ? tickerItems : [{ cat: "Cyber", text: "Monitoring live exercise telemetry – no external impact reported." }];
-    const html = items.map(item => {
-      const safe = (item.text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      return `<span class="ticker-item">${safe} • <strong>${item.cat}</strong></span>`;
-    }).join("");
-    host.innerHTML = html + html;
-  }
-
-  refreshTickerItems();
+  // add to ticker
+  tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC." });
+  if (tickerItems.length > 20) tickerItems.pop();
   renderTicker();
-  setInterval(() => {
-    refreshTickerItems();
-    renderTicker();
-  }, 25000);
 
-  function resetView() {
-    $("scTitle").textContent = "Standby – awaiting scenario";
-    $("scDesc").textContent = "Facilitator has not published the scenario yet. Once live, you'll see the RWS crisis context here.";
-    if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
-    $("injCard").style.display = "none";
-    $("decCard").style.display = "none";
-    $("endCard").style.display = "none";
-    $("decStatus").style.display = "none";
-    ["optA","optB","optC"].forEach(id => { const b = $(id); b.textContent = ""; b.disabled = false; });
-    $("timer").textContent = "--";
-  }
+  const dec = inj.decision || null;
+  const decCard = $("decCard");
+  const statusEl = $("decStatus");
+  const timerEl = $("timer");
 
-  $("btnRestart").onclick = () => resetView();
-
-  // Scenario updates
-  onValue(ref(db, `sessions/${session}/scenario`), snap => {
-    const v = snap.val();
-    if (!v) return;
-    $("scTitle").textContent = v.title || "RWS Cyber Scenario";
-    $("scDesc").textContent = v.desc || "";
-    speakLikeVCISO("Intel", { phase: "intel" });
-  });
-
-  let currentInjectSeq = null;
-
-  onValue(ref(db, `sessions/${session}/latestInject`), snap => {
-    const inj = snap.val();
-    if (!inj) return;
-    currentInjectSeq = inj.seq || null;
-    lastInject = inj;
-
-    const injCard = $("injCard");
-    const decCard = $("decCard");
-    const endCard = $("endCard");
-
-    if (endCard.style.display === "block") {
-      return;
-    }
-
-    injCard.style.display = "block";
-    injCard.classList.remove("card-pop");
-    void injCard.offsetWidth;
-    injCard.classList.add("card-pop");
-
-    $("injText").textContent = `[${inj.time || "T+?m"}] ${inj.text || ""}`;
-
-    tickerItems.unshift({ cat: "Breaking", text: inj.text || "New update from SOC on live exercise." });
-    if (tickerItems.length > 20) tickerItems.pop();
-    renderTicker();
-
-    const dec = inj.decision || null;
-    const statusEl = $("decStatus");
-    const timerEl = $("timer");
-
-    if (!dec || !dec.question) {
-      decCard.style.display = "none";
-      statusEl.style.display = "none";
-      timerEl.textContent = inj.time || "Live";
-      speakLikeVCISO(inj.type || "Intel", { phase: "intel", inject: inj });
-      return;
-    }
-
-    decCard.style.display = "block";
-    decCard.classList.remove("card-pop");
-    void decCard.offsetWidth;
-    decCard.classList.add("card-pop");
-
-    $("decQuestion").textContent = dec.question;
+  if (!dec || !dec.question) {
+    decCard.style.display = "none";
     statusEl.style.display = "none";
-    ["optA","optB","optC"].forEach(id => { const b = $(id); b.disabled = false; });
-    $("optA").textContent = dec.options && dec.options.A ? "A) " + dec.options.A : "";
-    $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
-    $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
-
-    let remaining = 45;
-    timerEl.classList.remove("timer-urgent");
-    timerEl.textContent = remaining + "s";
-    if (window.__rwsTimer) clearInterval(window.__rwsTimer);
-    window.__rwsTimer = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) {
-        clearInterval(window.__rwsTimer);
-        window.__rwsTimer = null;
-        timerEl.textContent = "Time up";
-        timerEl.classList.add("timer-urgent");
-        ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-        statusEl.style.display = "block";
-        statusEl.textContent = "⏱ Time is up for this decision. Discuss what you would have chosen.";
-        speakLikeVCISO("DecisionFeedback", { phase: "after", choice: null, inject: inj });
-        return;
-      }
-      if (remaining <= 10) {
-        timerEl.classList.add("timer-urgent");
-      }
-      timerEl.textContent = remaining + "s";
-    }, 1000);
-
-    speakLikeVCISO(inj.type || "Intel", { phase: "decision", inject: inj });
-  });
-
-  async function sendVote(choice) {
-    if (!currentInjectSeq) return;
-    if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
-    const path = `sessions/${session}/votes/${currentInjectSeq}/${storedId}`;
-    const payload = {
-      playerId: storedId,
-      name: storedName,
-      choice,
-      at: Date.now()
-    };
-    await set(ref(db, path), payload);
-    ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
-    const statusEl = $("decStatus");
-    statusEl.style.display = "block";
-    statusEl.textContent = `✅ You chose option ${choice}. Be ready to explain why.`;
-    speakLikeVCISO("DecisionFeedback", { phase: "after", choice, inject: lastInject });
+    timerEl.textContent = inj.time || "Live";
+    speakLikeVCISO(inj.type || "Default", { phase: "intel", seq: inj.seq });
+    return;
   }
 
-  $("optA").onclick = () => sendVote("A");
-  $("optB").onclick = () => sendVote("B");
-  $("optC").onclick = () => sendVote("C");
+  decCard.style.display = "block";
+  decCard.classList.remove("card-pop");
+  void decCard.offsetWidth;
+  decCard.classList.add("card-pop");
 
-  onValue(ref(db, `sessions/${session}/ended`), snap => {
-    const v = snap.val();
-    const endCard = $("endCard");
-    if (!v) {
-      if (endCard) endCard.style.display = "none";
+  $("decQuestion").textContent = dec.question;
+  statusEl.style.display = "none";
+  ["optA","optB","optC"].forEach(id => { const b = $(id); b.disabled = false; });
+  $("optA").textContent = dec.options && dec.options.A ? "A) " + dec.options.A : "";
+  $("optB").textContent = dec.options && dec.options.B ? "B) " + dec.options.B : "";
+  $("optC").textContent = dec.options && dec.options.C ? "C) " + dec.options.C : "";
+
+  // simple local countdown timer (per player)
+  let remaining = 45;
+  timerEl.classList.remove("timer-urgent");
+  timerEl.textContent = `${remaining}s`;
+  if (window.__rwsTimer) clearInterval(window.__rwsTimer);
+  window.__rwsTimer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(window.__rwsTimer);
+      timerEl.textContent = "Time up";
+      timerEl.classList.add("timer-urgent");
+      ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
+      statusEl.style.display = "block";
+      statusEl.textContent = "⏱ Time is up for this decision. Discuss what you would have chosen.";
       return;
     }
-
-    if (window.__rwsTimer) {
-      clearInterval(window.__rwsTimer);
-      window.__rwsTimer = null;
+    if (remaining <= 10) {
+      timerEl.classList.add("timer-urgent");
     }
+    timerEl.textContent = `${remaining}s`;
+  }, 1000);
 
-    $("injCard").style.display = "none";
-    $("decCard").style.display = "none";
-    $("decStatus").style.display = "none";
-    ["optA","optB","optC"].forEach(id => {
-      const b = $(id);
-      if (b) b.disabled = true;
-    });
+  speakLikeVCISO(inj.type || "Default", { phase: "decision", seq: inj.seq });
+});
 
-    endCard.style.display = "block";
-    speakLikeVCISO("Recovery", { phase: "after" });
-  });
+// voting
+function sendVote(choice) {
+  if (!currentInjectSeq) return;
+  if (window.__rwsTimer) { clearInterval(window.__rwsTimer); window.__rwsTimer = null; }
+  const path = `sessions/${session}/votes/${currentInjectSeq}/${storedId}`;
+  const payload = {
+    playerId: storedId,
+    name: storedName,
+    choice,
+    at: Date.now()
+  };
+  set(ref(db, path), payload);
+  ["optA","optB","optC"].forEach(id => { $(id).disabled = true; });
+  const statusEl = $("decStatus");
+  statusEl.style.display = "block";
+  statusEl.textContent = `✅ You chose option ${choice}. Be ready to explain why.`;
+  speakLikeVCISO("Default", { phase: "after", choice });
+}
 
-  onValue(ref(db, `sessions/${session}/state`), snap => {
-    const st = snap.val();
-    if (!st) return;
-    const lvl = st.level || 1;
-    const label = lvl === 1 ? "Normal" : lvl === 2 ? "Elevated" : lvl === 3 ? "High" : lvl === 4 ? "Severe" : "Crisis";
-    tickerItems.unshift({ cat: "Range", text: `AI difficulty is now ${label}.` });
-    if (tickerItems.length > 20) tickerItems.pop();
-    renderTicker();
-  });
+$("optA").onclick = () => sendVote("A");
+$("optB").onclick = () => sendVote("B");
+$("optC").onclick = () => sendVote("C");
 
-  resetView();
+resetView();
 </script>
 </body>
 </html>
