@@ -56,16 +56,16 @@
       letter-spacing: .08em;
       color: #9ca3af;
     }
+    .scenario {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
     .meta {
       font-size: 12px;
       opacity: 0.85;
       margin-bottom: 6px;
-      white-space: pre-wrap;
-    }
-    .scenario {
-      font-size: 12px;
-      opacity: 0.9;
-      margin-bottom: 8px;
       white-space: pre-wrap;
     }
     .narrative {
@@ -87,29 +87,14 @@
       color: #e5e7eb;
       cursor: pointer;
     }
-    .options button:hover:not(:disabled) {
-      background: #2563eb;
-    }
-    .options button.selected {
-      background: #16a34a;
-    }
-    .options button:disabled {
-      opacity: 0.7;
-      cursor: default;
-    }
+    .options button:hover:not(:disabled) { background: #2563eb; }
+    .options button.selected { background: #16a34a; }
+    .options button:disabled { opacity: 0.7; cursor: default; }
     .aar {
       white-space: pre-wrap;
       font-size: 12px;
       line-height: 1.4;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    footer {
-      padding: 6px 20px 9px;
-      border-top: 1px solid #111827;
-      background: #020617;
-      font-size: 11px;
-      opacity: 0.8;
-      text-align: left;
     }
     #nameRow {
       display: flex;
@@ -136,184 +121,192 @@
       background: #2563eb;
       color: #f9fafb;
     }
+    footer {
+      padding: 6px 20px 9px;
+      border-top: 1px solid #111827;
+      background: #020617;
+      font-size: 11px;
+      opacity: 0.85;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>BLACKFOG TTX – PLAYER</h1>
-    <div class="session">
-      Session: <span id="sessionLabel"></span>
+<header>
+  <h1>BLACKFOG TTX – PLAYER</h1>
+  <div class="session">
+    Session: <span id="sessionLabel"></span>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Scenario</h2>
+    <div id="nameRow">
+      <input id="playerNameInput" type="text" placeholder="Enter your display name">
+      <button id="saveNameBtn">Join</button>
     </div>
-  </header>
+    <div id="scenarioBox" class="scenario">Waiting for facilitator to load a scenario...</div>
+  </div>
 
-  <main>
-    <div class="card">
-      <h2>Scenario</h2>
-      <div id="nameRow">
-        <input id="playerNameInput" type="text" placeholder="Enter your display name" />
-        <button id="saveNameBtn">Join</button>
-      </div>
-      <div id="scenarioBox" class="scenario">Waiting for facilitator to set the scenario...</div>
+  <div class="card">
+    <h2>Current Inject</h2>
+    <div id="injectMeta" class="meta">Waiting for facilitator to send an inject…</div>
+    <div id="injectNarrative" class="narrative"></div>
+    <div id="decisionQuestion" class="narrative" style="font-weight:500;"></div>
+    <div id="optionsBox" class="options"></div>
+    <div id="answerStatus" class="meta"></div>
+  </div>
+
+  <div class="card">
+    <h2>AAR</h2>
+    <div id="aarBox" class="aar">
+      The facilitator's AAR will appear here after the exercise.
     </div>
+  </div>
+</main>
 
-    <div class="card">
-      <h2>Current Inject</h2>
-      <div id="injectMeta" class="meta">Waiting for facilitator to send an inject…</div>
-      <div id="injectNarrative" class="narrative"></div>
-      <div id="decisionQuestion" class="narrative" style="font-weight:500;"></div>
-      <div id="optionsBox" class="options"></div>
-      <div id="answerStatus" class="meta"></div>
-    </div>
+<footer>
+  Your choices are stored by session and inject, and the facilitator only sees aggregate counts.
+</footer>
 
-    <div class="card">
-      <h2>AAR</h2>
-      <div id="aarBox" class="aar">
-        The facilitator's AAR will appear here after the exercise.
-      </div>
-    </div>
-  </main>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getDatabase, ref, set, update, onValue, onDisconnect
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  <footer>
-    Your choices are anonymous at game level but visible to the facilitator as aggregate counts.
-  </footer>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
+    authDomain: "rws-blackfog-game.firebaseapp.com",
+    databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "rws-blackfog-game",
+    storageBucket: "rws-blackfog-game.firebasestorage.app",
+    messagingSenderId: "473543964029",
+    appId: "1:473543964029:web:4bc0db33634ed2f8894814"
+  };
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      update,
-      onValue,
-      onDisconnect
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjnfJOD8bK-PLKiFOYzC8Yz2S7g1hM1W0",
-      authDomain: "rws-blackfog-game.firebaseapp.com",
-      databaseURL: "https://rws-blackfog-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "rws-blackfog-game",
-      storageBucket: "rws-blackfog-game.firebasestorage.app",
-      messagingSenderId: "473543964029",
-      appId: "1:473543964029:web:4bc0db33634ed2f8894814"
-    };
+  const params    = new URLSearchParams(location.search);
+  const sessionId = params.get("s") || "default";
+  document.getElementById("sessionLabel").textContent = sessionId;
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const scenarioRef    = ref(db, "sessions/" + sessionId + "/scenario");
+  const latestInjectRef= ref(db, "sessions/" + sessionId + "/latestInject");
+  const aarRef         = ref(db, "sessions/" + sessionId + "/aar");
+  const playerRootRef  = ref(db, "sessions/" + sessionId + "/players");
 
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get("s") || "default";
-    document.getElementById("sessionLabel").textContent = sessionId;
+  const playerId       = "p-" + Math.random().toString(36).slice(2, 8);
 
-    const scenarioRef   = ref(db, "sessions/" + sessionId + "/scenario");
-    const latestInjectRef = ref(db, "sessions/" + sessionId + "/latestInject");
-    const aarRef        = ref(db, "sessions/" + sessionId + "/aar");
+  const playerNameInput= document.getElementById("playerNameInput");
+  const saveNameBtn    = document.getElementById("saveNameBtn");
+  const scenarioBox    = document.getElementById("scenarioBox");
+  const injectMeta     = document.getElementById("injectMeta");
+  const injectNarrative= document.getElementById("injectNarrative");
+  const decisionQuestion = document.getElementById("decisionQuestion");
+  const optionsBox     = document.getElementById("optionsBox");
+  const answerStatus   = document.getElementById("answerStatus");
+  const aarBox         = document.getElementById("aarBox");
 
-    const playerId = "p-" + Math.random().toString(36).slice(2, 8);
-    let playerName = "";
+  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+  let playerName  = "";
+  let currentSeq  = null;
 
-    const playerNameInput = document.getElementById("playerNameInput");
-    const saveNameBtn     = document.getElementById("saveNameBtn");
-    const scenarioBox     = document.getElementById("scenarioBox");
-    const injectMeta      = document.getElementById("injectMeta");
-    const injectNarrative = document.getElementById("injectNarrative");
-    const decisionQuestion= document.getElementById("decisionQuestion");
-    const optionsBox      = document.getElementById("optionsBox");
-    const answerStatus    = document.getElementById("answerStatus");
-    const aarBox          = document.getElementById("aarBox");
-
-    let currentSeq = null;
-
-    function joinSession() {
-      playerName = playerNameInput.value.trim() || ("Player-" + playerId);
-      playerNameInput.value = playerName;
-      saveNameBtn.textContent = "Joined";
-      saveNameBtn.disabled = true;
-
-      const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
-      const now = Date.now();
-      set(playerRef, {
-        name: playerName,
-        status: "online",
-        ts: now
-      });
-      onDisconnect(playerRef).update({
-        status: "offline",
+  // Ensure the facilitator always sees you
+  (function initPresence() {
+    const now = Date.now();
+    set(playerRef, {
+      name: "Player-" + playerId,
+      status: "pending",
+      ts: now
+    });
+    onDisconnect(playerRef).update({
+      status: "offline",
+      ts: Date.now()
+    });
+    setInterval(() => {
+      update(playerRef, {
+        status: playerName ? "online" : "pending",
         ts: Date.now()
       });
+    }, 20000);
+  })();
 
-      setInterval(() => {
-        update(playerRef, {
-          status: "online",
-          ts: Date.now()
-        });
-      }, 20000);
+  function joinWithName() {
+    playerName = playerNameInput.value.trim() || ("Player-" + playerId);
+    playerNameInput.value = playerName;
+    saveNameBtn.textContent = "Joined";
+    saveNameBtn.disabled = true;
+    update(playerRef, {
+      name: playerName,
+      status: "online",
+      ts: Date.now()
+    });
+  }
+
+  saveNameBtn.onclick = joinWithName;
+
+  onValue(scenarioRef, snap => {
+    const sc = snap.val();
+    if (!sc || !sc.title) {
+      scenarioBox.textContent = "Waiting for facilitator to load a scenario...";
+    } else {
+      scenarioBox.textContent = sc.title + "\\n\\n" + (sc.description || "");
     }
+  });
 
-    saveNameBtn.addEventListener("click", () => {
-      joinSession();
-    });
-
-    scenarioRef && onValue(scenarioRef, snap => {
-      const sc = snap.val();
-      if (!sc || !sc.title) {
-        scenarioBox.textContent = "Waiting for facilitator to set the scenario...";
-      } else {
-        scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
-      }
-    });
-
-    latestInjectRef && onValue(latestInjectRef, snap => {
-      const inj = snap.val();
-      if (!inj) {
-        injectMeta.textContent = "Waiting for facilitator to send an inject…";
-        injectNarrative.textContent = "";
-        decisionQuestion.textContent = "";
-        optionsBox.innerHTML = "";
-        answerStatus.textContent = "";
-        return;
-      }
-      currentSeq = Number(inj.seq || 0);
-      const severity = inj.severity || "";
-      injectMeta.textContent = (inj.time || "") + " • " + (inj.phase || "") + (severity ? " • " + severity : "");
-      injectNarrative.textContent = inj.narrative || "";
+  onValue(latestInjectRef, snap => {
+    const inj = snap.val();
+    if (!inj) {
+      injectMeta.textContent = "Waiting for facilitator to send an inject…";
+      injectNarrative.textContent = "";
+      decisionQuestion.textContent = "";
       optionsBox.innerHTML = "";
       answerStatus.textContent = "";
+      return;
+    }
+    currentSeq = Number(inj.seq || 0);
+    const sev  = inj.severity || "";
+    injectMeta.textContent = (inj.time || "") + " • " + (inj.phase || "") + (sev ? " • " + sev : "");
+    injectNarrative.textContent = inj.narrative || "";
+    decisionQuestion.textContent = "";
+    optionsBox.innerHTML = "";
+    answerStatus.textContent = "";
 
-      const decision = inj.decision || {};
-      const question = decision.question || "";
-      const opts = decision.options || {};
-      decisionQuestion.textContent = question;
+    const dec  = inj.decision || {};
+    const q    = dec.question || "";
+    const opts = dec.options || {};
+    decisionQuestion.textContent = q;
 
-      const choices = ["A","B","C"];
-      choices.forEach(key => {
-        const label = opts[key];
-        if (!label) return;
-        const btn = document.createElement("button");
-        btn.textContent = key + ". " + label;
-        btn.addEventListener("click", () => {
-          if (!playerName) {
-            alert("Please join with a name first.");
-            return;
-          }
-          // One vote per inject per player – later votes overwrite in DB but UI locks after one click
-          const voteRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
-          set(voteRef, { choice: key, ts: Date.now() });
-          answerStatus.textContent = "You chose option " + key + ".";
-          Array.from(optionsBox.children).forEach(b => {
-            b.disabled = true;
-            if (b === btn) b.classList.add("selected");
-          });
+    ["A","B","C"].forEach(key => {
+      const label = opts[key];
+      if (!label) return;
+      const btn = document.createElement("button");
+      btn.textContent = key + ". " + label;
+      btn.onclick = () => {
+        if (!playerName) {
+          alert("Please join with a name first.");
+          return;
+        }
+        const voteRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
+        set(voteRef, { choice: key, ts: Date.now() });
+        answerStatus.textContent = "You chose option " + key + ".";
+        Array.from(optionsBox.children).forEach(b => {
+          b.disabled = true;
+          if (b === btn) b.classList.add("selected");
         });
-        optionsBox.appendChild(btn);
-      });
+      };
+      optionsBox.appendChild(btn);
     });
+  });
 
-    aarRef && onValue(aarRef, snap => {
-      const v = snap.val();
-      if (!v || !v.text) return;
-      aarBox.textContent = v.text;
-    });
-  </script>
+  onValue(aarRef, snap => {
+    const v = snap.val();
+    if (!v || !v.text) return;
+    aarBox.textContent = v.text;
+  });
+</script>
 </body>
 </html>
