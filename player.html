@@ -247,7 +247,8 @@
   const vcisoBody      = document.getElementById("vcisoBody");
   const playerTickerEl = document.getElementById("playerTicker");
 
-  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);let scenarioStatus = "idle";
+  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+let scenarioStatus = "idle";
   let tickerMessages = [];
   let tickerIndex = 0;
   const cyberNews = [
@@ -258,9 +259,6 @@
     "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
     "Regulators remind organisations to document incident response and customer communication plans."
   ];
-  let playerName  = "";
-  let currentSeq  = null;
-
   // Ensure the facilitator always sees you
   (function initPresence() {
     const now = Date.now();
