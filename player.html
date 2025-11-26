@@ -247,11 +247,7 @@
   const vcisoBody      = document.getElementById("vcisoBody");
   const playerTickerEl = document.getElementById("playerTicker");
 
-  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
-
-  let playerName  = "";
-  let currentSeq  = null;
-  let scenarioStatus = "idle";
+  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);let scenarioStatus = "idle";
   let tickerMessages = [];
   let tickerIndex = 0;
   const cyberNews = [

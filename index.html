@@ -730,7 +730,31 @@
     }).catch(console.error);
   };
 
-  updateInjectBtn.onclick = () => {updateInjectBtn.onclick = () => {
+  updateInjectBtn.onclick = () => {
+  if (editorSeq == null) {
+    alert("Select an inject (click in list) before saving.");
+    return;
+  }
+  const time   = injectTimeEl.value.trim();
+  const phase  = injectPhaseEl.value.trim();
+  const sev    = injectSeverityEl.value.trim();
+  const narr   = injectNarrativeEl.value.trim();
+  const q      = decisionQuestionEl.value.trim();
+  const a      = optAEl.value.trim();
+  const b      = optBEl.value.trim();
+  const c      = optCEl.value.trim();
+  if (!narr) {
+    alert("Narrative is required.");
+    return;
+  }
+  const inj = { seq: editorSeq, time: time, phase: phase, severity: sev, narrative: narr };
+  if (q || a || b || c) {
+    inj.decision = { question: q, options: { A: a, B: b, C: c } };
+  }
+  set(ref(db, "sessions/" + sessionId + "/injects/" + editorSeq), inj)
+    .then(() => pushTicker("Inject #" + editorSeq + " updated."))
+    .catch(console.error);
+};
     if (editorSeq == null) {
       alert("Select an inject (click in list) before saving.");
       return;
