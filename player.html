@@ -36,11 +36,22 @@
     main {
       flex: 1;
       padding: 14px 20px 10px;
-      max-width: 900px;
+      max-width: 1100px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.1fr);
+      gap: 14px;
+      align-items: flex-start;
+    }
+    #mainPane {
       display: flex;
       flex-direction: column;
       gap: 14px;
+    }
+    #vcisoCard {
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
     }
     .card {
       background: #020617;
@@ -127,7 +138,19 @@
       background: #020617;
       font-size: 11px;
       opacity: 0.85;
-      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #playerTicker {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #footerHint {
+      white-space: nowrap;
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -140,34 +163,45 @@
 </header>
 
 <main>
-  <div class="card">
-    <h2>Scenario</h2>
-    <div id="nameRow">
-      <input id="playerNameInput" type="text" placeholder="Enter your display name">
-      <button id="saveNameBtn">Join</button>
+  <section id="mainPane">
+    <div class="card">
+      <h2>Scenario</h2>
+      <div id="nameRow">
+        <input id="playerNameInput" type="text" placeholder="Enter your display name">
+        <button id="saveNameBtn">Join</button>
+      </div>
+      <div id="scenarioBox" class="scenario">Waiting for facilitator to start the session...</div>
     </div>
-    <div id="scenarioBox" class="scenario">Waiting for facilitator to load a scenario...</div>
-  </div>
 
-  <div class="card">
-    <h2>Current Inject</h2>
-    <div id="injectMeta" class="meta">Waiting for facilitator to send an inject…</div>
-    <div id="injectNarrative" class="narrative"></div>
-    <div id="decisionQuestion" class="narrative" style="font-weight:500;"></div>
-    <div id="optionsBox" class="options"></div>
-    <div id="answerStatus" class="meta"></div>
-  </div>
-
-  <div class="card">
-    <h2>AAR</h2>
-    <div id="aarBox" class="aar">
-      The facilitator's AAR will appear here after the exercise.
+    <div class="card">
+      <h2>Current Inject</h2>
+      <div id="injectMeta" class="meta">Waiting for facilitator to send an inject…</div>
+      <div id="injectNarrative" class="narrative"></div>
+      <div id="decisionQuestion" class="narrative" style="font-weight:500;"></div>
+      <div id="optionsBox" class="options"></div>
+      <div id="answerStatus" class="meta"></div>
     </div>
-  </div>
+
+    <div class="card">
+      <h2>AAR</h2>
+      <div id="aarBox" class="aar">
+        The facilitator's AAR will appear here after the session has ended.
+      </div>
+    </div>
+  </section>
+
+  <aside class="card" id="vcisoCard">
+    <h2>vCISO Advisory</h2>
+    <div id="vcisoMeta" class="meta">Guidance will appear here for each inject.</div>
+    <div id="vcisoBody" class="aar">
+      Waiting for the exercise to begin. Once injects start, this panel will highlight key risks and recommended actions from a virtual CISO perspective.
+    </div>
+  </aside>
 </main>
 
 <footer>
-  Your choices are stored by session and inject, and the facilitator only sees aggregate counts.
+  <div id="playerTicker">Waiting for facilitator and scenario…</div>
+  <div id="footerHint">Make decisions based on your incident playbook.</div>
 </footer>
 
 <script type="module">
@@ -209,8 +243,25 @@
   const optionsBox     = document.getElementById("optionsBox");
   const answerStatus   = document.getElementById("answerStatus");
   const aarBox         = document.getElementById("aarBox");
+  const vcisoMeta      = document.getElementById("vcisoMeta");
+  const vcisoBody      = document.getElementById("vcisoBody");
+  const playerTickerEl = document.getElementById("playerTicker");
 
   const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+
+  let playerName  = "";
+  let currentSeq  = null;
+  let scenarioStatus = "idle";
+  let tickerMessages = [];
+  let tickerIndex = 0;
+  const cyberNews = [
+    "Global hospitality group reports ransomware activity affecting booking and payment systems.",
+    "Phishing campaigns continue to target service desk and IT support staff in large enterprises.",
+    "Zero-day vulnerabilities in widely used VPN appliances highlight importance of patch management.",
+    "Ransomware operators increasingly use data theft and extortion before encryption.",
+    "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
+    "Regulators remind organisations to document incident response and customer communication plans."
+  ];
   let playerName  = "";
   let currentSeq  = null;
 
@@ -248,6 +299,71 @@
 
   saveNameBtn.onclick = joinWithName;
 
+
+  function pushPlayerTicker(msg) {
+    const ts = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    tickerMessages.unshift("[" + ts + "] " + msg);
+    if (tickerMessages.length > 30) tickerMessages.length = 30;
+  }
+
+  function startPlayerTicker() {
+    if (tickerMessages.length === 0) {
+      tickerMessages = cyberNews.slice();
+    }
+    setInterval(() => {
+      if (tickerMessages.length === 0) {
+        playerTickerEl.textContent = "Waiting for facilitator and scenario…";
+        return;
+      }
+      tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+      playerTickerEl.textContent = tickerMessages[tickerIndex];
+    }, 7000);
+  }
+
+  function buildVcisoAdvice(inj) {
+    const narrative = (inj.narrative || "").toLowerCase();
+    const phase = (inj.phase || "").toLowerCase();
+    const sev = (inj.severity || "").toLowerCase();
+
+    let meta = "Virtual CISO perspective on this inject.";
+    const bodyLines = [];
+
+    if (phase.includes("intel") || narrative.includes("password reset") || narrative.includes("service desk") || narrative.includes("helpdesk")) {
+      meta = "Social engineering and identity verification.";
+      bodyLines.push("Treat any request to change credentials, especially shared or privileged IDs, as high risk until identity is strongly verified.");
+      bodyLines.push("Service desk procedures should enforce call-back, ticket verification, or multi-factor checks before resetting passwords.");
+      bodyLines.push("Document the request, log the caller details, and escalate if anything feels unusual or rushed.");
+    } else if (phase.includes("detection") || narrative.includes("intermittent failures") || narrative.includes("queues are building")) {
+      meta = "From symptoms to structured incident declaration.";
+      bodyLines.push("Multiple sites experiencing similar instability is a strong signal of a systemic or security issue, not just a local glitch.");
+      bodyLines.push("Move quickly from ad-hoc troubleshooting to a formal incident with clear ownership, communications, and logging/forensics enabled.");
+      bodyLines.push("Engage monitoring, check recent changes, and validate whether there are signs of compromise across environments.");
+    } else if (phase.includes("containment") || narrative.includes("ransom note") || narrative.includes("encrypted")) {
+      meta = "Containment of ransomware and lateral movement.";
+      bodyLines.push("Once ransom notes and encryption are observed, assume the attacker has had dwell time and may still have access.");
+      bodyLines.push("Prioritise network segmentation, isolation of affected segments, and protection of clean environments and backups.");
+      bodyLines.push("Coordinate with legal and communications early, and ensure evidence preservation for later investigation.");
+    } else if (phase.includes("business") || narrative.includes("guests") || narrative.includes("media")) {
+      meta = "Guest impact, communications, and regulatory exposure.";
+      bodyLines.push("Public and guest-facing impact requires a coordinated message that is honest about disruption while avoiding unnecessary speculation.");
+      bodyLines.push("Align statements between technology, operations, and corporate communications to maintain trust and meet regulatory expectations.");
+      bodyLines.push("Track commitments made to guests and regulators and ensure actions are consistent with those commitments.");
+    } else {
+      bodyLines.push("Clarify what has changed in the environment, who is impacted, and what data or systems may be at risk.");
+      bodyLines.push("Favour decisions that improve visibility and reduce attacker freedom of movement, even if they create short-term operational friction.");
+      bodyLines.push("Make sure roles and responsibilities are clear: who leads, who communicates, and who makes risk-based decisions.");
+    }
+
+    if (sev.includes("critical")) {
+      bodyLines.push("Given the critical severity, senior leadership and crisis management structures should be engaged early.");
+    }
+
+    return {
+      meta,
+      body: bodyLines.join(" ")
+    };
+  }
+
   onValue(scenarioRef, snap => {
     const sc = snap.val();
     if (!sc || !sc.title) {
@@ -265,6 +381,8 @@
       decisionQuestion.textContent = "";
       optionsBox.innerHTML = "";
       answerStatus.textContent = "";
+      vcisoMeta.textContent = "Guidance will appear here for each inject.";
+      vcisoBody.textContent = "Waiting for the exercise to begin. Once injects start, this panel will highlight key risks and recommended actions from a virtual CISO perspective.";
       return;
     }
     currentSeq = Number(inj.seq || 0);
@@ -275,10 +393,17 @@
     optionsBox.innerHTML = "";
     answerStatus.textContent = "";
 
+    pushPlayerTicker("Inject #" + currentSeq + " received (" + (inj.phase || "Phase") + ").");
+
     const dec  = inj.decision || {};
     const q    = dec.question || "";
     const opts = dec.options || {};
     decisionQuestion.textContent = q;
+
+    // vCISO advisory is shown immediately when inject arrives
+    const advice = buildVcisoAdvice(inj);
+    vcisoMeta.textContent = advice.meta;
+    vcisoBody.textContent = advice.body;
 
     ["A","B","C"].forEach(key => {
       const label = opts[key];
@@ -302,10 +427,12 @@
     });
   });
 
+  startPlayerTicker();
+
   onValue(aarRef, snap => {
     const v = snap.val();
-    if (!v || !v.text) return;
-    aarBox.textContent = v.text;
+    if (!v || !v.text || scenarioStatus !== "ended") return;
+    aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
 </script>
 </body>

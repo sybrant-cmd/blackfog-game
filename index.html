@@ -211,6 +211,9 @@
       </div>
       <div class="row">
         <button class="secondary" id="saveScenarioBtn">Save / update scenario text</button>
+        <button class="primary" id="startSessionBtn">Start exercise</button>
+        <button class="secondary" id="endSessionBtn">End session</button>
+        <button class="secondary" id="resetSessionBtn">Reset session</button>
       </div>
       <div id="scenarioText" class="scenario-text"></div>
       <div id="runStatus" class="meta">No scenario loaded yet.</div>
@@ -391,6 +394,9 @@
 
   const loadScenarioBtn  = document.getElementById("loadScenarioBtn");
   const saveScenarioBtn  = document.getElementById("saveScenarioBtn");
+  const startSessionBtn = document.getElementById("startSessionBtn");
+  const endSessionBtn   = document.getElementById("endSessionBtn");
+  const resetSessionBtn = document.getElementById("resetSessionBtn");
   const updateInjectBtn  = document.getElementById("updateInjectBtn");
   const sendNextBtn      = document.getElementById("sendNextBtn");
   const buildAarBtn      = document.getElementById("buildAarBtn");
@@ -400,8 +406,17 @@
   let currentSeq = null;
   let editorSeq  = null;
   let votesBySeq = {};
+  let scenarioStatus = "idle";
   let tickerMessages = [];
   let tickerIndex = 0;
+  const cyberNews = [
+    "Global hospitality group reports ransomware activity affecting booking and payment systems.",
+    "Phishing campaigns continue to target service desk and IT support staff in large enterprises.",
+    "Zero-day vulnerabilities in widely used VPN appliances highlight importance of patch management.",
+    "Ransomware operators increasingly use data theft and extortion before encryption.",
+    "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
+    "Regulators remind organisations to document incident response and customer communication plans."
+  ];
 
   function pushTicker(msg) {
     const ts = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -410,6 +425,9 @@
   }
 
   function startTicker() {
+    if (tickerMessages.length === 0) {
+      tickerMessages = cyberNews.slice();
+    }
     setInterval(() => {
       if (tickerMessages.length === 0) {
         tickerEl.textContent = 'Ready. Click "Load template" to push scenario + injects to this session.';
@@ -417,7 +435,7 @@
       }
       tickerIndex = (tickerIndex + 1) % tickerMessages.length;
       tickerEl.textContent = tickerMessages[tickerIndex];
-    }, 5000);
+    }, 6000);
   }
 
   function computeTallyForSeq(seq) {
@@ -650,7 +668,8 @@
     // Seed scenario + injects from template
     const scen = {
       title: templateScenario.title,
-      description: templateScenario.description
+      description: templateScenario.description,
+      status: "configured"
     };
     set(scenarioRef, scen);
     const injMap = {};
@@ -673,12 +692,45 @@
       alert("Scenario title is required.");
       return;
     }
-    set(scenarioRef, { title, description: desc })
+    update(scenarioRef, { title, description: desc })
       .then(() => pushTicker("Scenario text updated."))
       .catch(console.error);
   };
 
-  updateInjectBtn.onclick = () => {
+  startSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "started", startedAt: Date.now() })
+      .then(() => pushTicker("Session started."))
+      .catch(console.error);
+  };
+
+  endSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "ended", endedAt: Date.now() })
+      .then(() => pushTicker("Session ended."))
+      .catch(console.error);
+  };
+
+  resetSessionBtn.onclick = () => {
+    Promise.all([
+      set(scenarioRef, null),
+      set(injectsRef, null),
+      set(latestInjectRef, null),
+      set(votesRef, null),
+      set(aarRef, null)
+    ]).then(() => {
+      injects = [];
+      currentSeq = null;
+      editorSeq = null;
+      votesBySeq = {};
+      scenarioStatus = "idle";
+      scenarioTitleEl.value = "";
+      scenarioDescEl.value = "";
+      scenarioTextEl.textContent = "";
+      runStatusEl.textContent = "Session reset. Click \"Load template\" to configure again.";
+      pushTicker("Session data cleared for this session id.");
+    }).catch(console.error);
+  };
+
+  updateInjectBtn.onclick = () => {updateInjectBtn.onclick = () => {
     if (editorSeq == null) {
       alert("Select an inject (click in list) before saving.");
       return;
