@@ -1,1 +1,1 @@
-// scenarios.mjs content placeholder; replace with actual updated content
+<scenarios.mjs full code>

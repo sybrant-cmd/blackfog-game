@@ -1,1 +1,1 @@
-// engine.mjs content placeholder; replace with actual updated content
+<engine.mjs full code>

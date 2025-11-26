@@ -1,3 +1,1 @@
-# BlackFog TTX
-
-Deployment-ready incident simulation app.
+<README.md full code>
