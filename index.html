@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Facilitator</title></head>
+<head><meta charset="UTF-8"><title>Facilitator Showcase</title></head>
 <body>
-<h1>Facilitator Console</h1>
+<h1>Facilitator Showcase</h1>
 <select id="scenarioSelect"></select>
+<pre id="output"></pre>
 <script type="module">
+import './engine.js';
 import { scenarios } from './scenarios.js';
 
 const sel = document.getElementById('scenarioSelect');
 Object.keys(scenarios).forEach(k=>{
-  const o=document.createElement('option'); o.value=k; o.textContent=scenarios[k].title;
+  const o=document.createElement('option'); 
+  o.value=k; 
+  o.textContent=scenarios[k].title;
   sel.appendChild(o);
 });
-
-console.log("Index loaded");
+sel.addEventListener('change',()=>{
+  document.getElementById('output').textContent = 
+    JSON.stringify(scenarios[sel.value], null, 2);
+});
 </script>
 </body>
 </html>
