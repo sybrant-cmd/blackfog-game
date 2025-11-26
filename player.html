@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BlackFog TTX - Player</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 12px 20px;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    main {
+      flex: 1;
+      padding: 16px 20px 20px;
+      max-width: 880px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 12px 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .card h2 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #9ca3af;
+    }
+    .meta {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+    .narrative {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 6px;
+      border-radius: 999px;
+      border: none;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: #1f2937;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+    .options button:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    .options button.selected {
+      background: #16a34a;
+    }
+    .options button:disabled {
+      opacity: 0.7;
+      cursor: default;
+    }
+    .aar {
+      white-space: pre-wrap;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    footer {
+      font-size: 11px;
+      opacity: 0.6;
+      padding: 4px 20px 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>BlackFog TTX — Player</h1>
+    <div style="font-size:11px;opacity:.7;">Session: <span id="sessionIdLabel"></span></div>
+  </header>
+  <main>
+    <div class="card">
+      <h2>Current Inject</h2>
+      <div id="injectMeta" class="meta">Waiting for facilitator…</div>
+      <div id="injectNarrative" class="narrative"></div>
+      <div id="decisionQuestion" class="narrative" style="font-weight:500;"></div>
+      <div id="optionsBox" class="options"></div>
+      <div id="answerStatus" class="meta"></div>
+    </div>
+    <div class="card">
+      <h2>AAR &amp; vCISO</h2>
+      <div id="aarBox" class="aar">The facilitator’s AAR and vCISO summary will appear here at the end.</div>
+    </div>
+  </main>
+  <footer>
+    Standby mode until the facilitator loads a scenario and sends injects.
+  </footer>
+
+  <script type="module">
+    import { sessionId, channel } from './engine.mjs';
+
+    const sessionIdLabel = document.getElementById('sessionIdLabel');
+    const injectMeta = document.getElementById('injectMeta');
+    const injectNarrative = document.getElementById('injectNarrative');
+    const decisionQuestion = document.getElementById('decisionQuestion');
+    const optionsBox = document.getElementById('optionsBox');
+    const answerStatus = document.getElementById('answerStatus');
+    const aarBox = document.getElementById('aarBox');
+
+    sessionIdLabel.textContent = sessionId;
+
+    const playerId = 'P-' + Math.random().toString(36).slice(2, 8);
+
+    // Join + heartbeat
+    channel.postMessage({ session: sessionId, type: 'join', playerId });
+    setInterval(() => {
+      channel.postMessage({ session: sessionId, type: 'ping', playerId });
+    }, 15000);
+
+    let currentScenarioId = null;
+
+    function renderInject(inj) {
+      if (!inj) {
+        injectMeta.textContent = 'Waiting for facilitator…';
+        injectNarrative.textContent = '';
+        decisionQuestion.textContent = '';
+        optionsBox.innerHTML = '';
+        answerStatus.textContent = '';
+        return;
+      }
+      const cues = inj.cues || {};
+      injectMeta.textContent =
+        `${inj.time || ''}  •  ${inj.phase || ''}  •  ${cues.severity || ''} ${(cues.impact || []).join(' ')} ${cues.phase || ''}`;
+      injectNarrative.textContent = inj.narrative || '';
+      decisionQuestion.textContent = inj.decision?.question || '';
+      optionsBox.innerHTML = '';
+      answerStatus.textContent = '';
+
+      if (inj.decision && inj.decision.options) {
+        for (const [optKey, optText] of Object.entries(inj.decision.options)) {
+          const btn = document.createElement('button');
+          btn.textContent = `${optKey}. ${optText}`;
+          btn.addEventListener('click', () => {
+            // lock on first click
+            if (btn.classList.contains('selected')) return;
+            Array.from(optionsBox.children).forEach(b => {
+              b.disabled = true;
+              b.classList.remove('selected');
+            });
+            btn.classList.add('selected');
+            answerStatus.textContent = `You chose option ${optKey}.`;
+            channel.postMessage({
+              session: sessionId,
+              type: 'vote',
+              playerId,
+              scenarioId: currentScenarioId,
+              injectSeq: inj.seq,
+              choice: optKey
+            });
+          });
+          optionsBox.appendChild(btn);
+        }
+      }
+    }
+
+    channel.onmessage = ev => {
+      const msg = ev.data;
+      if (!msg || msg.session !== sessionId) return;
+      if (msg.type === 'scenarioLoaded') {
+        currentScenarioId = msg.scenarioId;
+        renderInject(null);
+        aarBox.textContent = 'The facilitator’s AAR and vCISO summary will appear here at the end.';
+      } else if (msg.type === 'inject') {
+        currentScenarioId = msg.scenarioId;
+        renderInject(msg.inject);
+      } else if (msg.type === 'aar') {
+        aarBox.textContent = msg.aarText || 'AAR received.';
+      }
+    };
+  </script>
+</body>
+</html>
