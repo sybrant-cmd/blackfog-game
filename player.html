@@ -248,6 +248,7 @@
   const playerTickerEl = document.getElementById("playerTicker");
 
   const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+let playerName = "";
 let scenarioStatus = "idle";
   let tickerMessages = [];
   let tickerIndex = 0;
