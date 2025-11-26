@@ -464,14 +464,17 @@
       runStatusEl.textContent = "No scenario loaded yet.";
       return;
     }
-    scenarioTextEl.textContent = (sc.title || "") + "\\n\\n" + (sc.description || "");
-    if (injects.length === 0) {
+    scenarioTextEl.textContent = (sc.title || "") + "\n\n" + (sc.description || "");
+    const status = sc.status || scenarioStatus || "idle";
+    if (status === "ended") {
+      runStatusEl.textContent = "Session ended. You can review AAR and debrief.";
+    } else if (injects.length === 0) {
       runStatusEl.textContent = "Scenario loaded. No injects?";
     } else if (currentSeq == null) {
-      runStatusEl.textContent = "Scenario loaded. Injects: " + injects.length + ". Click \"Send next inject\".";
+      runStatusEl.textContent = "Scenario ready. Injects: " + injects.length + ". Click \"Send next inject\" to begin.";
     } else {
       const idx = injects.findIndex(i => i.seq === currentSeq);
-      runStatusEl.textContent = "Inject " + (idx + 1) + " of " + injects.length + " is current.";
+      runStatusEl.textContent = "Session in progress. Inject " + (idx + 1) + " of " + injects.length + " is current.";
     }
   }
 
@@ -566,28 +569,33 @@
     const now = Date.now();
     const lines = [];
     let active = 0;
-    let total  = 0;
     snapshot.forEach(child => {
-      total++;
       const v   = child.val() || {};
       const ts  = v.ts || 0;
       const age = now - ts;
       const online = v.status === "online" && age < 90000;
-      if (online) active++;
-      const label = online ? "online" : (v.status || "inactive");
-      lines.push((v.name || child.key) + " (" + label + ", " + Math.round(age/1000) + "s)");
+      if (!online) return;
+      active++;
+      lines.push((v.name || child.key) + " (online)");
     });
-    if (total === 0) {
+    if (active === 0) {
       playersBox.textContent = "Waiting for players…";
       playerCountEl.textContent = "0";
     } else {
-      playersBox.textContent = lines.join("\\n");
-      playerCountEl.textContent = active + " / " + total;
+      playersBox.textContent = lines.join("\n");
+      playerCountEl.textContent = String(active);
     }
   }
 
   function sendNextInject() {
-    if (injects.length === 0) return;
+    if (scenarioStatus !== "started") {
+      pushTicker("Start the exercise before sending injects.");
+      return;
+    }
+    if (injects.length === 0) {
+      pushTicker("No injects are configured for this session.");
+      return;
+    }
     let seqToSend = null;
     if (currentSeq == null) {
       seqToSend = injects[0].seq;
@@ -766,9 +774,12 @@
     if (sc) {
       scenarioTitleEl.value = sc.title || "";
       scenarioDescEl.value  = sc.description || "";
+      scenarioStatus = sc.status || "idle";
+    } else {
+      scenarioStatus = "idle";
     }
     renderScenarioText(sc);
-  });
+  });;
 
   onValue(injectsRef, snap => {
     const arr = [];

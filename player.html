@@ -360,12 +360,18 @@ let scenarioStatus = "idle";
 
   onValue(scenarioRef, snap => {
     const sc = snap.val();
-    if (!sc || !sc.title) {
-      scenarioBox.textContent = "Waiting for facilitator to load a scenario...";
-    } else {
-      scenarioBox.textContent = sc.title + "\\n\\n" + (sc.description || "");
+    if (!sc) {
+      scenarioStatus = "idle";
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+      return;
     }
-  });
+    scenarioStatus = sc.status || "idle";
+    if (!sc.title || scenarioStatus !== "started") {
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+    } else {
+      scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
+    }
+  });;
 
   onValue(latestInjectRef, snap => {
     const inj = snap.val();
