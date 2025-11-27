@@ -371,11 +371,17 @@ let currentSeq = null;
       return;
     }
     scenarioStatus = sc.status || "idle";
-    if (!sc.title || scenarioStatus !== "started") {
-      scenarioBox.textContent = "Waiting for facilitator to start the session...";
-    } else {
-      scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
-    }
+    if (!sc.title) {
+  scenarioBox.textContent = "Waiting for facilitator to start the session...";
+} else if (scenarioStatus === "started") {
+  scenarioBox.textContent = sc.title + "
+
+" + (sc.description || "");
+} else if (scenarioStatus === "ended") {
+  scenarioBox.textContent = sc.title + "
+
+(Session ended — awaiting AAR)";
+}
   });;
 
   onValue(latestInjectRef, snap => {
