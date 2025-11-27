@@ -182,7 +182,7 @@
       <div id="answerStatus" class="meta"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="aarCard">
       <h2>AAR</h2>
       <div id="aarBox" class="aar">
         The facilitator's AAR will appear here after the session has ended.
@@ -243,11 +243,15 @@
   const optionsBox     = document.getElementById("optionsBox");
   const answerStatus   = document.getElementById("answerStatus");
   const aarBox         = document.getElementById("aarBox");
+  const aarCard        = document.getElementById("aarCard");
   const vcisoMeta      = document.getElementById("vcisoMeta");
   const vcisoBody      = document.getElementById("vcisoBody");
   const playerTickerEl = document.getElementById("playerTicker");
 
-  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);let scenarioStatus = "idle";
+  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+let playerName = "";
+let scenarioStatus = "idle";
+let currentSeq = null;
   let tickerMessages = [];
   let tickerIndex = 0;
   const cyberNews = [
@@ -258,10 +262,9 @@
     "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
     "Regulators remind organisations to document incident response and customer communication plans."
   ];
-  let playerName  = "";
-  let currentSeq  = null;
-
   // Ensure the facilitator always sees you
+  if (aarCard) aarCard.style.display = "none";
+
   (function initPresence() {
     const now = Date.now();
     set(playerRef, {
@@ -362,12 +365,18 @@
 
   onValue(scenarioRef, snap => {
     const sc = snap.val();
-    if (!sc || !sc.title) {
-      scenarioBox.textContent = "Waiting for facilitator to load a scenario...";
-    } else {
-      scenarioBox.textContent = sc.title + "\\n\\n" + (sc.description || "");
+    if (!sc) {
+      scenarioStatus = "idle";
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+      return;
     }
-  });
+    scenarioStatus = sc.status || "idle";
+    if (!sc.title || scenarioStatus !== "started") {
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+    } else {
+      scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
+    }
+  });;
 
   onValue(latestInjectRef, snap => {
     const inj = snap.val();
@@ -428,10 +437,12 @@
   onValue(aarRef, snap => {
     const v = snap.val();
     if (!v || !v.text) {
+      if (aarCard) aarCard.style.display = "none";
       aarBox.innerHTML = "";
-      return;
+    } else {
+      if (aarCard) aarCard.style.display = "block";
+      aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
     }
-    aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
 </script>
 </body>
