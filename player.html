@@ -438,7 +438,7 @@ let currentSeq = null;
     const v = snap.val();
     if (!v || !v.text || scenarioStatus !== "ended") return;
     if (aarCard) aarCard.style.display = "block";
-    aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
+    if (aarCard) aarCard.style.display = "block"; aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
 </script>
 </body>
