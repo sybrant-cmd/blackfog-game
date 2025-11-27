@@ -204,9 +204,9 @@
       <div class="row">
         <label for="scenarioTemplateSelect">Template</label>
         <select id="scenarioTemplateSelect">
-          <option value="ransomware">Hospitality – Ransomware</option>
-          <option value="payments">Payment Systems Breach</option>
-          <option value="insider">Insider Threat – Reservations</option>
+          <option value="shaiHulud">Scenario 1 – Shai-Hulud 2.0 Supply Chain</option>
+          <option value="apiAbuse">Scenario 2 – Stolen API Keys & Multi-Actor Abuse</option>
+          <option value="lbCompromise">Scenario 3 – Load Balancer Compromise</option>
         </select>
       </div>
       <div class="row">
@@ -311,10 +311,10 @@
 
   // ONE hardcoded scenario + inject pack (you can add more later)
   const templateScenarios = {
-    ransomware: {
-      title: "Hospitality Operations Disruption & Ransomware",
+    shaiHulud: {
+      title: "Shai-Hulud 2.0 – Supply Chain Attack",
       description:
-        "A mix of social engineering and weak access controls leads to disruption across room, payment and loyalty systems, ending in ransomware.",
+        "RWS is impacted by a sophisticated supply chain attack on Python packages, where trojanised dependencies steal credentials and exfiltrate cloud and source code secrets.",
       injects: [
         {
           seq: 1,
@@ -322,193 +322,307 @@
           phase: "Intel",
           severity: "Medium",
           narrative:
-            "Service desk receives a call from someone claiming to be from infrastructure, asking for a password reset on a shared admin ID used by property systems.",
+            "RWS developers report that a CI/CD pipeline job exited with warnings about a dependency mismatch for a Python package used by several internal services. Security researchers publicly disclose that a sophisticated trojanised version of the same package has appeared on PyPI, containing credential-stealing malware.",
           decision: {
-            question: "What should the service desk do?",
+            question: "How should RWS respond to the initial intelligence?",
             options: {
-              A: "Enforce strict verification and refuse until identity is confirmed.",
-              B: "Reset quickly to be helpful and keep systems running.",
-              C: "Reset and email the shared mailbox afterwards."
+              A: "Immediately disable CI/CD pipelines using the affected package and begin threat hunting.",
+              B: "Continue operations normally while waiting for PyPI to provide more information.",
+              C: "Ask developers to manually review logs but take no wider action yet."
             }
           }
         },
         {
           seq: 2,
-          time: "T+1d",
+          time: "T+20m",
           phase: "Detection",
           severity: "High",
           narrative:
-            "Room key and check-in systems show intermittent failures at multiple sites. Staff are falling back to manual processes and queues are building.",
+            "Multiple CI runners begin making outbound network requests to an unfamiliar domain resolving to a VPS hosting provider in Eastern Europe. Traffic analysis shows bursts of encoded data being exfiltrated. Internal telemetry indicates that AWS temporary tokens may have been compromised.",
           decision: {
-            question: "How should technology teams respond?",
+            question: "What is the appropriate detection-stage response?",
             options: {
-              A: "Declare an incident with operations and central IT immediately.",
-              B: "Ask each site to reboot servers and observe.",
-              C: "Treat it as likely vendor instability and wait."
+              A: "Treat the event as active credential theft and escalate to a major incident.",
+              B: "Place monitoring alerts and observe for another 30 minutes.",
+              C: "Ask DevOps to rotate credentials next business day."
             }
           }
         },
         {
           seq: 3,
-          time: "T+1d+4h",
+          time: "T+40m",
           phase: "Containment",
           severity: "Critical",
           narrative:
-            "Ransom notes appear on key hospitality and loyalty servers. Some file shares are encrypted. There are traces of credential dumping and lateral movement.",
+            "CloudTrail logs show API calls being made with valid but unexpected AWS IAM tokens. These calls attempt to enumerate S3 buckets, EKS clusters, and Secrets Manager. Some requests originate from IPs in multiple geographies, suggesting the attacker is using the trojan payload to pivot into cloud infrastructure.",
           decision: {
-            question: "What containment approach makes sense?",
+            question: "How should containment be executed?",
             options: {
-              A: "Segment and disconnect affected networks quickly, accepting guest impact.",
-              B: "Contain only obviously affected servers for now.",
-              C: "Delay major moves until ransom note is fully analysed."
-            }
-          }
-        }
-      ]
-    },
-    payments: {
-      title: "Payment Systems Breach & PCI Exposure",
-      description:
-        "Suspicious activity in payment environments escalates from card data scraping to full breach of PCI segments and regulatory exposure.",
-      injects: [
-        {
-          seq: 1,
-          time: "T+00m",
-          phase: "Intel",
-          severity: "Medium",
-          narrative:
-            "Fraud monitoring partner reports a spike in card-not-present fraud linked to cards recently used at your properties.",
-          decision: {
-            question: "What is the best immediate response?",
-            options: {
-              A: "Open an internal security investigation and review payment logs.",
-              B: "Treat this as the bank's problem and monitor only.",
-              C: "Issue a public statement immediately without confirming details."
-            }
-          }
-        },
-        {
-          seq: 2,
-          time: "T+2h",
-          phase: "Detection",
-          severity: "High",
-          narrative:
-            "Security tools detect unusual outbound traffic from POS servers to an unknown external IP during business hours.",
-          decision: {
-            question: "How should you treat this signal?",
-            options: {
-              A: "Escalate to an incident, enable packet capture and block suspicious egress.",
-              B: "Create a ticket for the next business day review.",
-              C: "Assume it is a software update and ignore for now."
-            }
-          }
-        },
-        {
-          seq: 3,
-          time: "T+6h",
-          phase: "Containment",
-          severity: "Critical",
-          narrative:
-            "Memory scraping malware is discovered on multiple payment endpoints. There are signs of card data exfiltration over several days.",
-          decision: {
-            question: "What containment action is appropriate?",
-            options: {
-              A: "Isolate affected payment systems, switch to fallback processes and engage PCI forensics.",
-              B: "Only re-image obviously compromised devices and continue operations.",
-              C: "Wait for full malware reverse engineering before acting."
+              A: "Immediately revoke all AWS IAM tokens and rotate secrets across all environments.",
+              B: "Revoke only the developer IAM token that first triggered alerts.",
+              C: "Delay action until cloud forensics completes a full analysis."
             }
           }
         },
         {
           seq: 4,
-          time: "T+1d",
+          time: "T+1h10m",
           phase: "Eradication",
           severity: "High",
           narrative:
-            "Forensic partners confirm that card data for multiple regions has been accessed, and regulators will need to be notified.",
+            "A review reveals that several builds in the last 48 hours pulled the malicious package. Containers deployed to staging may contain the trojan, and build artifacts cannot be trusted. Developers raise concerns that automated scanning tools did not detect the tampering.",
           decision: {
-            question: "How should leadership respond?",
+            question: "What eradication strategy is appropriate?",
             options: {
-              A: "Activate crisis communications and prepare regulator and acquirer notifications.",
-              B: "Keep the incident tightly held and avoid written records.",
-              C: "Delay notifications until all legal opinions are finalised."
+              A: "Purge all potentially affected artifacts and rebuild from clean, verified packages.",
+              B: "Only rebuild the services showing suspicious network activity.",
+              C: "Continue using deployed containers while preparing a longer-term cleanup plan."
+            }
+          }
+        },
+        {
+          seq: 5,
+          time: "T+2h",
+          phase: "Recovery",
+          severity: "Medium",
+          narrative:
+            "Freezing CI/CD pipelines causes delays in hotel, booking, loyalty, and payments-related deployments. Business stakeholders demand clarity on when systems will resume normal deployment operations and some teams request urgent hotfixes.",
+          decision: {
+            question: "How should leadership balance security recovery and business needs?",
+            options: {
+              A: "Maintain the freeze until full environment integrity is assured.",
+              B: "Allow deployments from a small set of agreed critical teams.",
+              C: "Lift the freeze entirely and rely on manual monitoring."
+            }
+          }
+        },
+        {
+          seq: 6,
+          time: "T+4h",
+          phase: "Communications",
+          severity: "High",
+          narrative:
+            "Cybersecurity vendors and media outlets start reporting on Shai-Hulud 2.0 globally. RWS receives requests from partners seeking confirmation of exposure due to shared dependencies, and there is concern about potential regulatory obligations if API keys or customer data were compromised.",
+          decision: {
+            question: "What communication approach should RWS take?",
+            options: {
+              A: "Prepare controlled disclosures to partners and regulators based on the forensic timeline.",
+              B: "Wait for internal legal review before acknowledging anything.",
+              C: "Issue a broad statement that RWS is unaffected without confirming."
             }
           }
         }
       ]
     },
-    insider: {
-      title: "Insider Threat in Reservations & Loyalty",
+    apiAbuse: {
+      title: "Stolen API Keys – Multi-Actor Abuse",
       description:
-        "Privileged access in reservations and loyalty systems is abused, leading to potential guest data and points theft.",
+        "Stolen API keys from the supply chain incident are now being sold and abused by multiple threat actors, driving crypto mining, spam, data harvesting and API access-as-a-service from RWS cloud environments.",
       injects: [
         {
           seq: 1,
           time: "T+00m",
           phase: "Intel",
-          severity: "Low",
+          severity: "Medium",
           narrative:
-            "Audit logs show an internal user account exporting large reservation reports outside of normal business hours.",
+            "Threat intelligence alerts indicate that several RWS-related API tokens are listed for sale on a criminal marketplace. Listings mention that the keys originate from a recent supply chain compromise and highlight different levels of access and scope.",
           decision: {
-            question: "What is the appropriate first step?",
+            question: "What should RWS do with this intelligence?",
             options: {
-              A: "Flag the activity, preserve logs and start a quiet investigation.",
-              B: "Ignore it as likely reporting activity.",
-              C: "Immediately disable the account and inform the whole department."
+              A: "Immediately rotate all potentially exposed API keys across affected environments.",
+              B: "Monitor dark web chatter for a few more hours before acting.",
+              C: "Inform business teams but take no technical action yet."
             }
           }
         },
         {
           seq: 2,
-          time: "T+1d",
+          time: "T+25m",
           phase: "Detection",
-          severity: "Medium",
+          severity: "High",
           narrative:
-            "Loyalty system reports a spike in manual points adjustments linked to the same user ID.",
+            "Cloud monitoring alerts detect abnormal compute spikes in multiple regions. Logs show unauthorized container deployments using stolen keys, with workloads clearly running cryptocurrency miners. Cloud costs start increasing rapidly.",
           decision: {
-            question: "How should you respond to this pattern?",
+            question: "How should RWS respond to this first wave of abuse?",
             options: {
-              A: "Correlate activity across systems, involve HR and legal, and tighten monitoring.",
-              B: "Ask the user informally what they are doing.",
-              C: "Silently roll back adjustments but take no further action."
+              A: "Immediately revoke the abused keys and isolate workloads created via unauthorized API calls.",
+              B: "Throttle compute limits and continue watching activity for patterns.",
+              C: "Ignore for now since no customer data exfiltration is detected."
             }
           }
         },
         {
           seq: 3,
-          time: "T+1d+4h",
+          time: "T+1h",
           phase: "Containment",
           severity: "High",
           narrative:
-            "Evidence suggests the user has shared credentials and that guest contact data may have been exported.",
+            "A separate actor begins using another set of stolen keys to send mass email spam from RWS cloud infrastructure. Several RWS IPs are added to spam blacklists, and customer-facing email is delayed or rejected.",
           decision: {
-            question: "What containment approach makes sense?",
+            question: "What is the correct containment strategy for this wave?",
             options: {
-              A: "Suspend access, preserve evidence, and initiate a formal insider investigation.",
-              B: "Restrict only external access while leaving internal access unchanged.",
-              C: "Wait for a full data classification before acting."
+              A: "Revoke all compromised keys and temporarily disable API-based mail capabilities.",
+              B: "Only revoke the keys used in the spam activity and ask providers to delist RWS.",
+              C: "Request delisting from email filtering vendors but continue normal email traffic."
             }
           }
         },
         {
           seq: 4,
-          time: "T+2d",
-          phase: "Eradication / Recovery",
-          severity: "Medium",
+          time: "T+1h40m",
+          phase: "Eradication",
+          severity: "Critical",
           narrative:
-            "You need to decide how to handle affected guests and potential regulatory questions about insider risk controls.",
+            "Network logs detect suspicious API calls enumerating internal services, loyalty profiles, and analytics platforms. The calls mimic legitimate business traffic and appear to come from scripts sold as API access-as-a-service.",
           decision: {
-            question: "What should leadership focus on now?",
+            question: "What eradication action should RWS take now?",
             options: {
-              A: "Communicate transparently to affected guests and regulators based on legal advice.",
-              B: "Minimise disclosure and focus only on internal disciplinary action.",
-              C: "Wait until press or social media picks it up before responding."
+              A: "Conduct mass revocation and regeneration of all API keys across all systems.",
+              B: "Only revoke keys associated with clearly verified abuse.",
+              C: "Disable API gateways completely for several hours to stop all traffic."
+            }
+          }
+        },
+        {
+          seq: 5,
+          time: "T+3h",
+          phase: "Recovery",
+          severity: "High",
+          narrative:
+            "Cloud expenditure has increased by 500% within hours. Finance escalates concerns about runaway costs while some business teams complain about degraded functionality after key revocations.",
+          decision: {
+            question: "How should leadership manage financial impact during recovery?",
+            options: {
+              A: "Activate cloud provider emergency credit controls and enforce strict workload throttling.",
+              B: "Raise budget alerts but temporarily relax some controls to preserve business services.",
+              C: "Ignore costs until the technical investigation is fully complete."
+            }
+          }
+        },
+        {
+          seq: 6,
+          time: "T+5h",
+          phase: "Communications",
+          severity: "High",
+          narrative:
+            "Media outlets report that RWS API keys have been used by multiple threat actors to support fraud and abuse campaigns globally. Partners demand clarity, and legal teams request a unified external statement.",
+          decision: {
+            question: "What communication strategy should RWS adopt?",
+            options: {
+              A: "Issue a controlled statement acknowledging exposure and describing remediation steps.",
+              B: "Delay all communication until legal completes a full review.",
+              C: "Deny any involvement until investigators provide absolute technical proof."
+            }
+          }
+        }
+      ]
+    },
+    lbCompromise: {
+      title: "Load Balancer Firmware/Software Compromise",
+      description:
+        "RWS load balancer infrastructure has been compromised at the firmware/software level, enabling attackers to intercept, modify and redirect traffic while disabling protections and harvesting credentials at scale.",
+      injects: [
+        {
+          seq: 1,
+          time: "T+00m",
+          phase: "Intel",
+          severity: "High",
+          narrative:
+            "The NOC reports intermittent latency spikes across guest Wi-Fi portals, loyalty systems, and booking APIs. Load balancer telemetry shows unusual patterns in TLS handshakes, but operational teams initially suspect misconfiguration or transient network conditions.",
+          decision: {
+            question: "How should RWS treat these initial signs?",
+            options: {
+              A: "Escalate to a potential security incident due to unusual handshake behaviour.",
+              B: "Ask NOC to continue monitoring before involving security.",
+              C: "Consider it a transient network glitch and wait for it to clear."
+            }
+          }
+        },
+        {
+          seq: 2,
+          time: "T+20m",
+          phase: "Detection",
+          severity: "Critical",
+          narrative:
+            "Security tooling detects modifications in HTTP headers passing through the load balancer. Some sessions appear to be partially decrypted, and there are signs of attempted JavaScript injection into loyalty login traffic.",
+          decision: {
+            question: "What is the appropriate detection response?",
+            options: {
+              A: "Treat the load balancer as compromised and isolate it immediately.",
+              B: "Collect more evidence while keeping all devices online.",
+              C: "Allow traffic to continue to avoid guest-facing disruption."
+            }
+          }
+        },
+        {
+          seq: 3,
+          time: "T+40m",
+          phase: "Containment",
+          severity: "Critical",
+          narrative:
+            "The vendor confirms that attackers exploited a firmware-level vulnerability allowing extraction of SSL/TLS private keys and disabling of DDoS protection modules. Traffic may already have been redirected to attacker-controlled endpoints.",
+          decision: {
+            question: "What containment action should RWS take?",
+            options: {
+              A: "Immediately remove compromised load balancers from rotation and activate emergency failover paths.",
+              B: "Keep the load balancers online but restrict certain high-risk services.",
+              C: "Wait for vendor patches before taking disruptive action."
+            }
+          }
+        },
+        {
+          seq: 4,
+          time: "T+1h30m",
+          phase: "Eradication",
+          severity: "Critical",
+          narrative:
+            "More than 50,000 requests per second are flowing through the compromised infrastructure. Investigation reveals that attackers are intercepting credentials for staff, vendors, and guests, including loyalty accounts and booking management sessions.",
+          decision: {
+            question: "What eradication strategy should be used?",
+            options: {
+              A: "Replace all affected load balancers with clean hardware or reimaged firmware immediately.",
+              B: "Only replace the primary load balancer and monitor the remaining devices closely.",
+              C: "Rely on firewall rules around the existing load balancers while continuing normal operations."
+            }
+          }
+        },
+        {
+          seq: 5,
+          time: "T+2h30m",
+          phase: "Recovery",
+          severity: "High",
+          narrative:
+            "Failover actions degrade performance across booking, loyalty, and Wi-Fi portals. Guests experience slow logins and intermittent failures. Senior management demands restoration timelines and a clear assessment of ongoing risk.",
+          decision: {
+            question: "How should recovery be prioritised?",
+            options: {
+              A: "Restore core guest-facing systems first and accept degradation on internal systems.",
+              B: "Restore internal systems first to stabilise operational tooling and support teams.",
+              C: "Attempt to restore all systems equally, even if it prolongs guest impact."
+            }
+          }
+        },
+        {
+          seq: 6,
+          time: "T+4h",
+          phase: "Communications",
+          severity: "High",
+          narrative:
+            "A security researcher posts evidence that RWS load balancer traffic was redirected to attacker-controlled servers. Regulators request immediate details on potential personal data exposure, and media enquiries begin arriving.",
+          decision: {
+            question: "What communication strategy should leadership adopt?",
+            options: {
+              A: "Issue a transparent statement acknowledging compromise and outlining containment and next steps.",
+              B: "Delay public announcements until completing full forensics and legal review.",
+              C: "Avoid confirming any compromise until regulators formally demand written disclosure."
             }
           }
         }
       ]
     }
   };
+
+  const app = initializeApp(firebaseConfig);  };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
