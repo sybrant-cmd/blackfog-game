@@ -371,12 +371,10 @@ let currentSeq = null;
       return;
     }
     scenarioStatus = sc.status || "idle";
-    if (!sc.title) {
+    if (!sc.title || scenarioStatus !== "started") {
       scenarioBox.textContent = "Waiting for facilitator to start the session...";
-    } else if (scenarioStatus === "started") {
+    } else {
       scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
-    } else if (scenarioStatus === "ended") {
-      scenarioBox.textContent = sc.title + "\n\n(Session ended — awaiting AAR)";
     }
   });;
 
