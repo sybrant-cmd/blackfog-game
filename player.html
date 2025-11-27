@@ -319,7 +319,7 @@ let currentSeq = null;
     }, 7000);
   }
 
-  function buildVcisoAdvice(inj) {
+    function buildVcisoAdvice(inj) {
     const narrative = (inj.narrative || "").toLowerCase();
     const phase = (inj.phase || "").toLowerCase();
     const sev = (inj.severity || "").toLowerCase();
@@ -327,29 +327,97 @@ let currentSeq = null;
     let meta = "Virtual CISO perspective on this inject.";
     const bodyLines = [];
 
-    if (phase.includes("intel") || narrative.includes("password reset") || narrative.includes("service desk") || narrative.includes("helpdesk")) {
+    // New: supply chain and PyPI / CI/CD compromise
+    if (
+      narrative.includes("pypi") ||
+      narrative.includes("supply chain") ||
+      narrative.includes("dependency") ||
+      narrative.includes("ci/cd") ||
+      narrative.includes("package")
+    ) {
+      meta = "Software supply chain and dependency risk.";
+      bodyLines.push("Treat third-party packages, especially from public repositories, as untrusted until vetted and pinned to known-good versions.");
+      bodyLines.push("Introduce allow-listing of critical dependencies, software bills of materials (SBOMs) and integrity checks in CI/CD.");
+      bodyLines.push("Design cloud and secret management so that build pipelines use short-lived, least-privilege credentials only.");
+    }
+    // New: API key theft and multi-actor abuse
+    else if (
+      narrative.includes("api key") ||
+      narrative.includes("api keys") ||
+      narrative.includes("tokens") ||
+      narrative.includes("crypto") ||
+      narrative.includes("mining") ||
+      narrative.includes("fraud") ||
+      narrative.includes("marketplace")
+    ) {
+      meta = "API key lifecycle, blast radius and cloud cost control.";
+      bodyLines.push("API keys must be treated like passwords: rotate proactively, scope tightly and avoid long-lived secrets.");
+      bodyLines.push("Design kill-switches for bulk key revocation and put hard cost guardrails in the cloud provider to limit abuse.");
+      bodyLines.push("Monitor for abnormal usage patterns and consider separate keys per system or tenant to constrain impact.");
+    }
+    // New: load balancer, TLS, and traffic redirection
+    else if (
+      narrative.includes("load balancer") ||
+      narrative.includes("tls") ||
+      narrative.includes("ssl") ||
+      narrative.includes("firmware") ||
+      narrative.includes("mitm") ||
+      narrative.includes("redirected")
+    ) {
+      meta = "Critical infrastructure and encrypted traffic trust boundaries.";
+      bodyLines.push("Treat load balancers, reverse proxies and similar chokepoints as high-value assets requiring hardened builds and strong change control.");
+      bodyLines.push("Have a tested plan for rapid certificate and key rotation if TLS material is suspected to be compromised.");
+      bodyLines.push("Consider out-of-band monitoring and zero-trust patterns so trust does not hinge on a single infrastructure component.");
+    }
+    // Existing: social engineering / service desk
+    else if (
+      phase.includes("intel") ||
+      narrative.includes("password") ||
+      narrative.includes("service desk") ||
+      narrative.includes("helpdesk")
+    ) {
       meta = "Social engineering and identity verification.";
       bodyLines.push("Treat any request to change credentials, especially shared or privileged IDs, as high risk until identity is strongly verified.");
-      bodyLines.push("Service desk procedures should enforce call-back, ticket verification, or multi-factor checks before resetting passwords.");
+      bodyLines.push("Service desk procedures should enforce call-back, multi-factor verification or manager approval before resetting passwords.");
       bodyLines.push("Document the request, log the caller details, and escalate if anything feels unusual or rushed.");
-    } else if (phase.includes("detection") || narrative.includes("intermittent failures") || narrative.includes("queues are building")) {
+    }
+    // Existing: detection / instability across sites
+    else if (
+      phase.includes("detection") ||
+      narrative.includes("intermittent failures") ||
+      narrative.includes("queues are building")
+    ) {
       meta = "From symptoms to structured incident declaration.";
-      bodyLines.push("Multiple sites experiencing similar instability is a strong signal of a systemic or security issue, not just a local glitch.");
-      bodyLines.push("Move quickly from ad-hoc troubleshooting to a formal incident with clear ownership, communications, and logging/forensics enabled.");
-      bodyLines.push("Engage monitoring, check recent changes, and validate whether there are signs of compromise across environments.");
-    } else if (phase.includes("containment") || narrative.includes("ransom note") || narrative.includes("encrypted")) {
+      bodyLines.push("Multiple sites experiencing similar instability is often a signal of a systemic or security issue, not just a local glitch.");
+      bodyLines.push("Move quickly from ad-hoc troubleshooting to a formal incident with clear ownership and communications.");
+      bodyLines.push("Ensure logging, monitoring and forensics capture are enabled before making major changes.");
+    }
+    // Existing: containment / ransomware
+    else if (
+      phase.includes("containment") ||
+      narrative.includes("ransom note") ||
+      narrative.includes("encrypted")
+    ) {
       meta = "Containment of ransomware and lateral movement.";
       bodyLines.push("Once ransom notes and encryption are observed, assume the attacker has had dwell time and may still have access.");
-      bodyLines.push("Prioritise network segmentation, isolation of affected segments, and protection of clean environments and backups.");
+      bodyLines.push("Prioritise network segmentation, isolation of affected segments and protection of clean environments and backups.");
       bodyLines.push("Coordinate with legal and communications early, and ensure evidence preservation for later investigation.");
-    } else if (phase.includes("business") || narrative.includes("guests") || narrative.includes("media")) {
-      meta = "Guest impact, communications, and regulatory exposure.";
-      bodyLines.push("Public and guest-facing impact requires a coordinated message that is honest about disruption while avoiding unnecessary speculation.");
-      bodyLines.push("Align statements between technology, operations, and corporate communications to maintain trust and meet regulatory expectations.");
+    }
+    // Existing: business / media / guests
+    else if (
+      phase.includes("business") ||
+      narrative.includes("guests") ||
+      narrative.includes("media")
+    ) {
+      meta = "Guest impact, communications and regulatory exposure.";
+      bodyLines.push("Public and guest-facing impact requires a careful, honest communication strategy coordinated with leadership.");
+      bodyLines.push("Align statements between technology, operations, legal and communications to maintain trust and meet regulatory expectations.");
       bodyLines.push("Track commitments made to guests and regulators and ensure actions are consistent with those commitments.");
-    } else {
+    }
+    // Fallback: generic good practice
+    else {
       bodyLines.push("Clarify what has changed in the environment, who is impacted, and what data or systems may be at risk.");
-      bodyLines.push("Favour decisions that improve visibility and reduce attacker freedom of movement, even if they create short-term operational friction.");
+      bodyLines.push("Favour decisions that improve visibility and slow attacker movement, even if they create short-term operational friction.");
       bodyLines.push("Make sure roles and responsibilities are clear: who leads, who communicates, and who makes risk-based decisions.");
     }
 
@@ -358,6 +426,11 @@ let currentSeq = null;
     }
 
     return {
+      meta,
+      body: bodyLines.join(" ")
+    };
+  }
+return {
       meta,
       body: bodyLines.join(" ")
     };
@@ -436,7 +509,7 @@ let currentSeq = null;
 
   onValue(aarRef, snap => {
     const v = snap.val();
-    if (!v || !v.text || scenarioStatus !== "ended") return;
+    if (!v || !v.text) return;
     if (aarCard) aarCard.style.display = "block";
     aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
