@@ -511,4 +511,481 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  
+  const db = getDatabase(app);
+
+  const params = new URLSearchParams(location.search);
+  const sessionId = params.get("s") || "default";
+  document.getElementById("sessionLabel").textContent = sessionId;
+
+  const scenarioRef     = ref(db, "sessions/" + sessionId + "/scenario");
+  const injectsRef      = ref(db, "sessions/" + sessionId + "/injects");
+  const latestInjectRef = ref(db, "sessions/" + sessionId + "/latestInject");
+  const playersRef      = ref(db, "sessions/" + sessionId + "/players");
+  const votesRef        = ref(db, "sessions/" + sessionId + "/votes");
+  const aarRef          = ref(db, "sessions/" + sessionId + "/aar");
+
+  const scenarioTemplateSelect = document.getElementById("scenarioTemplateSelect");
+  const scenarioTitleEl  = document.getElementById("scenarioTitle");
+  const scenarioDescEl   = document.getElementById("scenarioDescription");
+  const scenarioTextEl   = document.getElementById("scenarioText");
+  const runStatusEl      = document.getElementById("runStatus");
+  const injectTimeEl     = document.getElementById("injectTime");
+  const injectPhaseEl    = document.getElementById("injectPhase");
+  const injectSeverityEl = document.getElementById("injectSeverity");
+  const injectNarrativeEl= document.getElementById("injectNarrative");
+  const decisionQuestionEl = document.getElementById("decisionQuestion");
+  const optAEl           = document.getElementById("optA");
+  const optBEl           = document.getElementById("optB");
+  const optCEl           = document.getElementById("optC");
+  const injectListEl     = document.getElementById("injectList");
+  const currentInjectBox = document.getElementById("currentInjectBox");
+  const votesBox         = document.getElementById("votesBox");
+  const playersBox       = document.getElementById("playersBox");
+  const playerCountEl    = document.getElementById("playerCount");
+  const aarBox           = document.getElementById("aarBox");
+  const tickerEl         = document.getElementById("ticker");
+
+  const loadScenarioBtn  = document.getElementById("loadScenarioBtn");
+  const saveScenarioBtn  = document.getElementById("saveScenarioBtn");
+  const startSessionBtn = document.getElementById("startSessionBtn");
+  const endSessionBtn   = document.getElementById("endSessionBtn");
+  const resetSessionBtn = document.getElementById("resetSessionBtn");
+  const updateInjectBtn  = document.getElementById("updateInjectBtn");
+  const sendNextBtn      = document.getElementById("sendNextBtn");
+  const buildAarBtn      = document.getElementById("buildAarBtn");
+  const broadcastAarBtn  = document.getElementById("broadcastAarBtn");
+
+  let injects   = [];
+  let currentSeq = null;
+  let editorSeq  = null;
+  let votesBySeq = {};
+  let scenarioStatus = "idle";
+  let tickerMessages = [];
+  let tickerIndex = 0;
+  const cyberNews = [
+    "Global hospitality group reports ransomware activity affecting booking and payment systems.",
+    "Phishing campaigns continue to target service desk and IT support staff in large enterprises.",
+    "Zero-day vulnerabilities in widely used VPN appliances highlight importance of patch management.",
+    "Ransomware operators increasingly use data theft and extortion before encryption.",
+    "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
+    "Regulators remind organisations to document incident response and customer communication plans."
+  ];
+
+  function pushTicker(msg) {
+    const ts = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    tickerMessages.unshift("[" + ts + "] " + msg);
+    if (tickerMessages.length > 25) tickerMessages.length = 25;
+  }
+
+  function startTicker() {
+    if (tickerMessages.length === 0) {
+      tickerMessages = cyberNews.slice();
+    }
+    setInterval(() => {
+      if (tickerMessages.length === 0) {
+        tickerEl.textContent = 'Ready. Click "Load template" to push scenario + injects to this session.';
+        return;
+      }
+      tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+      tickerEl.textContent = tickerMessages[tickerIndex];
+    }, 6000);
+  }
+
+  function computeTallyForSeq(seq) {
+    const votes = votesBySeq[seq] || {};
+    const tally = { A: 0, B: 0, C: 0 };
+    Object.values(votes).forEach(v => {
+      if (v.choice === "A") tally.A++;
+      else if (v.choice === "B") tally.B++;
+      else if (v.choice === "C") tally.C++;
+    });
+    return tally;
+  }
+
+  function computeMajority(tally) {
+    const arr = [["A", tally.A], ["B", tally.B], ["C", tally.C]];
+    arr.sort((a,b) => b[1] - a[1]);
+    if (arr[0][1] === 0) return null;
+    const top = arr[0][1];
+    const ties = arr.filter(x => x[1] === top).length;
+    return ties > 1 ? null : arr[0][0];
+  }
+
+  function renderScenarioText(sc) {
+    if (!sc) {
+      scenarioTextEl.textContent = "";
+      runStatusEl.textContent = "No scenario loaded yet.";
+      return;
+    }
+    scenarioTextEl.textContent = (sc.title || "") + "\n\n" + (sc.description || "");
+    const status = sc.status || scenarioStatus || "idle";
+    if (status === "ended") {
+      runStatusEl.textContent = "Session ended. You can review AAR and debrief.";
+    } else if (injects.length === 0) {
+      runStatusEl.textContent = "Scenario loaded. No injects?";
+    } else if (currentSeq == null) {
+      runStatusEl.textContent = "Scenario ready. Injects: " + injects.length + ". Click \"Send next inject\" to begin.";
+    } else {
+      const idx = injects.findIndex(i => i.seq === currentSeq);
+      runStatusEl.textContent = "Session in progress. Inject " + (idx + 1) + " of " + injects.length + " is current.";
+    }
+  }
+
+  function loadEditorFromInject(inj) {
+    if (!inj) {
+      editorSeq = null;
+      injectTimeEl.value = "";
+      injectPhaseEl.value = "";
+      injectSeverityEl.value = "";
+      injectNarrativeEl.value = "";
+      decisionQuestionEl.value = "";
+      optAEl.value = "";
+      optBEl.value = "";
+      optCEl.value = "";
+      return;
+    }
+    editorSeq = inj.seq;
+    injectTimeEl.value = inj.time || "";
+    injectPhaseEl.value = inj.phase || "";
+    injectSeverityEl.value = inj.severity || "";
+    injectNarrativeEl.value = inj.narrative || "";
+    const dec  = inj.decision || {};
+    const opts = dec.options || {};
+    decisionQuestionEl.value = dec.question || "";
+    optAEl.value = opts.A || "";
+    optBEl.value = opts.B || "";
+    optCEl.value = opts.C || "";
+  }
+
+  function renderInjectList() {
+    injectListEl.innerHTML = "";
+    if (injects.length === 0) {
+      injectListEl.textContent = "No injects.";
+      sendNextBtn.disabled = true;
+      return;
+    }
+    injects.forEach(inj => {
+      const div = document.createElement("div");
+      div.className = "inject-item" + (inj.seq === currentSeq ? " current" : "");
+      const left = document.createElement("div");
+      left.textContent = "#" + inj.seq + " " + (inj.phase || "");
+      const right = document.createElement("div");
+      right.innerHTML = "<span class='pill'>" + (inj.time || "") + "</span>";
+      div.appendChild(left);
+      div.appendChild(right);
+      div.onclick = () => {
+        loadEditorFromInject(inj);
+        renderCurrentInject();
+      };
+      injectListEl.appendChild(div);
+    });
+    sendNextBtn.disabled = false;
+  }
+
+  function renderCurrentInject() {
+    if (currentSeq == null) {
+      currentInjectBox.textContent = "No inject sent yet.";
+      votesBox.textContent = "No votes yet.";
+      return;
+    }
+    const inj = injects.find(i => i.seq === currentSeq);
+    if (!inj) {
+      currentInjectBox.textContent = "No inject sent yet.";
+      votesBox.textContent = "No votes yet.";
+      return;
+    }
+    const lines = [];
+    lines.push((inj.time || "") + " • " + (inj.phase || ""));
+    if (inj.severity) lines.push(inj.severity);
+    lines.push("");
+    lines.push(inj.narrative || "");
+    if (inj.decision && inj.decision.question) {
+      lines.push("");
+      lines.push("Decision: " + inj.decision.question);
+      const opts = inj.decision.options || {};
+      if (opts.A) lines.push("  A. " + opts.A);
+      if (opts.B) lines.push("  B. " + opts.B);
+      if (opts.C) lines.push("  C. " + opts.C);
+    }
+    currentInjectBox.textContent = lines.join("\n");
+
+    const tally    = computeTallyForSeq(currentSeq);
+    const majority = computeMajority(tally);
+    votesBox.innerHTML =
+      "<div><span class='badge'>A</span>" + tally.A + "</div>" +
+      "<div><span class='badge'>B</span>" + tally.B + "</div>" +
+      "<div><span class='badge'>C</span>" + tally.C + "</div>" +
+      "<div class='majority-label'>Majority: " + (majority || "None / Split") + "</div>";
+  }
+
+  function renderPlayers(snapshot) {
+    const now = Date.now();
+    const lines = [];
+    let active = 0;
+    snapshot.forEach(child => {
+      const v   = child.val() || {};
+      const ts  = v.ts || 0;
+      const age = now - ts;
+      const online = v.status === "online" && age < 90000;
+      if (!online) return;
+      active++;
+      lines.push((v.name || child.key) + " (online)");
+    });
+    if (active === 0) {
+      playersBox.textContent = "Waiting for players…";
+      playerCountEl.textContent = "0";
+    } else {
+      playersBox.textContent = lines.join("\n");
+      playerCountEl.textContent = String(active);
+    }
+  }
+
+  function sendNextInject() {
+    if (scenarioStatus !== "started") {
+      pushTicker("Start the exercise before sending injects.");
+      return;
+    }
+    if (injects.length === 0) {
+      pushTicker("No injects are configured for this session.");
+      return;
+    }
+    let seqToSend = null;
+    if (currentSeq == null) {
+      seqToSend = injects[0].seq;
+    } else {
+      const idx = injects.findIndex(i => i.seq === currentSeq);
+      if (idx >= 0 && idx < injects.length - 1) {
+        seqToSend = injects[idx + 1].seq;
+      }
+    }
+    if (seqToSend == null) {
+      pushTicker("Already at last inject.");
+      return;
+    }
+    const inj = injects.find(i => i.seq === seqToSend);
+    if (!inj) return;
+    currentSeq = seqToSend;
+    set(latestInjectRef, inj);
+    pushTicker("Inject #" + seqToSend + " sent.");
+    renderInjectList();
+    renderCurrentInject();
+  }
+
+  function buildAAR() {
+    if (injects.length === 0) {
+      aarBox.value = "No injects.";
+      return;
+    }
+    const lines = [];
+    lines.push("=== After-Action Review ===");
+    lines.push("");
+    let proactive = 0, cautious = 0, delayed = 0, noVotes = 0;
+
+    injects.forEach(inj => {
+      const tally    = computeTallyForSeq(inj.seq);
+      const majority = computeMajority(tally);
+      lines.push("Inject #" + inj.seq + " [" + (inj.time || "") + " | " + (inj.phase || "") + "]");
+      lines.push("Narrative: " + (inj.narrative || ""));
+      if (inj.decision && inj.decision.question) {
+        lines.push("Decision: " + inj.decision.question);
+        const opts = inj.decision.options || {};
+        if (opts.A) lines.push("  A. " + opts.A);
+        if (opts.B) lines.push("  B. " + opts.B);
+        if (opts.C) lines.push("  C. " + opts.C);
+      }
+      const total = tally.A + tally.B + tally.C;
+      lines.push("Votes → A: " + tally.A + "  B: " + tally.B + "  C: " + tally.C);
+      lines.push("Majority: " + (majority || "None / Split"));
+      lines.push("");
+
+      if (total === 0)      noVotes++;
+      else if (majority==="A") proactive++;
+      else if (majority==="B") cautious++;
+      else if (majority==="C") delayed++;
+    });
+
+    lines.push("--- Overall pattern ---");
+    lines.push("Proactive (A-majority) decisions: " + proactive);
+    lines.push("Cautious / wait (B-majority) decisions: " + cautious);
+    lines.push("Delay / least action (C-majority) decisions: " + delayed);
+    lines.push("Injects with no votes: " + noVotes);
+    lines.push("");
+    lines.push("Use this as a neutral starting point for your own discussion.");
+
+    aarBox.readOnly = false;
+    aarBox.value = lines.join("\n");
+    pushTicker("AAR built locally.");
+  }
+
+  function broadcastAAR() {
+    const text = aarBox.value || "";
+    set(aarRef, { text, ts: Date.now() })
+      .then(() => pushTicker("AAR broadcast to players."))
+      .catch(console.error);
+  }
+
+  // Handlers
+    loadScenarioBtn.onclick = () => {
+    const key = (scenarioTemplateSelect && scenarioTemplateSelect.value) || "ransomware";
+    const templateScenario = templateScenarios[key];
+    if (!templateScenario) {
+      alert("No template found for key: " + key);
+      return;
+    }
+    const scen = {
+      title: templateScenario.title,
+      description: templateScenario.description,
+      status: "configured"
+    };
+    set(scenarioRef, scen);
+    const injMap = {};
+    templateScenario.injects.forEach(inj => {
+      injMap[inj.seq] = inj;
+    });
+    set(injectsRef, injMap);
+    set(latestInjectRef, null);
+    set(votesRef, null);
+    set(aarRef, null);
+    currentSeq = null;
+    editorSeq  = null;
+    scenarioTitleEl.value = scen.title;
+    scenarioDescEl.value  = scen.description;
+    pushTicker("Template scenario (" + key + ") loaded into session.");
+  };
+
+  saveScenarioBtn.onclick = () => {
+    const title = scenarioTitleEl.value.trim();
+    const desc  = scenarioDescEl.value.trim();
+    if (!title) {
+      alert("Scenario title is required.");
+      return;
+    }
+    update(scenarioRef, { title, description: desc })
+      .then(() => pushTicker("Scenario text updated."))
+      .catch(console.error);
+  };
+
+  startSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "started", startedAt: Date.now() })
+      .then(() => pushTicker("Session started."))
+      .catch(console.error);
+  };
+
+  endSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "ended", endedAt: Date.now() })
+      .then(() => pushTicker("Session ended."))
+      .catch(console.error);
+  };
+
+  resetSessionBtn.onclick = () => {
+    Promise.all([
+      set(scenarioRef, null),
+      set(injectsRef, null),
+      set(latestInjectRef, null),
+      set(votesRef, null),
+      set(aarRef, null)
+    ]).then(() => {
+      injects = [];
+      currentSeq = null;
+      editorSeq = null;
+      votesBySeq = {};
+      scenarioStatus = "idle";
+      scenarioTitleEl.value = "";
+      scenarioDescEl.value = "";
+      scenarioTextEl.textContent = "";
+      runStatusEl.textContent = "Session reset. Click \"Load template\" to configure again.";
+      pushTicker("Session data cleared for this session id.");
+    }).catch(console.error);
+  };
+
+  updateInjectBtn.onclick = () => {
+    if (editorSeq == null) {
+      alert("Select an inject (click in list) before saving.");
+      return;
+    }
+    const time   = injectTimeEl.value.trim();
+    const phase  = injectPhaseEl.value.trim();
+    const sev    = injectSeverityEl.value.trim();
+    const narr   = injectNarrativeEl.value.trim();
+    const q      = decisionQuestionEl.value.trim();
+    const a      = optAEl.value.trim();
+    const b      = optBEl.value.trim();
+    const c      = optCEl.value.trim();
+    if (!narr) {
+      alert("Narrative is required.");
+      return;
+    }
+    const inj = { seq: editorSeq, time: time, phase: phase, severity: sev, narrative: narr };
+    if (q || a || b || c) {
+      inj.decision = { question: q, options: { A: a, B: b, C: c } };
+    }
+    set(ref(db, "sessions/" + sessionId + "/injects/" + editorSeq), inj)
+      .then(() => pushTicker("Inject #" + editorSeq + " updated."))
+      .catch(console.error);
+  };
+
+  sendNextBtn.onclick    = sendNextInject;
+  buildAarBtn.onclick    = buildAAR;
+  broadcastAarBtn.onclick= broadcastAAR;
+
+  // Listeners
+  onValue(scenarioRef, snap => {
+    const sc = snap.val();
+    if (sc) {
+      scenarioTitleEl.value = sc.title || "";
+      scenarioDescEl.value  = sc.description || "";
+      scenarioStatus = sc.status || "idle";
+    } else {
+      scenarioStatus = "idle";
+    }
+    renderScenarioText(sc);
+  });;
+
+  onValue(injectsRef, snap => {
+    const arr = [];
+    snap.forEach(child => {
+      const v = child.val();
+      if (!v) return;
+      v.seq = Number(v.seq || child.key);
+      arr.push(v);
+    });
+    arr.sort((a,b) => (a.seq || 0) - (b.seq || 0));
+    injects = arr;
+    renderScenarioText(snap.exists() ? { title: scenarioTitleEl.value, description: scenarioDescEl.value } : null);
+    renderInjectList();
+    if (injects.length && editorSeq == null) {
+      loadEditorFromInject(injects[0]);
+    }
+    renderCurrentInject();
+  });
+
+  onValue(playersRef, snap => renderPlayers(snap));
+
+  onValue(votesRef, snap => {
+    const bySeq = {};
+    snap.forEach(seqSnap => {
+      const seq = Number(seqSnap.key);
+      const inner = {};
+      seqSnap.forEach(voteSnap => inner[voteSnap.key] = voteSnap.val());
+      bySeq[seq] = inner;
+    });
+    votesBySeq = bySeq;
+    renderCurrentInject();
+  });
+
+  onValue(latestInjectRef, snap => {
+    const inj = snap.val();
+    if (!inj) {
+      currentSeq = null;
+      renderCurrentInject();
+      return;
+    }
+    currentSeq = Number(inj.seq || currentSeq);
+    renderInjectList();
+    renderCurrentInject();
+  });
+
+  startTicker();
+</script>
+</body>
+</html>
