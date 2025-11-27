@@ -509,10 +509,15 @@ return {
 
   onValue(aarRef, snap => {
     const v = snap.val();
-    if (!v || !v.text) return;
+    if (!v || !v.text) {
+        if (aarCard) aarCard.style.display = "none";
+        aarBox.innerHTML = "";
+        return;
+    }
     if (aarCard) aarCard.style.display = "block";
-    aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
-  });
+    aarBox.innerHTML = v.text.replace(/
+/g, "<br>");
+});
 </script>
 </body>
 </html>
