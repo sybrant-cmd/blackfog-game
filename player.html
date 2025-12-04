@@ -452,7 +452,7 @@ let currentSeq = null;
     } else {
       scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
     }
-  });;
+  }); // Removed extra semicolon
 
   onValue(latestInjectRef, snap => {
     const inj = snap.val();
@@ -482,3 +482,56 @@ let currentSeq = null;
     decisionQuestion.textContent = q;
 
     // vCISO advisory is shown immediately when inject arrives
+    const advice = buildVcisoAdvice(inj);
+    vcisoMeta.textContent = advice.meta;
+    vcisoBody.textContent = advice.body;
+
+    // Check if player has already voted for this inject
+    const voteCheckRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
+    let hasVoted = false;
+
+    onValue(voteCheckRef, voteSnap => {
+      const vote = voteSnap.val();
+      if (vote) {
+        hasVoted = true;
+        answerStatus.textContent = "You chose option " + vote.choice + ".";
+      }
+
+      // Render buttons after checking vote status
+      optionsBox.innerHTML = ""; // Clear existing buttons if any
+      ["A","B","C"].forEach(key => {
+        const label = opts[key];
+        if (!label) return;
+        const btn = document.createElement("button");
+        btn.textContent = key + ". " + label;
+        btn.disabled = hasVoted;
+        if (hasVoted && vote && vote.choice === key) {
+          btn.classList.add("selected");
+        }
+
+        btn.onclick = () => {
+          if (!playerName) {
+            alert("Please join with a name first.");
+            return;
+          }
+          const voteRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
+          set(voteRef, { choice: key, ts: Date.now() });
+          // The onValue listener will handle updating the UI (disabling/selection) after the vote is written
+        };
+        optionsBox.appendChild(btn);
+      });
+
+    }, { onlyOnce: false }); // Keeping it live for real-time updates of the selected button
+
+  });
+
+  startPlayerTicker();
+
+  onValue(aarRef, snap => {
+    const v = snap.val();
+    if (!v || !v.text) {
+      if (aarCard) aarCard.style.display = "none";
+      aarBox.innerHTML = "";
+    } else {
+      if (aarCard) aarCard.style.display = "block";
+      aarBox.innerHTML = v.text.replace(/\

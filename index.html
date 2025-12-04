@@ -409,3 +409,43 @@
             "B": "Revoke only the developer IAM token that first triggered alerts.",
             "C": "Delay major changes until cloud forensics completes a full analysis."
           }
+        }
+      },
+      {
+        "seq": 4,
+        "time": "T+1h10m",
+        "phase": "Eradication",
+        "severity": "High",
+        "narrative": "A review reveals that several builds in the last 48 hours pulled the malicious package. Containers deployed to staging may contain the trojan, and build artifacts cannot be trusted. Developers raise concerns that automated scanning tools did not detect the tampering.",
+        "decision": {
+          "question": "What eradication strategy is appropriate?",
+          "options": {
+            "A": "Purge all potentially affected artifacts and rebuild from clean, verified packages.",
+            "B": "Only rebuild the services showing suspicious network activity.",
+            "C": "Continue using deployed containers while preparing a longer-term cleanup plan."
+          }
+        }
+      },
+      {
+        "seq": 5,
+        "time": "T+2h",
+        "phase": "Recovery",
+        "severity": "Medium",
+        "narrative": "Freezing CI/CD pipelines causes delays in hotel, booking, loyalty and payments-related deployments. Business stakeholders demand clarity on when systems will resume normal deployment operations, and some teams request urgent hotfixes.",
+        "decision": {
+          "question": "How should leadership balance security recovery and business needs?",
+          "options": {
+            "A": "Maintain the freeze until full environment integrity is assured.",
+            "B": "Allow deployments from an agreed set of critical teams under strict controls.",
+            "C": "Lift the freeze entirely and rely on manual monitoring."
+          }
+        }
+      },
+      {
+        "seq": 6,
+        "time": "T+4h",
+        "phase": "Communications",
+        "severity": "High",
+        "narrative": "Cybersecurity vendors and media outlets start reporting on Shai-Hulud 2.0 globally. RWS receives requests from partners seeking confirmation of exposure due to shared dependencies, and there is concern about regulatory obligations if API keys or customer data were compromised.",
+        "decision": {
+          "question": "What
