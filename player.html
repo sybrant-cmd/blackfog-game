@@ -5,152 +5,205 @@
   <title>BlackFog TTX – Player</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
+    :root {
+      /* New Color Palette */
+      --color-bg-primary: #090e1a;
+      --color-bg-secondary: #151b2a;
+      --color-border: #2b3a50;
+      --color-text-primary: #e5e7eb;
+      --color-text-secondary: #94a3b8;
+      --color-accent-blue: #3b82f6;
+      --color-accent-green: #10b981;
+      --color-accent-danger: #ef4444;
+    }
+
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
       margin: 0;
       padding: 0;
-      background: #020617;
-      color: #e5e7eb;
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      line-height: 1.6;
     }
     header {
-      padding: 12px 20px;
-      background: #020617;
-      border-bottom: 1px solid #111827;
+      padding: 1rem 1.5rem;
+      background: var(--color-bg-secondary);
+      border-bottom: 1px solid var(--color-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     header h1 {
       margin: 0;
-      font-size: 18px;
-      letter-spacing: .08em;
+      font-size: 1.125rem;
+      letter-spacing: .1em;
       text-transform: uppercase;
     }
     header .session {
-      font-size: 11px;
+      font-size: 0.75rem;
       opacity: 0.8;
+      color: var(--color-text-secondary);
     }
     main {
       flex: 1;
-      padding: 14px 20px 10px;
-      max-width: 1100px;
+      padding: 1.5rem 1.25rem;
+      max-width: 1200px;
+      width: 100%;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.1fr);
-      gap: 14px;
+      grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.2fr);
+      gap: 1.5rem;
       align-items: flex-start;
+    }
+    @media (max-width: 900px) {
+        main {
+            grid-template-columns: 1fr;
+        }
+        #vcisoCard {
+            position: static !important;
+        }
     }
     #mainPane {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 1.5rem;
     }
     #vcisoCard {
       position: sticky;
-      top: 80px;
+      top: 1.5rem;
       align-self: flex-start;
     }
     .card {
-      background: #020617;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      padding: 10px 12px;
-      box-shadow: 0 14px 35px rgba(0,0,0,.55);
+      background: var(--color-bg-secondary);
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      padding: 1.25rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     }
     .card h2 {
-      margin: 0 0 6px 0;
-      font-size: 13px;
+      margin: 0 0 0.75rem 0;
+      font-size: 0.875rem;
       text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #9ca3af;
+      letter-spacing: .1em;
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.5rem;
     }
     .scenario {
-      font-size: 12px;
+      font-size: 0.875rem;
       opacity: 0.9;
-      margin-top: 6px;
+      margin-top: 0.75rem;
       white-space: pre-wrap;
     }
     .meta {
-      font-size: 12px;
+      font-size: 0.8125rem;
       opacity: 0.85;
-      margin-bottom: 6px;
+      margin-bottom: 0.5rem;
       white-space: pre-wrap;
+      color: var(--color-text-secondary);
     }
     .narrative {
       white-space: pre-wrap;
-      font-size: 13px;
-      line-height: 1.45;
-      margin-bottom: 8px;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      margin-bottom: 1rem;
     }
     .options button {
       display: block;
       width: 100%;
       text-align: left;
-      margin-bottom: 6px;
-      border-radius: 999px;
-      border: none;
-      padding: 8px 12px;
-      font-size: 13px;
-      background: #111827;
-      color: #e5e7eb;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      padding: 10px 15px;
+      font-size: 0.9375rem;
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
       cursor: pointer;
+      transition: all 0.2s;
     }
-    .options button:hover:not(:disabled) { background: #2563eb; }
-    .options button.selected { background: #16a34a; }
-    .options button:disabled { opacity: 0.7; cursor: default; }
+    .options button:hover:not(:disabled) { 
+      background: var(--color-accent-blue); 
+      border-color: var(--color-accent-blue);
+    }
+    .options button.selected { 
+      background: var(--color-accent-green); 
+      border-color: var(--color-accent-green);
+    }
+    .options button:disabled { opacity: 0.6; cursor: default; }
     .aar {
       white-space: pre-wrap;
-      font-size: 12px;
-      line-height: 1.4;
+      font-size: 0.8125rem;
+      line-height: 1.6;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: var(--color-bg-primary);
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      color: #cbd5e1;
     }
     #nameRow {
       display: flex;
-      gap: 8px;
+      gap: 0.5rem;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px dashed var(--color-border);
     }
     #nameRow input {
       flex: 1;
       font-family: inherit;
-      font-size: 12px;
-      background: #020617;
-      color: #e5e7eb;
-      border-radius: 8px;
-      border: 1px solid #374151;
-      padding: 4px 6px;
+      font-size: 0.875rem;
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      padding: 0.4rem 0.6rem;
+      transition: border-color 0.2s;
+    }
+    #nameRow input:focus {
+        outline: none;
+        border-color: var(--color-accent-blue);
     }
     #nameRow button {
-      border-radius: 999px;
+      border-radius: 6px;
       border: none;
-      padding: 5px 10px;
-      font-size: 12px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.875rem;
       cursor: pointer;
-      background: #2563eb;
-      color: #f9fafb;
+      background: var(--color-accent-blue);
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+    #nameRow button:disabled {
+        background: var(--color-bg-primary);
+        color: var(--color-accent-green);
+        border: 1px solid var(--color-accent-green);
+        cursor: default;
     }
     footer {
-      padding: 6px 20px 9px;
-      border-top: 1px solid #111827;
-      background: #020617;
-      font-size: 11px;
+      padding: 0.6rem 1.5rem 0.9rem;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg-secondary);
+      font-size: 0.6875rem;
       opacity: 0.85;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 0.5rem;
     }
     #playerTicker {
       flex: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: var(--color-text-secondary);
     }
     #footerHint {
       white-space: nowrap;
-      opacity: 0.8;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -227,7 +280,7 @@
   const sessionId = params.get("s") || "default";
   document.getElementById("sessionLabel").textContent = sessionId;
 
-  // --- NEW: Player ID and Name persistence via Local Storage ---
+  // --- Player ID and Name persistence via Local Storage ---
   let playerId = localStorage.getItem('playerId_' + sessionId);
   let playerName = localStorage.getItem('playerName_' + sessionId);
 
@@ -235,7 +288,7 @@
       playerId = "p-" + Math.random().toString(36).slice(2, 8);
       localStorage.setItem('playerId_' + sessionId, playerId);
   }
-  // --- END NEW ---
+  // --- END ---
 
   const scenarioRef    = ref(db, "sessions/" + sessionId + "/scenario");
   const latestInjectRef= ref(db, "sessions/" + sessionId + "/latestInject");
@@ -272,13 +325,13 @@ let currentSeq = null;
   // Ensure the facilitator always sees you
   if (aarCard) aarCard.style.display = "none";
 
-  // --- NEW: Pre-fill name and join status if name exists ---
+  // --- Pre-fill name and join status if name exists ---
   if (playerName) {
       playerNameInput.value = playerName;
       saveNameBtn.textContent = "Joined";
       saveNameBtn.disabled = true;
   }
-  // --- END NEW ---
+  // --- END ---
 
   (function initPresence() {
     const now = Date.now();
@@ -364,4 +417,68 @@ let currentSeq = null;
       meta = "Containment of ransomware and lateral movement.";
       bodyLines.push("Once ransom notes and encryption are observed, assume the attacker has had dwell time and may still have access.");
       bodyLines.push("Prioritise network segmentation, isolation of affected segments, and protection of clean environments and backups.");
-      bodyLines.push("Coordinate with
+      bodyLines.push("Coordinate with legal and communications early, and ensure evidence preservation for later investigation.");
+    } else if (phase.includes("business") || narrative.includes("guests") || narrative.includes("media")) {
+      meta = "Guest impact, communications, and regulatory exposure.";
+      bodyLines.push("Public and guest-facing impact requires a coordinated message that is honest about disruption while avoiding unnecessary speculation.");
+      bodyLines.push("Align statements between technology, operations, and corporate communications to maintain trust and meet regulatory expectations.");
+      bodyLines.push("Track commitments made to guests and regulators and ensure actions are consistent with those commitments.");
+    } else {
+      bodyLines.push("Clarify what has changed in the environment, who is impacted, and what data or systems may be at risk.");
+      bodyLines.push("Favour decisions that improve visibility and reduce attacker freedom of movement, even if they create short-term operational friction.");
+      bodyLines.push("Make sure roles and responsibilities are clear: who leads, who communicates, and who makes risk-based decisions.");
+    }
+
+    if (sev.includes("critical")) {
+      bodyLines.push("Given the critical severity, senior leadership and crisis management structures should be engaged early.");
+    }
+
+    return {
+      meta,
+      body: bodyLines.join(" ")
+    };
+  }
+
+  onValue(scenarioRef, snap => {
+    const sc = snap.val();
+    if (!sc) {
+      scenarioStatus = "idle";
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+      return;
+    }
+    scenarioStatus = sc.status || "idle";
+    if (!sc.title || scenarioStatus !== "started") {
+      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+    } else {
+      scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
+    }
+  });;
+
+  onValue(latestInjectRef, snap => {
+    const inj = snap.val();
+    if (!inj) {
+      injectMeta.textContent = "Waiting for facilitator to send an inject…";
+      injectNarrative.textContent = "";
+      decisionQuestion.textContent = "";
+      optionsBox.innerHTML = "";
+      answerStatus.textContent = "";
+      vcisoMeta.textContent = "Guidance will appear here for each inject.";
+      vcisoBody.textContent = "Waiting for the exercise to begin. Once injects start, this panel will highlight key risks and recommended actions from a virtual CISO perspective.";
+      return;
+    }
+    currentSeq = Number(inj.seq || 0);
+    const sev  = inj.severity || "";
+    injectMeta.textContent = (inj.time || "") + " • " + (inj.phase || "") + (sev ? " • " + sev : "");
+    injectNarrative.textContent = inj.narrative || "";
+    decisionQuestion.textContent = "";
+    optionsBox.innerHTML = "";
+    answerStatus.textContent = "";
+
+    pushPlayerTicker("Inject #" + currentSeq + " received (" + (inj.phase || "Phase") + ").");
+
+    const dec  = inj.decision || {};
+    const q    = dec.question || "";
+    const opts = dec.options || {};
+    decisionQuestion.textContent = q;
+
+    // vCISO advisory is shown immediately when inject arrives
