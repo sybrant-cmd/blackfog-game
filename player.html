@@ -452,7 +452,7 @@ let currentSeq = null;
     } else {
       scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
     }
-  }); // Removed extra semicolon
+  });
 
   onValue(latestInjectRef, snap => {
     const inj = snap.val();
@@ -534,4 +534,10 @@ let currentSeq = null;
       aarBox.innerHTML = "";
     } else {
       if (aarCard) aarCard.style.display = "block";
-      aarBox.innerHTML = v.text.replace(/\
+      aarBox.innerHTML = v.text.replace(/\n/g, '<br>');
+    }
+  });
+
+</script>
+</body>
+</html>
