@@ -427,10 +427,7 @@
 
   onValue(aarRef, snap => {
     const v = snap.val();
-    if (!v || !v.text) {
-      aarBox.innerHTML = "";
-      return;
-    }
+    if (!v || !v.text || scenarioStatus !== "ended") return;
     aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
 </script>
