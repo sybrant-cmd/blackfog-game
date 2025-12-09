@@ -5,205 +5,152 @@
   <title>BlackFog TTX – Player</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    :root {
-      /* New Color Palette */
-      --color-bg-primary: #090e1a;
-      --color-bg-secondary: #151b2a;
-      --color-border: #2b3a50;
-      --color-text-primary: #e5e7eb;
-      --color-text-secondary: #94a3b8;
-      --color-accent-blue: #3b82f6;
-      --color-accent-green: #10b981;
-      --color-accent-danger: #ef4444;
-    }
-
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       padding: 0;
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
+      background: #020617;
+      color: #e5e7eb;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      line-height: 1.6;
     }
     header {
-      padding: 1rem 1.5rem;
-      background: var(--color-bg-secondary);
-      border-bottom: 1px solid var(--color-border);
+      padding: 12px 20px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     header h1 {
       margin: 0;
-      font-size: 1.125rem;
-      letter-spacing: .1em;
+      font-size: 18px;
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
     header .session {
-      font-size: 0.75rem;
+      font-size: 11px;
       opacity: 0.8;
-      color: var(--color-text-secondary);
     }
     main {
       flex: 1;
-      padding: 1.5rem 1.25rem;
-      max-width: 1200px;
-      width: 100%;
+      padding: 14px 20px 10px;
+      max-width: 1100px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.2fr);
-      gap: 1.5rem;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.1fr);
+      gap: 14px;
       align-items: flex-start;
-    }
-    @media (max-width: 900px) {
-        main {
-            grid-template-columns: 1fr;
-        }
-        #vcisoCard {
-            position: static !important;
-        }
     }
     #mainPane {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 14px;
     }
     #vcisoCard {
       position: sticky;
-      top: 1.5rem;
+      top: 80px;
       align-self: flex-start;
     }
     .card {
-      background: var(--color-bg-secondary);
-      border-radius: 10px;
-      border: 1px solid var(--color-border);
-      padding: 1.25rem;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 10px 12px;
+      box-shadow: 0 14px 35px rgba(0,0,0,.55);
     }
     .card h2 {
-      margin: 0 0 0.75rem 0;
-      font-size: 0.875rem;
+      margin: 0 0 6px 0;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--color-text-secondary);
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 0.5rem;
+      letter-spacing: .08em;
+      color: #9ca3af;
     }
     .scenario {
-      font-size: 0.875rem;
+      font-size: 12px;
       opacity: 0.9;
-      margin-top: 0.75rem;
+      margin-top: 6px;
       white-space: pre-wrap;
     }
     .meta {
-      font-size: 0.8125rem;
+      font-size: 12px;
       opacity: 0.85;
-      margin-bottom: 0.5rem;
+      margin-bottom: 6px;
       white-space: pre-wrap;
-      color: var(--color-text-secondary);
     }
     .narrative {
       white-space: pre-wrap;
-      font-size: 0.9375rem;
-      line-height: 1.5;
-      margin-bottom: 1rem;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 8px;
     }
     .options button {
       display: block;
       width: 100%;
       text-align: left;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid var(--color-border);
-      padding: 10px 15px;
-      font-size: 0.9375rem;
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
+      margin-bottom: 6px;
+      border-radius: 999px;
+      border: none;
+      padding: 8px 12px;
+      font-size: 13px;
+      background: #111827;
+      color: #e5e7eb;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .options button:hover:not(:disabled) { 
-      background: var(--color-accent-blue); 
-      border-color: var(--color-accent-blue);
-    }
-    .options button.selected { 
-      background: var(--color-accent-green); 
-      border-color: var(--color-accent-green);
-    }
-    .options button:disabled { opacity: 0.6; cursor: default; }
+    .options button:hover:not(:disabled) { background: #2563eb; }
+    .options button.selected { background: #16a34a; }
+    .options button:disabled { opacity: 0.7; cursor: default; }
     .aar {
       white-space: pre-wrap;
-      font-size: 0.8125rem;
-      line-height: 1.6;
+      font-size: 12px;
+      line-height: 1.4;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: var(--color-bg-primary);
-      padding: 0.75rem;
-      border-radius: 6px;
-      border: 1px solid var(--color-border);
-      color: #cbd5e1;
     }
     #nameRow {
       display: flex;
-      gap: 0.5rem;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px dashed var(--color-border);
+      margin-bottom: 6px;
     }
     #nameRow input {
       flex: 1;
       font-family: inherit;
-      font-size: 0.875rem;
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
-      border-radius: 6px;
-      border: 1px solid var(--color-border);
-      padding: 0.4rem 0.6rem;
-      transition: border-color 0.2s;
-    }
-    #nameRow input:focus {
-        outline: none;
-        border-color: var(--color-accent-blue);
+      font-size: 12px;
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      padding: 4px 6px;
     }
     #nameRow button {
-      border-radius: 6px;
+      border-radius: 999px;
       border: none;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.875rem;
+      padding: 5px 10px;
+      font-size: 12px;
       cursor: pointer;
-      background: var(--color-accent-blue);
-      color: var(--color-text-primary);
-      font-weight: 500;
-    }
-    #nameRow button:disabled {
-        background: var(--color-bg-primary);
-        color: var(--color-accent-green);
-        border: 1px solid var(--color-accent-green);
-        cursor: default;
+      background: #2563eb;
+      color: #f9fafb;
     }
     footer {
-      padding: 0.6rem 1.5rem 0.9rem;
-      border-top: 1px solid var(--color-border);
-      background: var(--color-bg-secondary);
-      font-size: 0.6875rem;
+      padding: 6px 20px 9px;
+      border-top: 1px solid #111827;
+      background: #020617;
+      font-size: 11px;
       opacity: 0.85;
       display: flex;
       justify-content: space-between;
-      gap: 0.5rem;
+      gap: 8px;
     }
     #playerTicker {
       flex: 1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: var(--color-text-secondary);
     }
     #footerHint {
       white-space: nowrap;
-      opacity: 0.7;
+      opacity: 0.8;
     }
   </style>
 </head>
@@ -235,7 +182,7 @@
       <div id="answerStatus" class="meta"></div>
     </div>
 
-    <div class="card" id="aarCard">
+    <div class="card">
       <h2>AAR</h2>
       <div id="aarBox" class="aar">
         The facilitator's AAR will appear here after the session has ended.
@@ -280,21 +227,12 @@
   const sessionId = params.get("s") || "default";
   document.getElementById("sessionLabel").textContent = sessionId;
 
-  // --- Player ID and Name persistence via Local Storage ---
-  let playerId = localStorage.getItem('playerId_' + sessionId);
-  let playerName = localStorage.getItem('playerName_' + sessionId);
-
-  if (!playerId) {
-      playerId = "p-" + Math.random().toString(36).slice(2, 8);
-      localStorage.setItem('playerId_' + sessionId, playerId);
-  }
-  // --- END ---
-
   const scenarioRef    = ref(db, "sessions/" + sessionId + "/scenario");
   const latestInjectRef= ref(db, "sessions/" + sessionId + "/latestInject");
   const aarRef         = ref(db, "sessions/" + sessionId + "/aar");
   const playerRootRef  = ref(db, "sessions/" + sessionId + "/players");
-  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);
+
+  const playerId       = "p-" + Math.random().toString(36).slice(2, 8);
 
   const playerNameInput= document.getElementById("playerNameInput");
   const saveNameBtn    = document.getElementById("saveNameBtn");
@@ -305,13 +243,11 @@
   const optionsBox     = document.getElementById("optionsBox");
   const answerStatus   = document.getElementById("answerStatus");
   const aarBox         = document.getElementById("aarBox");
-  const aarCard        = document.getElementById("aarCard");
   const vcisoMeta      = document.getElementById("vcisoMeta");
   const vcisoBody      = document.getElementById("vcisoBody");
   const playerTickerEl = document.getElementById("playerTicker");
 
-let scenarioStatus = "idle";
-let currentSeq = null;
+  const playerRef = ref(db, "sessions/" + sessionId + "/players/" + playerId);let scenarioStatus = "idle";
   let tickerMessages = [];
   let tickerIndex = 0;
   const cyberNews = [
@@ -322,27 +258,15 @@ let currentSeq = null;
     "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
     "Regulators remind organisations to document incident response and customer communication plans."
   ];
+  let playerName  = "";
+  let currentSeq  = null;
+
   // Ensure the facilitator always sees you
-  if (aarCard) aarCard.style.display = "none";
-
-  // --- Pre-fill name and join status if name exists ---
-  if (playerName) {
-      playerNameInput.value = playerName;
-      saveNameBtn.textContent = "Joined";
-      saveNameBtn.disabled = true;
-  }
-  // --- END ---
-
   (function initPresence() {
     const now = Date.now();
-    
-    // Set initial name and status based on persistence
-    const initialName = playerName || ("Player-" + playerId);
-    const initialStatus = playerName ? "online" : "pending";
-
     set(playerRef, {
-      name: initialName,
-      status: initialStatus,
+      name: "Player-" + playerId,
+      status: "pending",
       ts: now
     });
     onDisconnect(playerRef).update({
@@ -359,9 +283,6 @@ let currentSeq = null;
 
   function joinWithName() {
     playerName = playerNameInput.value.trim() || ("Player-" + playerId);
-    // NEW: Save name to local storage
-    localStorage.setItem('playerName_' + sessionId, playerName);
-    
     playerNameInput.value = playerName;
     saveNameBtn.textContent = "Joined";
     saveNameBtn.disabled = true;
@@ -441,16 +362,10 @@ let currentSeq = null;
 
   onValue(scenarioRef, snap => {
     const sc = snap.val();
-    if (!sc) {
-      scenarioStatus = "idle";
-      scenarioBox.textContent = "Waiting for facilitator to start the session...";
-      return;
-    }
-    scenarioStatus = sc.status || "idle";
-    if (!sc.title || scenarioStatus !== "started") {
-      scenarioBox.textContent = "Waiting for facilitator to start the session...";
+    if (!sc || !sc.title) {
+      scenarioBox.textContent = "Waiting for facilitator to load a scenario...";
     } else {
-      scenarioBox.textContent = sc.title + "\n\n" + (sc.description || "");
+      scenarioBox.textContent = sc.title + "\\n\\n" + (sc.description || "");
     }
   });
 
@@ -486,43 +401,26 @@ let currentSeq = null;
     vcisoMeta.textContent = advice.meta;
     vcisoBody.textContent = advice.body;
 
-    // Check if player has already voted for this inject
-    const voteCheckRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
-    let hasVoted = false;
-
-    onValue(voteCheckRef, voteSnap => {
-      const vote = voteSnap.val();
-      if (vote) {
-        hasVoted = true;
-        answerStatus.textContent = "You chose option " + vote.choice + ".";
-      }
-
-      // Render buttons after checking vote status
-      optionsBox.innerHTML = ""; // Clear existing buttons if any
-      ["A","B","C"].forEach(key => {
-        const label = opts[key];
-        if (!label) return;
-        const btn = document.createElement("button");
-        btn.textContent = key + ". " + label;
-        btn.disabled = hasVoted;
-        if (hasVoted && vote && vote.choice === key) {
-          btn.classList.add("selected");
+    ["A","B","C"].forEach(key => {
+      const label = opts[key];
+      if (!label) return;
+      const btn = document.createElement("button");
+      btn.textContent = key + ". " + label;
+      btn.onclick = () => {
+        if (!playerName) {
+          alert("Please join with a name first.");
+          return;
         }
-
-        btn.onclick = () => {
-          if (!playerName) {
-            alert("Please join with a name first.");
-            return;
-          }
-          const voteRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
-          set(voteRef, { choice: key, ts: Date.now() });
-          // The onValue listener will handle updating the UI (disabling/selection) after the vote is written
-        };
-        optionsBox.appendChild(btn);
-      });
-
-    }, { onlyOnce: false }); // Keeping it live for real-time updates of the selected button
-
+        const voteRef = ref(db, "sessions/" + sessionId + "/votes/" + currentSeq + "/" + playerId);
+        set(voteRef, { choice: key, ts: Date.now() });
+        answerStatus.textContent = "You chose option " + key + ".";
+        Array.from(optionsBox.children).forEach(b => {
+          b.disabled = true;
+          if (b === btn) b.classList.add("selected");
+        });
+      };
+      optionsBox.appendChild(btn);
+    });
   });
 
   startPlayerTicker();
@@ -530,14 +428,11 @@ let currentSeq = null;
   onValue(aarRef, snap => {
     const v = snap.val();
     if (!v || !v.text) {
-      if (aarCard) aarCard.style.display = "none";
       aarBox.innerHTML = "";
-    } else {
-      if (aarCard) aarCard.style.display = "block";
-      aarBox.innerHTML = v.text.replace(/\n/g, '<br>');
+      return;
     }
+    aarBox.innerHTML = v.text.replace(/\n/g, "<br>");
   });
-
 </script>
 </body>
 </html>

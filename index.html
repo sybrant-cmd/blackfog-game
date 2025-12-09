@@ -5,229 +5,179 @@
   <title>BlackFog TTX – Facilitator</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    :root {
-      /* New Color Palette */
-      --color-bg-primary: #090e1a;
-      --color-bg-secondary: #151b2a;
-      --color-border: #2b3a50;
-      --color-text-primary: #e5e7eb;
-      --color-text-secondary: #94a3b8;
-      --color-accent-blue: #3b82f6;
-      --color-accent-green: #10b981;
-      --color-accent-danger: #ef4444;
-    }
-
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       padding: 0;
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
+      background: #020617;
+      color: #e5e7eb;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      line-height: 1.6;
     }
     header {
-      padding: 1rem 1.5rem;
-      background: var(--color-bg-secondary);
-      border-bottom: 1px solid var(--color-border);
+      padding: 12px 20px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     header h1 {
       margin: 0;
-      font-size: 1.125rem;
-      letter-spacing: .1em;
+      font-size: 18px;
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
     header .session {
-      font-size: 0.75rem;
+      font-size: 11px;
       opacity: 0.8;
-      color: var(--color-text-secondary);
     }
     main {
       flex: 1;
-      padding: 1.5rem 1.25rem;
+      padding: 14px 20px 10px;
       display: grid;
       grid-template-columns: 2fr 1.5fr;
-      gap: 1.5rem;
+      gap: 14px;
     }
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
     }
     .card {
-      background: var(--color-bg-secondary);
-      border-radius: 10px;
-      border: 1px solid var(--color-border);
-      padding: 1.25rem;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      padding: 10px 12px;
+      box-shadow: 0 14px 35px rgba(0,0,0,.55);
     }
     .card h2 {
-      margin: 0 0 0.75rem 0;
-      font-size: 0.875rem;
+      margin: 0 0 6px 0;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--color-text-secondary);
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 0.5rem;
+      letter-spacing: .08em;
+      color: #9ca3af;
     }
     .row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 8px;
       align-items: center;
-      margin-bottom: 0.75rem;
+      margin-bottom: 8px;
     }
     label {
-      font-size: 0.8125rem;
+      font-size: 12px;
       opacity: 0.85;
-      color: var(--color-text-secondary);
     }
-    input[type="text"], textarea, select {
+    input[type="text"], textarea {
       font-family: inherit;
-      font-size: 0.875rem;
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
-      border-radius: 6px;
-      border: 1px solid var(--color-border);
-      padding: 0.4rem 0.6rem;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus, textarea:focus, select:focus {
-        outline: none;
-        border-color: var(--color-accent-blue);
+      font-size: 12px;
+      background: #020617;
+      color: #e5e7eb;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      padding: 4px 6px;
     }
     input[type="text"] { min-width: 120px; }
     textarea {
       width: 100%;
       resize: vertical;
       min-height: 70px;
-      line-height: 1.5;
     }
     button {
-      border-radius: 6px;
+      border-radius: 999px;
       border: none;
-      padding: 0.4rem 0.75rem;
-      font-size: 0.8125rem;
+      padding: 6px 12px;
+      font-size: 12px;
       cursor: pointer;
       font-weight: 500;
-      transition: background 0.2s, opacity 0.2s;
     }
-    button.primary { background: var(--color-accent-blue); color: #fff; }
-    button.primary:hover:not(:disabled) { background: #60a5fa; }
-    button.secondary { background: var(--color-border); color: var(--color-text-primary); }
-    button.secondary:hover:not(:disabled) { background: #475569; }
-    button.danger { background: var(--color-accent-danger); color: #fff; }
-    button.danger:hover:not(:disabled) { background: #f87171; }
+    button.primary { background: #2563eb; color: #f9fafb; }
+    button.secondary { background: #374151; color: #e5e7eb; }
     button:disabled { opacity: .5; cursor: default; }
     .meta {
-      font-size: 0.75rem;
+      font-size: 11px;
       opacity: 0.85;
-      margin-top: 0.5rem;
+      margin-top: 4px;
       white-space: pre-wrap;
-      color: var(--color-text-secondary);
     }
     .scenario-text {
-      font-size: 0.875rem;
+      font-size: 12px;
       opacity: 0.9;
-      margin-top: 0.75rem;
+      margin-top: 6px;
       white-space: pre-wrap;
-      padding: 0.75rem;
-      border-radius: 6px;
-      background: var(--color-bg-primary);
-      border: 1px solid var(--color-border);
     }
     .inject-list {
       max-height: 200px;
       overflow-y: auto;
-      border-top: 1px dashed var(--color-border);
-      margin-top: 0.75rem;
-      padding-top: 0.5rem;
+      border-top: 1px dashed #111827;
+      margin-top: 6px;
+      padding-top: 4px;
     }
     .inject-item {
-      font-size: 0.875rem;
+      font-size: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.5rem 0.7rem;
-      border-radius: 6px;
-      margin-bottom: 0.4rem;
-      background: var(--color-bg-primary);
+      padding: 5px 7px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      background: #020617;
       cursor: pointer;
-      border: 1px solid transparent;
-      transition: background 0.2s;
-    }
-    .inject-item:hover {
-        background: #1e2536;
     }
     .inject-item.current {
-      border: 1px solid var(--color-accent-blue);
-      background: rgba(59, 130, 246, 0.1); /* Subtle blue background for current */
-      font-weight: 600;
+      border: 1px solid #2563eb;
+      background: radial-gradient(circle at top left, rgba(37,99,235,0.2), #020617 60%);
     }
     .pill {
-      font-size: 0.6875rem;
+      font-size: 11px;
       border-radius: 999px;
-      padding: 2px 8px;
-      background: #1f2937;
-      margin-left: 6px;
-      color: var(--color-text-secondary);
+      padding: 1px 6px;
+      background: #111827;
+      margin-left: 4px;
     }
     .current-inject {
       white-space: pre-wrap;
-      font-size: 0.9375rem;
-      line-height: 1.5;
-      padding: 0.75rem;
-      border-radius: 6px;
-      background: var(--color-bg-primary);
-      border: 1px solid var(--color-border);
+      font-size: 13px;
+      line-height: 1.45;
     }
     .votes {
-      font-size: 0.875rem;
+      font-size: 12px;
       line-height: 1.5;
     }
     .badge {
       display: inline-block;
       min-width: 22px;
       text-align: center;
-      border-radius: 4px;
+      border-radius: 999px;
       padding: 2px 6px;
-      background: var(--color-bg-primary);
-      margin-right: 8px;
-      border: 1px solid var(--color-border);
+      background: #020617;
+      margin-right: 6px;
     }
     .majority-label {
-      font-size: 0.8125rem;
+      font-size: 11px;
       opacity: 0.9;
-      margin-top: 0.5rem;
-      padding-top: 0.5rem;
-      border-top: 1px dashed var(--color-border);
+      margin-top: 4px;
     }
     .players {
-      font-size: 0.875rem;
+      font-size: 12px;
       max-height: 130px;
       overflow-y: auto;
       white-space: pre-wrap;
     }
     #aarBox {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.6875rem;
+      font-size: 11px;
       width: 100%;
       min-height: 90px;
-      background: var(--color-bg-primary);
-      border: 1px solid var(--color-border);
-      color: #cbd5e1;
     }
     footer {
-      padding: 0.6rem 1.5rem 0.9rem;
-      border-top: 1px solid var(--color-border);
-      background: var(--color-bg-secondary);
-      font-size: 0.6875rem;
+      padding: 6px 20px 9px;
+      border-top: 1px solid #111827;
+      background: #020617;
+      font-size: 11px;
       display: flex;
       justify-content: space-between;
-      gap: 0.5rem;
+      gap: 8px;
     }
     #ticker {
       flex: 1;
@@ -235,7 +185,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       opacity: 0.9;
-      color: var(--color-text-secondary);
     }
     #footerHint { opacity: 0.7; }
   </style>
@@ -253,17 +202,9 @@
     <div class="card">
       <h2>Scenario</h2>
       <div class="row">
-        <label for="scenarioTemplateSelect">Template</label>
-        <select id="scenarioTemplateSelect">
-          <option value="shaiHulud">Scenario 1 – Shai-Hulud 2.0 Supply Chain</option>
-          <option value="apiAbuse">Scenario 2 – Stolen API Keys & Multi-Actor Abuse</option>
-          <option value="lbCompromise">Scenario 3 – Load Balancer Compromise</option>
-        </select>
-      </div>
-      <div class="row">
         <label for="scenarioTitle">Title</label>
         <input type="text" id="scenarioTitle">
-        <button class="secondary" id="loadScenarioBtn">Load selected template</button>
+        <button class="secondary" id="loadScenarioBtn">Load template</button>
       </div>
       <div class="row">
         <textarea id="scenarioDescription" placeholder="Scenario summary..."></textarea>
@@ -272,7 +213,7 @@
         <button class="secondary" id="saveScenarioBtn">Save / update scenario text</button>
         <button class="primary" id="startSessionBtn">Start exercise</button>
         <button class="secondary" id="endSessionBtn">End session</button>
-        <button class="danger" id="resetSessionBtn">Reset session</button>
+        <button class="secondary" id="resetSessionBtn">Reset session</button>
       </div>
       <div id="scenarioText" class="scenario-text"></div>
       <div id="runStatus" class="meta">No scenario loaded yet.</div>
@@ -282,16 +223,16 @@
       <h2>Injects</h2>
       <div class="row">
         <label for="injectTime">Time</label>
-        <input type="text" id="injectTime" placeholder="T+00m" style="min-width: 80px;">
+        <input type="text" id="injectTime" placeholder="T+00m">
         <label for="injectPhase">Phase</label>
-        <input type="text" id="injectPhase" placeholder="Intel / Detection / Containment..." style="min-width: 140px;">
+        <input type="text" id="injectPhase" placeholder="Intel / Detection / Containment...">
         <label for="injectSeverity">Severity</label>
-        <input type="text" id="injectSeverity" placeholder="Medium / High / Critical" style="min-width: 140px;">
+        <input type="text" id="injectSeverity" placeholder="Medium / High / Critical">
       </div>
       <div class="row">
         <textarea id="injectNarrative" placeholder="Narrative..."></textarea>
       </div>
-      <div class="row" style="margin-top: 12px;">
+      <div class="row">
         <input type="text" id="decisionQuestion" placeholder="Decision question (optional)" style="flex:1;">
       </div>
       <div class="row">
@@ -346,7 +287,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import {
-    getDatabase, ref, set, update, onValue, remove
+    getDatabase, ref, set, update, onValue
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
   // Your existing Firebase project
@@ -361,247 +302,519 @@
   };
 
   // ONE hardcoded scenario + inject pack (you can add more later)
-  const templateScenarios = {
-  "shaiHulud": {
-    "title": "Shai-Hulud 2.0 \u2013 Supply Chain Attack",
-    "description": "RWS is impacted by a sophisticated supply chain attack against Python packages on PyPI, where trojanised dependencies steal credentials and exfiltrate cloud and source code secrets.",
-    "injects": [
+  const templateScenario = {
+    title: "Hospitality Operations Disruption & Ransomware",
+    description:
+      "A mix of social engineering and weak access controls leads to disruption across room, payment and loyalty systems, ending in ransomware.",
+    injects: [
       {
-        "seq": 1,
-        "time": "T+00m",
-        "phase": "Intel",
-        "severity": "Medium",
-        "narrative": "RWS developers report that a CI/CD pipeline job exited with warnings about a dependency mismatch for a Python package used by several internal services. Security researchers publicly disclose that a trojanised version of the same package has appeared on PyPI, containing credential-stealing malware.",
-        "decision": {
-          "question": "How should RWS respond to the initial intelligence?",
-          "options": {
-            "A": "Immediately disable CI/CD pipelines using the affected package and begin threat hunting.",
-            "B": "Continue operations normally while waiting for PyPI to provide more information.",
-            "C": "Ask developers to manually review logs but take no wider action yet."
+        seq: 1,
+        time: "T+00m",
+        phase: "Intel",
+        severity: "Medium",
+        narrative:
+          "Service desk receives a call from someone claiming to be from infrastructure, asking for a password reset on a shared admin ID used by property systems.",
+        decision: {
+          question: "What should the service desk do?",
+          options: {
+            A: "Enforce strict verification and refuse until identity is confirmed.",
+            B: "Reset quickly to be helpful and keep systems running.",
+            C: "Reset and email the shared mailbox afterwards."
           }
         }
       },
       {
-        "seq": 2,
-        "time": "T+20m",
-        "phase": "Detection",
-        "severity": "High",
-        "narrative": "Multiple CI runners begin making outbound network requests to an unfamiliar domain hosted on a foreign VPS provider. Traffic analysis shows bursts of encoded data being exfiltrated, and internal telemetry suggests that AWS temporary tokens may have been compromised.",
-        "decision": {
-          "question": "What is the appropriate detection-stage response?",
-          "options": {
-            "A": "Treat the event as active credential theft and escalate to a major incident.",
-            "B": "Place monitoring alerts and observe for another 30 minutes.",
-            "C": "Ask DevOps to rotate credentials next business day."
+        seq: 2,
+        time: "T+1d",
+        phase: "Detection",
+        severity: "High",
+        narrative:
+          "Room key and check-in systems show intermittent failures at multiple sites. Staff are falling back to manual processes and queues are building.",
+        decision: {
+          question: "How should technology teams respond?",
+          options: {
+            A: "Declare an incident with operations and central IT immediately.",
+            B: "Ask each site to reboot servers and observe.",
+            C: "Treat it as likely vendor instability and wait."
           }
         }
       },
       {
-        "seq": 3,
-        "time": "T+40m",
-        "phase": "Containment",
-        "severity": "Critical",
-        "narrative": "CloudTrail logs show API calls being made with valid but unexpected AWS IAM tokens. The calls enumerate S3 buckets, EKS clusters and Secrets Manager. Some originate from IPs in multiple geographies, suggesting the attacker is using the trojan payload to pivot into cloud infrastructure.",
-        "decision": {
-          "question": "How should containment be executed?",
-          "options": {
-            "A": "Immediately revoke all AWS IAM tokens and rotate secrets across all environments.",
-            "B": "Revoke only the developer IAM token that first triggered alerts.",
-            "C": "Delay major changes until cloud forensics completes a full analysis."
-          }
-        }
-      },
-      {
-        "seq": 4,
-        "time": "T+1h10m",
-        "phase": "Eradication",
-        "severity": "High",
-        "narrative": "A review reveals that several builds in the last 48 hours pulled the malicious package. Containers deployed to staging may contain the trojan, and build artifacts cannot be trusted. Developers raise concerns that automated scanning tools did not detect the tampering.",
-        "decision": {
-          "question": "What eradication strategy is appropriate?",
-          "options": {
-            "A": "Purge all potentially affected artifacts and rebuild from clean, verified packages.",
-            "B": "Only rebuild the services showing suspicious network activity.",
-            "C": "Continue using deployed containers while preparing a longer-term cleanup plan."
-          }
-        }
-      },
-      {
-        "seq": 5,
-        "time": "T+2h",
-        "phase": "Recovery",
-        "severity": "Medium",
-        "narrative": "Freezing CI/CD pipelines causes delays in hotel, booking, loyalty and payments-related deployments. Business stakeholders demand clarity on when systems will resume normal deployment operations, and some teams request urgent hotfixes.",
-        "decision": {
-          "question": "How should leadership balance security recovery and business needs?",
-          "options": {
-            "A": "Maintain the freeze until full environment integrity is assured.",
-            "B": "Allow deployments from an agreed set of critical teams under strict controls.",
-            "C": "Lift the freeze entirely and rely on manual monitoring."
-          }
-        }
-      },
-      {
-        "seq": 6,
-        "time": "T+4h",
-        "phase": "Communications",
-        "severity": "High",
-        "narrative": "Cybersecurity vendors and media outlets start reporting on Shai-Hulud 2.0 globally. RWS receives requests from partners seeking confirmation of exposure due to shared dependencies, and there is concern about regulatory obligations if API keys or customer data were compromised.",
-        "decision": {
-          "question": "What communication strategy is best for external stakeholders and regulators?",
-          "options": {
-            "A": "Proactively inform all partners and publish a public statement outlining remediation.",
-            "B": "Delay all external communication until full internal investigation is complete.",
-            "C": "Communicate only with regulators and partners who directly ask."
+        seq: 3,
+        time: "T+1d+4h",
+        phase: "Containment",
+        severity: "Critical",
+        narrative:
+          "Ransom notes appear on key hospitality and loyalty servers. Some file shares are encrypted. There are traces of credential dumping and lateral movement.",
+        decision: {
+          question: "What containment approach makes sense?",
+          options: {
+            A: "Segment and disconnect affected networks quickly, accepting guest impact.",
+            B: "Contain only obviously affected servers for now.",
+            C: "Delay major moves until ransom note is fully analysed."
           }
         }
       }
     ]
-  },
-  "apiAbuse": { "title": "Scenario 2 – Stolen API Keys & Multi-Actor Abuse", "description": "Compromised API keys are used by multiple malicious actors to perform data exfiltration and inject malicious code into client-side assets.", "injects": [] },
-  "lbCompromise": { "title": "Scenario 3 – Load Balancer Compromise", "description": "Attackers exploit a vulnerability in a legacy Load Balancer to gain network persistence and redirect traffic to a phishing site.", "injects": [] }
   };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
   const params = new URLSearchParams(location.search);
   const sessionId = params.get("s") || "default";
+  document.getElementById("sessionLabel").textContent = sessionId;
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db  = getDatabase(app);
-
-  // Database References
-  const sessionRef    = ref(db, "sessions/" + sessionId);
-  const scenarioRef   = ref(db, "sessions/" + sessionId + "/scenario");
-  const injectsRef    = ref(db, "sessions/" + sessionId + "/injects");
+  const scenarioRef     = ref(db, "sessions/" + sessionId + "/scenario");
+  const injectsRef      = ref(db, "sessions/" + sessionId + "/injects");
   const latestInjectRef = ref(db, "sessions/" + sessionId + "/latestInject");
-  const votesRef      = ref(db, "sessions/" + sessionId + "/votes");
-  const playersRef    = ref(db, "sessions/" + sessionId + "/players");
-  const aarRef        = ref(db, "sessions/" + sessionId + "/aar");
+  const playersRef      = ref(db, "sessions/" + sessionId + "/players");
+  const votesRef        = ref(db, "sessions/" + sessionId + "/votes");
+  const aarRef          = ref(db, "sessions/" + sessionId + "/aar");
 
-  // --- DOM Elements ---
-  const sessionLabel = document.getElementById("sessionLabel");
-  const playerCountEl = document.getElementById("playerCount");
-  const scenarioTemplateSelect = document.getElementById("scenarioTemplateSelect");
-  const scenarioTitle = document.getElementById("scenarioTitle");
-  const scenarioDescription = document.getElementById("scenarioDescription");
-  const loadScenarioBtn = document.getElementById("loadScenarioBtn");
-  const saveScenarioBtn = document.getElementById("saveScenarioBtn");
-  const startSessionBtn = document.getElementById("startSessionBtn");
-  const endSessionBtn = document.getElementById("endSessionBtn");
-  const resetSessionBtn = document.getElementById("resetSessionBtn");
-  const scenarioText = document.getElementById("scenarioText");
-  const runStatus = document.getElementById("runStatus");
-  const injectTime = document.getElementById("injectTime");
-  const injectPhase = document.getElementById("injectPhase");
-  const injectSeverity = document.getElementById("injectSeverity");
-  const injectNarrative = document.getElementById("injectNarrative");
-  const decisionQuestion = document.getElementById("decisionQuestion");
-  const optA = document.getElementById("optA");
-  const optB = document.getElementById("optB");
-  const optC = document.getElementById("optC");
-  const updateInjectBtn = document.getElementById("updateInjectBtn");
-  const sendNextBtn = document.getElementById("sendNextBtn");
-  const injectListEl = document.getElementById("injectList");
+  const scenarioTitleEl  = document.getElementById("scenarioTitle");
+  const scenarioDescEl   = document.getElementById("scenarioDescription");
+  const scenarioTextEl   = document.getElementById("scenarioText");
+  const runStatusEl      = document.getElementById("runStatus");
+  const injectTimeEl     = document.getElementById("injectTime");
+  const injectPhaseEl    = document.getElementById("injectPhase");
+  const injectSeverityEl = document.getElementById("injectSeverity");
+  const injectNarrativeEl= document.getElementById("injectNarrative");
+  const decisionQuestionEl = document.getElementById("decisionQuestion");
+  const optAEl           = document.getElementById("optA");
+  const optBEl           = document.getElementById("optB");
+  const optCEl           = document.getElementById("optC");
+  const injectListEl     = document.getElementById("injectList");
   const currentInjectBox = document.getElementById("currentInjectBox");
-  const votesBox = document.getElementById("votesBox");
-  const playersBox = document.getElementById("playersBox");
-  const aarBox = document.getElementById("aarBox");
-  const buildAarBtn = document.getElementById("buildAarBtn");
-  const broadcastAarBtn = document.getElementById("broadcastAarBtn");
-  const tickerEl = document.getElementById("ticker");
+  const votesBox         = document.getElementById("votesBox");
+  const playersBox       = document.getElementById("playersBox");
+  const playerCountEl    = document.getElementById("playerCount");
+  const aarBox           = document.getElementById("aarBox");
+  const tickerEl         = document.getElementById("ticker");
 
-  // --- Local State ---
-  let allInjects = [];
-  let currentScenario = { title: "", description: "", status: "idle" };
-  let selectedInjectIndex = -1;
-  let currentInject = null;
-  let totalPlayers = 0;
+  const loadScenarioBtn  = document.getElementById("loadScenarioBtn");
+  const saveScenarioBtn  = document.getElementById("saveScenarioBtn");
+  const startSessionBtn = document.getElementById("startSessionBtn");
+  const endSessionBtn   = document.getElementById("endSessionBtn");
+  const resetSessionBtn = document.getElementById("resetSessionBtn");
+  const updateInjectBtn  = document.getElementById("updateInjectBtn");
+  const sendNextBtn      = document.getElementById("sendNextBtn");
+  const buildAarBtn      = document.getElementById("buildAarBtn");
+  const broadcastAarBtn  = document.getElementById("broadcastAarBtn");
 
-  // --- Initial Setup ---
-  sessionLabel.textContent = sessionId;
-  playerCountEl.textContent = "0";
+  let injects   = [];
+  let currentSeq = null;
+  let editorSeq  = null;
+  let votesBySeq = {};
+  let scenarioStatus = "idle";
+  let tickerMessages = [];
+  let tickerIndex = 0;
+  const cyberNews = [
+    "Global hospitality group reports ransomware activity affecting booking and payment systems.",
+    "Phishing campaigns continue to target service desk and IT support staff in large enterprises.",
+    "Zero-day vulnerabilities in widely used VPN appliances highlight importance of patch management.",
+    "Ransomware operators increasingly use data theft and extortion before encryption.",
+    "Multi-factor authentication fatigue attacks observed across multiple sectors, including hospitality.",
+    "Regulators remind organisations to document incident response and customer communication plans."
+  ];
 
-  // --- Functions ---
-  function renderScenario() {
-    scenarioText.textContent = `${currentScenario.title}\n\n${currentScenario.description}`;
-    scenarioTitle.value = currentScenario.title;
-    scenarioDescription.value = currentScenario.description;
-    runStatus.textContent = `Status: ${currentScenario.status.toUpperCase()}`;
-    sendNextBtn.disabled = currentScenario.status !== 'started' || selectedInjectIndex < 0;
+  function pushTicker(msg) {
+    const ts = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    tickerMessages.unshift("[" + ts + "] " + msg);
+    if (tickerMessages.length > 25) tickerMessages.length = 25;
+  }
+
+  function startTicker() {
+    if (tickerMessages.length === 0) {
+      tickerMessages = cyberNews.slice();
+    }
+    setInterval(() => {
+      if (tickerMessages.length === 0) {
+        tickerEl.textContent = 'Ready. Click "Load template" to push scenario + injects to this session.';
+        return;
+      }
+      tickerIndex = (tickerIndex + 1) % tickerMessages.length;
+      tickerEl.textContent = tickerMessages[tickerIndex];
+    }, 6000);
+  }
+
+  function computeTallyForSeq(seq) {
+    const votes = votesBySeq[seq] || {};
+    const tally = { A: 0, B: 0, C: 0 };
+    Object.values(votes).forEach(v => {
+      if (v.choice === "A") tally.A++;
+      else if (v.choice === "B") tally.B++;
+      else if (v.choice === "C") tally.C++;
+    });
+    return tally;
+  }
+
+  function computeMajority(tally) {
+    const arr = [["A", tally.A], ["B", tally.B], ["C", tally.C]];
+    arr.sort((a,b) => b[1] - a[1]);
+    if (arr[0][1] === 0) return null;
+    const top = arr[0][1];
+    const ties = arr.filter(x => x[1] === top).length;
+    return ties > 1 ? null : arr[0][0];
+  }
+
+  function renderScenarioText(sc) {
+    if (!sc) {
+      scenarioTextEl.textContent = "";
+      runStatusEl.textContent = "No scenario loaded yet.";
+      return;
+    }
+    scenarioTextEl.textContent = (sc.title || "") + "\\n\\n" + (sc.description || "");
+    if (injects.length === 0) {
+      runStatusEl.textContent = "Scenario loaded. No injects?";
+    } else if (currentSeq == null) {
+      runStatusEl.textContent = "Scenario loaded. Injects: " + injects.length + ". Click \"Send next inject\".";
+    } else {
+      const idx = injects.findIndex(i => i.seq === currentSeq);
+      runStatusEl.textContent = "Inject " + (idx + 1) + " of " + injects.length + " is current.";
+    }
+  }
+
+  function loadEditorFromInject(inj) {
+    if (!inj) {
+      editorSeq = null;
+      injectTimeEl.value = "";
+      injectPhaseEl.value = "";
+      injectSeverityEl.value = "";
+      injectNarrativeEl.value = "";
+      decisionQuestionEl.value = "";
+      optAEl.value = "";
+      optBEl.value = "";
+      optCEl.value = "";
+      return;
+    }
+    editorSeq = inj.seq;
+    injectTimeEl.value = inj.time || "";
+    injectPhaseEl.value = inj.phase || "";
+    injectSeverityEl.value = inj.severity || "";
+    injectNarrativeEl.value = inj.narrative || "";
+    const dec  = inj.decision || {};
+    const opts = dec.options || {};
+    decisionQuestionEl.value = dec.question || "";
+    optAEl.value = opts.A || "";
+    optBEl.value = opts.B || "";
+    optCEl.value = opts.C || "";
   }
 
   function renderInjectList() {
     injectListEl.innerHTML = "";
-    allInjects.forEach((inj, index) => {
-      const item = document.createElement("div");
-      item.className = "inject-item" + (index === selectedInjectIndex ? " current" : "");
-      item.innerHTML = `
-        ${inj.seq}. ${inj.phase} <span class="pill">${inj.time}</span>
-        <button data-index="${index}" class="secondary select-inject-btn" style="padding: 2px 6px;">Edit</button>
-      `;
-      item.querySelector(".select-inject-btn").onclick = (e) => {
-        e.stopPropagation();
-        selectInject(index);
+    if (injects.length === 0) {
+      injectListEl.textContent = "No injects.";
+      sendNextBtn.disabled = true;
+      return;
+    }
+    injects.forEach(inj => {
+      const div = document.createElement("div");
+      div.className = "inject-item" + (inj.seq === currentSeq ? " current" : "");
+      const left = document.createElement("div");
+      left.textContent = "#" + inj.seq + " " + (inj.phase || "");
+      const right = document.createElement("div");
+      right.innerHTML = "<span class='pill'>" + (inj.time || "") + "</span>";
+      div.appendChild(left);
+      div.appendChild(right);
+      div.onclick = () => {
+        loadEditorFromInject(inj);
+        renderCurrentInject();
       };
-      injectListEl.appendChild(item);
+      injectListEl.appendChild(div);
     });
-    sendNextBtn.disabled = currentScenario.status !== 'started' || selectedInjectIndex < 0;
+    sendNextBtn.disabled = false;
   }
 
-  function selectInject(index) {
-    selectedInjectIndex = index;
-    const inj = allInjects[index];
-    if (inj) {
-      injectTime.value = inj.time || "";
-      injectPhase.value = inj.phase || "";
-      injectSeverity.value = inj.severity || "";
-      injectNarrative.value = inj.narrative || "";
-      decisionQuestion.value = inj.decision?.question || "";
-      optA.value = inj.decision?.options?.A || "";
-      optB.value = inj.decision?.options?.B || "";
-      optC.value = inj.decision?.options?.C || "";
-      updateInjectBtn.textContent = "Save changes to inject " + inj.seq;
-      renderInjectList();
-      currentInject = inj;
-      // Also update the current inject display, even if not officially sent
-      currentInjectBox.textContent = `Inject #${inj.seq} (${inj.phase} - ${inj.time}):\n\n${inj.narrative}\n\nDecision: ${inj.decision?.question || "None"}`;
+  function renderCurrentInject() {
+    if (currentSeq == null) {
+      currentInjectBox.textContent = "No inject sent yet.";
+      votesBox.textContent = "No votes yet.";
+      return;
+    }
+    const inj = injects.find(i => i.seq === currentSeq);
+    if (!inj) {
+      currentInjectBox.textContent = "No inject sent yet.";
+      votesBox.textContent = "No votes yet.";
+      return;
+    }
+    const lines = [];
+    lines.push((inj.time || "") + " • " + (inj.phase || ""));
+    if (inj.severity) lines.push(inj.severity);
+    lines.push("");
+    lines.push(inj.narrative || "");
+    if (inj.decision && inj.decision.question) {
+      lines.push("");
+      lines.push("Decision: " + inj.decision.question);
+      const opts = inj.decision.options || {};
+      if (opts.A) lines.push("  A. " + opts.A);
+      if (opts.B) lines.push("  B. " + opts.B);
+      if (opts.C) lines.push("  C. " + opts.C);
+    }
+    currentInjectBox.textContent = lines.join("\\n");
+
+    const tally    = computeTallyForSeq(currentSeq);
+    const majority = computeMajority(tally);
+    votesBox.innerHTML =
+      "<div><span class='badge'>A</span>" + tally.A + "</div>" +
+      "<div><span class='badge'>B</span>" + tally.B + "</div>" +
+      "<div><span class='badge'>C</span>" + tally.C + "</div>" +
+      "<div class='majority-label'>Majority: " + (majority || "None / Split") + "</div>";
+  }
+
+  function renderPlayers(snapshot) {
+    const now = Date.now();
+    const lines = [];
+    let active = 0;
+    let total  = 0;
+    snapshot.forEach(child => {
+      total++;
+      const v   = child.val() || {};
+      const ts  = v.ts || 0;
+      const age = now - ts;
+      const online = v.status === "online" && age < 90000;
+      if (online) active++;
+      const label = online ? "online" : (v.status || "inactive");
+      lines.push((v.name || child.key) + " (" + label + ", " + Math.round(age/1000) + "s)");
+    });
+    if (total === 0) {
+      playersBox.textContent = "Waiting for players…";
+      playerCountEl.textContent = "0";
+    } else {
+      playersBox.textContent = lines.join("\\n");
+      playerCountEl.textContent = active + " / " + total;
     }
   }
 
-  function resetInjectForm() {
-    selectedInjectIndex = -1;
-    injectTime.value = "";
-    injectPhase.value = "";
-    injectSeverity.value = "";
-    injectNarrative.value = "";
-    decisionQuestion.value = "";
-    optA.value = "";
-    optB.value = "";
-    optC.value = "";
-    updateInjectBtn.textContent = "Save changes to selected inject";
+  function sendNextInject() {
+    if (injects.length === 0) return;
+    let seqToSend = null;
+    if (currentSeq == null) {
+      seqToSend = injects[0].seq;
+    } else {
+      const idx = injects.findIndex(i => i.seq === currentSeq);
+      if (idx >= 0 && idx < injects.length - 1) {
+        seqToSend = injects[idx + 1].seq;
+      }
+    }
+    if (seqToSend == null) {
+      pushTicker("Already at last inject.");
+      return;
+    }
+    const inj = injects.find(i => i.seq === seqToSend);
+    if (!inj) return;
+    currentSeq = seqToSend;
+    set(latestInjectRef, inj);
+    pushTicker("Inject #" + seqToSend + " sent.");
     renderInjectList();
+    renderCurrentInject();
   }
 
-  // --- Firebase Event Handlers (Listeners) ---
+  function buildAAR() {
+    if (injects.length === 0) {
+      aarBox.value = "No injects.";
+      return;
+    }
+    const lines = [];
+    lines.push("=== After-Action Review ===");
+    lines.push("");
+    let proactive = 0, cautious = 0, delayed = 0, noVotes = 0;
 
-  // Listen for Scenario updates
+    injects.forEach(inj => {
+      const tally    = computeTallyForSeq(inj.seq);
+      const majority = computeMajority(tally);
+      lines.push("Inject #" + inj.seq + " [" + (inj.time || "") + " | " + (inj.phase || "") + "]");
+      lines.push("Narrative: " + (inj.narrative || ""));
+      if (inj.decision && inj.decision.question) {
+        lines.push("Decision: " + inj.decision.question);
+        const opts = inj.decision.options || {};
+        if (opts.A) lines.push("  A. " + opts.A);
+        if (opts.B) lines.push("  B. " + opts.B);
+        if (opts.C) lines.push("  C. " + opts.C);
+      }
+      const total = tally.A + tally.B + tally.C;
+      lines.push("Votes → A: " + tally.A + "  B: " + tally.B + "  C: " + tally.C);
+      lines.push("Majority: " + (majority || "None / Split"));
+      lines.push("");
+
+      if (total === 0)      noVotes++;
+      else if (majority==="A") proactive++;
+      else if (majority==="B") cautious++;
+      else if (majority==="C") delayed++;
+    });
+
+    lines.push("--- Overall pattern ---");
+    lines.push("Proactive (A-majority) decisions: " + proactive);
+    lines.push("Cautious / wait (B-majority) decisions: " + cautious);
+    lines.push("Delay / least action (C-majority) decisions: " + delayed);
+    lines.push("Injects with no votes: " + noVotes);
+    lines.push("");
+    lines.push("Use this as a neutral starting point for your own discussion.");
+
+    aarBox.readOnly = false;
+    aarBox.value = lines.join("\\n");
+    pushTicker("AAR built locally.");
+  }
+
+  function broadcastAAR() {
+    const text = aarBox.value || "";
+    set(aarRef, { text, ts: Date.now() })
+      .then(() => pushTicker("AAR broadcast to players."))
+      .catch(console.error);
+  }
+
+  // Handlers
+  loadScenarioBtn.onclick = () => {
+    // Seed scenario + injects from template
+    const scen = {
+      title: templateScenario.title,
+      description: templateScenario.description,
+      status: "configured"
+    };
+    set(scenarioRef, scen);
+    const injMap = {};
+    templateScenario.injects.forEach(inj => injMap[inj.seq] = inj);
+    set(injectsRef, injMap);
+    set(latestInjectRef, null);
+    set(votesRef, null);
+    set(aarRef, null);
+    currentSeq = null;
+    editorSeq  = null;
+    scenarioTitleEl.value = scen.title;
+    scenarioDescEl.value  = scen.description;
+    pushTicker("Template scenario loaded into session.");
+  };
+
+  saveScenarioBtn.onclick = () => {
+    const title = scenarioTitleEl.value.trim();
+    const desc  = scenarioDescEl.value.trim();
+    if (!title) {
+      alert("Scenario title is required.");
+      return;
+    }
+    update(scenarioRef, { title, description: desc })
+      .then(() => pushTicker("Scenario text updated."))
+      .catch(console.error);
+  };
+
+  startSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "started", startedAt: Date.now() })
+      .then(() => pushTicker("Session started."))
+      .catch(console.error);
+  };
+
+  endSessionBtn.onclick = () => {
+    update(scenarioRef, { status: "ended", endedAt: Date.now() })
+      .then(() => pushTicker("Session ended."))
+      .catch(console.error);
+  };
+
+  resetSessionBtn.onclick = () => {
+    Promise.all([
+      set(scenarioRef, null),
+      set(injectsRef, null),
+      set(latestInjectRef, null),
+      set(votesRef, null),
+      set(aarRef, null)
+    ]).then(() => {
+      injects = [];
+      currentSeq = null;
+      editorSeq = null;
+      votesBySeq = {};
+      scenarioStatus = "idle";
+      scenarioTitleEl.value = "";
+      scenarioDescEl.value = "";
+      scenarioTextEl.textContent = "";
+      runStatusEl.textContent = "Session reset. Click \"Load template\" to configure again.";
+      pushTicker("Session data cleared for this session id.");
+    }).catch(console.error);
+  };
+
+  updateInjectBtn.onclick = () => {updateInjectBtn.onclick = () => {
+    if (editorSeq == null) {
+      alert("Select an inject (click in list) before saving.");
+      return;
+    }
+    const time   = injectTimeEl.value.trim();
+    const phase  = injectPhaseEl.value.trim();
+    const sev    = injectSeverityEl.value.trim();
+    const narr   = injectNarrativeEl.value.trim();
+    const q      = decisionQuestionEl.value.trim();
+    const a      = optAEl.value.trim();
+    const b      = optBEl.value.trim();
+    const c      = optCEl.value.trim();
+    if (!narr) {
+      alert("Narrative is required.");
+      return;
+    }
+    const inj = { seq: editorSeq, time: time, phase: phase, severity: sev, narrative: narr };
+    if (q || a || b || c) {
+      inj.decision = { question: q, options: { A: a, B: b, C: c } };
+    }
+    set(ref(db, "sessions/" + sessionId + "/injects/" + editorSeq), inj)
+      .then(() => pushTicker("Inject #" + editorSeq + " updated."))
+      .catch(console.error);
+  };
+
+  sendNextBtn.onclick    = sendNextInject;
+  buildAarBtn.onclick    = buildAAR;
+  broadcastAarBtn.onclick= broadcastAAR;
+
+  // Listeners
   onValue(scenarioRef, snap => {
     const sc = snap.val();
     if (sc) {
-      // FIX 1 (from previous step): Ensure status has a default value if missing from the snapshot
-      currentScenario = {
-          title: sc.title || "",
-          description: sc.description || "",
-          status: sc.status || "idle"
-      };
-      renderScenario();
-    } else {
-      currentScenario = { title: "", description: "", status: "idle" };
-      renderScenario();
+      scenarioTitleEl.value = sc.title || "";
+      scenarioDescEl.value  = sc.description || "";
     }
+    renderScenarioText(sc);
   });
 
-  // Listen for Inject List updates
   onValue(injectsRef, snap => {
-    const injList = snap.val();
-    allInjects = injList ? Object.values(injList) :
+    const arr = [];
+    snap.forEach(child => {
+      const v = child.val();
+      if (!v) return;
+      v.seq = Number(v.seq || child.key);
+      arr.push(v);
+    });
+    arr.sort((a,b) => (a.seq || 0) - (b.seq || 0));
+    injects = arr;
+    renderScenarioText(snap.exists() ? { title: scenarioTitleEl.value, description: scenarioDescEl.value } : null);
+    renderInjectList();
+    if (injects.length && editorSeq == null) {
+      loadEditorFromInject(injects[0]);
+    }
+    renderCurrentInject();
+  });
+
+  onValue(playersRef, snap => renderPlayers(snap));
+
+  onValue(votesRef, snap => {
+    const bySeq = {};
+    snap.forEach(seqSnap => {
+      const seq = Number(seqSnap.key);
+      const inner = {};
+      seqSnap.forEach(voteSnap => inner[voteSnap.key] = voteSnap.val());
+      bySeq[seq] = inner;
+    });
+    votesBySeq = bySeq;
+    renderCurrentInject();
+  });
+
+  onValue(latestInjectRef, snap => {
+    const inj = snap.val();
+    if (!inj) {
+      currentSeq = null;
+      renderCurrentInject();
+      return;
+    }
+    currentSeq = Number(inj.seq || currentSeq);
+    renderInjectList();
+    renderCurrentInject();
+  });
+
+  startTicker();
+</script>
+</body>
+</html>
